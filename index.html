@@ -33,6 +33,11 @@
 
     <nav class="sidebar-nav" id="sidebarNav"></nav>
 
+    <a class="nav-item nav-docs" id="docsLink" href="docs.html" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4.5 4.5A1.5 1.5 0 0 1 6 3h12.5v15.5H6a1.5 1.5 0 0 0-1.5 1.5z"/><path d="M4.5 20A1.5 1.5 0 0 0 6 21h12.5v-2.5M8.5 7.5h6M8.5 11h6" stroke-linecap="round"/></svg>
+      <span>Dokumentation</span>
+    </a>
+
     <div class="sidebar-footer">
       <button type="button" id="themeToggle" class="sidebar-btn" aria-label="Farbmodus wechseln" title="Light/Dark Mode"></button>
       <button type="button" id="refreshBtn" class="sidebar-btn" aria-label="Dashboard aktualisieren">
@@ -42,12 +47,6 @@
       <button type="button" id="autoRefreshToggle" class="sidebar-btn" aria-label="Automatische Aktualisierung umschalten">
         <span id="autoRefreshLabel">⏸ Auto-Aktualisierung: AN</span>
       </button>
-      <button type="button" id="layoutEditToggle" class="sidebar-btn" aria-pressed="false">
-        <span id="layoutEditLabel">✥ Layout anpassen</span>
-      </button>
-      <button type="button" id="layoutResetBtn" class="sidebar-btn">
-        <span>↺ Layout zurücksetzen</span>
-      </button>
       <div class="sidebar-location">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>
         <div class="sidebar-location-text">
@@ -56,6 +55,7 @@
         </div>
       </div>
       <div class="sidebar-status" id="headerStatus"><span id="lastUpdated">Zuletzt aktualisiert: –</span></div>
+      <div class="sidebar-status sidebar-errors" id="refreshErrors" role="status" hidden></div>
     </div>
   </aside>
 
@@ -70,8 +70,9 @@
           <div class="panel-sub">Widgets hinzufügen, entfernen und mit „Anordnen“ verschieben</div>
         </div>
         <div class="overview-actions">
-          <button type="button" class="overview-btn" id="overviewArrangeBtn" aria-pressed="false">✥ Anordnen</button>
-          <button type="button" class="overview-btn primary" id="overviewAddBtn">+ Widget</button>
+          <button type="button" class="overview-btn layout-reset-btn" data-widget-action="reset">↺ Zurücksetzen</button>
+          <button type="button" class="overview-btn" data-widget-action="arrange" aria-pressed="false">✥ Anordnen</button>
+          <button type="button" class="overview-btn primary" data-widget-action="add">+ Widget</button>
         </div>
       </div>
       <div class="overview-grid" id="overviewGrid"></div>
@@ -83,6 +84,17 @@
 
     <!-- WETTER SEITE -->
     <div id="weatherPage" class="page">
+      <div class="overview-bar" data-layout-fixed>
+        <div>
+          <h1 class="overview-title">Wetter</h1>
+          <div class="panel-sub">Widgets hinzufügen, entfernen und mit „Anordnen“ verschieben</div>
+        </div>
+        <div class="overview-actions">
+          <button type="button" class="overview-btn layout-reset-btn" data-widget-action="reset">↺ Zurücksetzen</button>
+          <button type="button" class="overview-btn" data-widget-action="arrange" aria-pressed="false">✥ Anordnen</button>
+          <button type="button" class="overview-btn primary" data-widget-action="add">+ Widget</button>
+        </div>
+      </div>
       <div class="stat-row" id="weatherKpiRow">
       <div class="stat-card accent-navy">
         <div class="stat-icon">
@@ -170,6 +182,7 @@
         <div class="day-detail" id="dayDetail">
           <div class="day-detail-title" id="dayDetailTitle">Details</div>
           <div class="day-detail-rain" id="dayDetailRain"></div>
+          <div class="hour-strip-label">Stundenverlauf · alle 2 Stunden: Uhrzeit, Temperatur, Regenwahrscheinlichkeit</div>
           <div class="hour-strip-wrap">
             <button type="button" class="hour-scroll" id="hourScrollPrev" aria-label="Frühere Stunden">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
@@ -202,42 +215,22 @@
           </section>
         </div>
       </div>
+      <div class="overview-grid" id="weatherPageWidgets" hidden></div>
     </div> <!-- Ende Wetter Page -->
-
-    <!-- KALENDER SEITE -->
-    <div id="calendarPage" class="page">
-      <section class="panel calendar" id="calendarPanel" aria-label="Kalender">
-        <div class="cal-header">
-          <div class="cal-title" id="calTitle">Monat Jahr</div>
-          <div class="cal-header-right">
-            <div class="cal-nav">
-              <button type="button" id="calPrev" aria-label="Vorheriger Monat">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-              </button>
-              <button type="button" id="calToday" aria-label="Heute" style="width:auto; padding:0 8px; font-size:11px;">Heute</button>
-              <button type="button" id="calNext" aria-label="Nächster Monat">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
-              </button>
-            </div>
-            <button type="button" class="panel-toggle" id="calToggle" aria-label="Kalender-Widget ein-/ausklappen">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-            </button>
-          </div>
-        </div>
-        <div class="cal-grid" id="calGrid"></div>
-        <div class="cal-selected-date" id="calSelectedDate">Termine für <span id="calSelectedLabel">heute</span></div>
-        <div class="cal-events" id="calEvents"></div>
-        <form class="cal-add" id="calAddForm">
-          <input type="text" id="calAddInput" placeholder="Termin hinzufügen …" autocomplete="off" required aria-label="Terminname">
-          <input type="time" id="calAddTime" aria-label="Uhrzeit" required>
-          <label class="cal-all-day"><input type="checkbox" id="calAllDay">Ganztags</label>
-          <button type="submit" aria-label="Termin hinzufügen">+</button>
-        </form>
-      </section>
-    </div> <!-- Ende Kalender Page -->
 
     <!-- REGENRADAR SEITE -->
     <div id="radarPage" class="page">
+      <div class="overview-bar" data-layout-fixed>
+        <div>
+          <h1 class="overview-title">Regenradar</h1>
+          <div class="panel-sub">Widgets hinzufügen, entfernen und mit „Anordnen“ verschieben</div>
+        </div>
+        <div class="overview-actions">
+          <button type="button" class="overview-btn layout-reset-btn" data-widget-action="reset">↺ Zurücksetzen</button>
+          <button type="button" class="overview-btn" data-widget-action="arrange" aria-pressed="false">✥ Anordnen</button>
+          <button type="button" class="overview-btn primary" data-widget-action="add">+ Widget</button>
+        </div>
+      </div>
       <!-- Live rain radar -->
       <section class="panel radar" id="radarPanel" aria-label="Regenradar">
       <div class="radar-header">
@@ -289,10 +282,22 @@
 
       <div class="radar-note">Kartenbasis © Esri · Radar © RainViewer · Niederschlagskarte © OpenWeather · Ortssuche: Open-Meteo. Der API-Key aus js/config.js ist in Netzwerkanfragen sichtbar.</div>
     </section>
+      <div class="overview-grid" id="radarPageWidgets" hidden></div>
     </div> <!-- Ende Regenradar Page -->
 
     <!-- KATASTROPHENSCHUTZ SEITE -->
     <div id="disasterPage" class="page">
+      <div class="overview-bar" data-layout-fixed>
+        <div>
+          <h1 class="overview-title">Katastrophenschutz</h1>
+          <div class="panel-sub">Widgets hinzufügen, entfernen und mit „Anordnen“ verschieben</div>
+        </div>
+        <div class="overview-actions">
+          <button type="button" class="overview-btn layout-reset-btn" data-widget-action="reset">↺ Zurücksetzen</button>
+          <button type="button" class="overview-btn" data-widget-action="arrange" aria-pressed="false">✥ Anordnen</button>
+          <button type="button" class="overview-btn primary" data-widget-action="add">+ Widget</button>
+        </div>
+      </div>
       <div class="disaster-row">
         <section class="panel disaster-warn" id="disasterWarnPanel" aria-label="Amtliche Warnungen">
           <div class="panel-title">Amtliche Warnungen</div>
@@ -327,10 +332,22 @@
         <div class="panel-sub">Vorrat &amp; Ausrüstung — orientiert an den Empfehlungen des BBK</div>
         <div class="todo-list scroll-list" id="disasterChecklistList"></div>
       </section>
+      <div class="overview-grid" id="disasterPageWidgets" hidden></div>
     </div> <!-- Ende Katastrophenschutz Page -->
 
     <!-- FEUERWEHR SEITE -->
     <div id="firePage" class="page">
+      <div class="overview-bar" data-layout-fixed>
+        <div>
+          <h1 class="overview-title">Feuerwehr</h1>
+          <div class="panel-sub">Widgets hinzufügen, entfernen und mit „Anordnen“ verschieben</div>
+        </div>
+        <div class="overview-actions">
+          <button type="button" class="overview-btn layout-reset-btn" data-widget-action="reset">↺ Zurücksetzen</button>
+          <button type="button" class="overview-btn" data-widget-action="arrange" aria-pressed="false">✥ Anordnen</button>
+          <button type="button" class="overview-btn primary" data-widget-action="add">+ Widget</button>
+        </div>
+      </div>
       <div class="stat-row" id="fireStats">
         <div class="stat-card accent-orange">
           <div class="stat-icon">
@@ -402,7 +419,85 @@
           <div class="warn-note" id="fireSourceNote">Quelle: Berliner Feuerwehr Open Data · Tage nach Berliner Ortszeit</div>
         </section>
       </div>
+      <div class="overview-grid" id="firePageWidgets" hidden></div>
     </div> <!-- Ende Feuerwehr Page -->
+
+    <!-- WASSERPEGEL SEITE -->
+    <div id="waterPage" class="page">
+      <div class="overview-bar" data-layout-fixed>
+        <div>
+          <h1 class="overview-title">Wasserpegel</h1>
+          <div class="panel-sub">Widgets hinzufügen, entfernen und mit „Anordnen“ verschieben</div>
+        </div>
+        <div class="overview-actions">
+          <button type="button" class="overview-btn layout-reset-btn" data-widget-action="reset">↺ Zurücksetzen</button>
+          <button type="button" class="overview-btn" data-widget-action="arrange" aria-pressed="false">✥ Anordnen</button>
+          <button type="button" class="overview-btn primary" data-widget-action="add">+ Widget</button>
+        </div>
+      </div>
+      <div class="stat-row" id="waterStats">
+        <div class="stat-card accent-navy">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0M3 13c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0M3 18c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0"/></svg>
+          </div>
+          <div class="stat-body">
+            <div class="stat-value" id="waterLevel">–</div>
+            <div class="stat-label" id="waterLevelLabel">Wasserstand</div>
+            <div class="stat-delta" id="waterLevelDelta"></div>
+          </div>
+        </div>
+        <div class="stat-card accent-orange">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+          </div>
+          <div class="stat-body">
+            <div class="stat-value" id="waterState">–</div>
+            <div class="stat-label">Einordnung</div>
+            <div class="stat-delta" id="waterStateDelta"></div>
+          </div>
+        </div>
+        <div class="stat-card accent-light">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18M7 8l5-5 5 5M7 16l5 5 5-5"/></svg>
+          </div>
+          <div class="stat-body">
+            <div class="stat-value" id="waterRange">–</div>
+            <div class="stat-label">Spanne 7 Tage</div>
+            <div class="stat-delta" id="waterRangeDelta"></div>
+          </div>
+        </div>
+        <div class="stat-card accent-navy2">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9.5 2.5h5"/></svg>
+          </div>
+          <div class="stat-body">
+            <div class="stat-value" id="waterTime">–</div>
+            <div class="stat-label">Letzte Messung</div>
+            <div class="stat-delta" id="waterTimeDelta"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <section class="panel chart-card" id="waterChartPanel" aria-label="Pegelverlauf">
+          <div class="panel-title" id="waterChartTitle">Pegelverlauf</div>
+          <div class="panel-sub" id="waterChartSub">Letzte 7 Tage · Wasserstand in cm</div>
+          <form class="warn-search water-search" id="waterSearchForm">
+            <input type="text" id="waterSearchInput" list="waterStationList" placeholder="Pegel suchen, z. B. Dresden …" autocomplete="off" aria-label="Pegel suchen">
+            <datalist id="waterStationList"></datalist>
+            <button type="submit">Anzeigen</button>
+          </form>
+          <div id="waterChart" class="wave-chart water-chart"><div class="chart-empty">Daten werden geladen …</div></div>
+          <div class="warn-note" id="waterSourceNote">Quelle: PEGELONLINE (WSV) · ungeprüfte Rohdaten</div>
+        </section>
+        <section class="panel" id="waterBerlinPanel" aria-label="Pegel in Berlin">
+          <div class="panel-title">Pegel in Berlin</div>
+          <div class="panel-sub">Aktuelle Wasserstände · anklicken zum Anzeigen</div>
+          <div class="water-list" id="waterBerlinList"><div class="chart-empty">Daten werden geladen …</div></div>
+        </section>
+      </div>
+      <div class="overview-grid" id="waterPageWidgets" hidden></div>
+    </div> <!-- Ende Wasserpegel Page -->
 
   </main>
 </div>
@@ -417,7 +512,21 @@
   </div>
 </div>
 
-<div class="toast" id="toast">Hier entsteht bald ein neues Widget</div>
+<div class="widget-picker-overlay" id="resetConfirmOverlay">
+  <div class="widget-picker confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="resetConfirmTitle" aria-describedby="resetConfirmText">
+    <div class="widget-picker-header">
+      <div class="panel-title" id="resetConfirmTitle">Layout zurücksetzen?</div>
+      <button type="button" class="widget-picker-close" id="resetConfirmClose" aria-label="Schließen">×</button>
+    </div>
+    <p class="confirm-text" id="resetConfirmText"></p>
+    <div class="confirm-actions">
+      <button type="button" class="overview-btn" id="resetConfirmCancel">Abbrechen</button>
+      <button type="button" class="overview-btn primary" id="resetConfirmOk">Zurücksetzen</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite">Hier entsteht bald ein neues Widget</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="js/config.js"></script>
