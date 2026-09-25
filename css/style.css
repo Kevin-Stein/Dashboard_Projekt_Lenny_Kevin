@@ -65,7 +65,6 @@ body {
 .page {
   max-width: 1080px;
   margin: 0 auto;
-  height: calc(100vh - 112px);
   display: flex;
   flex-direction: column;
 }
@@ -126,7 +125,7 @@ h1 {
 .weather {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 15px;
   position: relative;
   overflow: hidden;
   min-height: 0;
@@ -183,7 +182,7 @@ h1 {
 .temp-now {
   font-family: "Fraunces", serif;
   font-weight: 500;
-  font-size: clamp(64px, 9vw, 92px);
+  font-size: clamp(56px, 7vw, 78px);
   line-height: 0.9;
   letter-spacing: -0.02em;
   opacity: 0;
@@ -338,11 +337,51 @@ h1 {
   color: var(--ink-soft);
 }
 
+.hour-strip-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .hour-strip {
+  flex: 1;
+  min-width: 0;
   display: flex;
   gap: 6px;
-  overflow-x: hidden;
+  overflow-x: auto;
+  scroll-behavior: smooth;
   padding-bottom: 4px;
+}
+.hour-scroll {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--line-strong);
+  background: var(--panel-2);
+  color: var(--ink);
+  cursor: pointer;
+}
+.hour-scroll svg {
+  width: 14px;
+  height: 14px;
+}
+.hour-scroll:hover:not(:disabled) {
+  border-color: var(--teal-soft);
+  color: var(--teal);
+}
+.hour-scroll:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.tz-note {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  margin-top: 3px;
 }
 
 .hour-chip {
@@ -685,9 +724,11 @@ h1 {
   border-radius: 18px;
   padding: 22px;
   width: 100%;
-  max-width: 420px;
-  max-height: none;
-  overflow-y: hidden;
+  max-width: 780px;
+  max-height: calc(100vh - 40px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .widget-picker-header {
@@ -717,21 +758,35 @@ h1 {
   color: var(--teal);
 }
 
+.widget-picker-body {
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.widget-picker-group-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+}
 .widget-picker-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
 }
 
 .widget-option {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
+  align-items: center;
+  gap: 10px;
   text-align: left;
   border: 1px solid var(--line);
   border-radius: 14px;
-  padding: 14px;
+  padding: 10px 12px;
   background: transparent;
   cursor: pointer;
   color: var(--ink);
@@ -774,6 +829,36 @@ h1 {
   font-size: 11.5px;
   color: var(--ink-soft);
   line-height: 1.3;
+}
+.widget-option-text {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.widget-option-state {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.widget-option.added {
+  border-color: var(--teal-soft);
+  background: var(--panel-2);
+}
+.widget-option.added .widget-option-state {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: #fff;
 }
 
 /* Added widget panels */
@@ -1477,7 +1562,7 @@ h1 {
 
 /* Inhalt jedes Widgets vollständig ausblenden, Header bleibt sichtbar */
 .panel.collapsed
-  > *:not(.weather-top):not(.cal-header):not(.radar-header):not(.widget-panel-header):not(.widget-remove):not(.layout-handle) {
+  > *:not(.weather-top):not(.cal-header):not(.radar-header):not(.widget-panel-header):not(.widget-remove):not(.ov-remove):not(.layout-handle):not(.panel-title):not(.panel-toggle) {
   display: none;
 }
 
@@ -1541,20 +1626,53 @@ h1 {
   --card-radius: 18px;
   --card-shadow: 0 10px 30px rgba(20, 30, 60, 0.06);
   --sidebar-w: 240px;
+  --side-bg: #ffffff;
+  --side-bg-2: #f3f7f6;
+  --side-ink: #17262b;
+  --side-ink-soft: #4e6167;
+  --side-accent: #2f5d62;
+  --side-line: #e1e8e6;
+  --side-hover: rgba(47, 93, 98, 0.08);
+  --side-btn-bg: #f5f8f7;
+  --side-btn-border: #d8e0de;
+  --side-btn-hover: #e8efed;
+  --side-shadow: 1px 0 0 #dfe6e4, 8px 0 28px rgba(20, 40, 45, 0.05);
 }
 :root:not([data-theme="light"]) {
   @media (prefers-color-scheme: dark) {
-    --navy: #0e1730;
-    --navy-2: #17224a;
+    --navy: #5f9092;
+    --navy-2: #3f6a6c;
     --orange-soft: #3a2e1e;
     --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    --side-bg: #131e20;
+    --side-bg-2: #172426;
+    --side-ink: #e7eeec;
+    --side-ink-soft: #9fb2af;
+    --side-accent: #7fbfc0;
+    --side-line: rgba(255, 255, 255, 0.08);
+    --side-hover: rgba(127, 191, 192, 0.1);
+    --side-btn-bg: rgba(255, 255, 255, 0.04);
+    --side-btn-border: rgba(255, 255, 255, 0.1);
+    --side-btn-hover: rgba(127, 191, 192, 0.14);
+    --side-shadow: 1px 0 0 rgba(255, 255, 255, 0.05);
   }
 }
 :root[data-theme="dark"] {
-  --navy: #0e1730;
-  --navy-2: #17224a;
+  --navy: #5f9092;
+  --navy-2: #3f6a6c;
   --orange-soft: #3a2e1e;
   --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --side-bg: #131e20;
+  --side-bg-2: #172426;
+  --side-ink: #e7eeec;
+  --side-ink-soft: #9fb2af;
+  --side-accent: #7fbfc0;
+  --side-line: rgba(255, 255, 255, 0.08);
+  --side-hover: rgba(127, 191, 192, 0.1);
+  --side-btn-bg: rgba(255, 255, 255, 0.04);
+  --side-btn-border: rgba(255, 255, 255, 0.1);
+  --side-btn-hover: rgba(127, 191, 192, 0.14);
+  --side-shadow: 1px 0 0 rgba(255, 255, 255, 0.05);
 }
 
 html,
@@ -1590,8 +1708,10 @@ body {
 .sidebar {
   width: var(--sidebar-w);
   flex-shrink: 0;
-  background: linear-gradient(180deg, var(--navy), var(--navy-2));
-  color: var(--navy-ink);
+  background: linear-gradient(180deg, var(--side-bg), var(--side-bg-2));
+  color: var(--side-ink);
+  box-shadow: var(--side-shadow);
+  z-index: 5;
   display: flex;
   flex-direction: column;
   padding: 26px 18px;
@@ -1604,38 +1724,108 @@ body {
 
 .sidebar-brand {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  text-align: center;
+  gap: 12px;
   padding-bottom: 18px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid var(--side-line);
 }
 
 .sidebar-avatar {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--orange);
+  color: #201203;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 .sidebar-avatar svg {
-  width: 28px;
-  height: 28px;
+  width: 23px;
+  height: 23px;
+}
+.sidebar-brand-text {
+  min-width: 0;
 }
 
 .sidebar-title {
   font-family: "Fraunces", serif;
-  font-size: 16px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.15;
+  hyphens: auto;
+  overflow-wrap: anywhere;
+}
+.sidebar-slogan {
+  font-size: 12px;
+  font-style: italic;
   font-weight: 500;
+  color: var(--side-accent);
+  margin-top: 3px;
+}
+
+/* Standort und Datum unten in der Sidebar */
+.sidebar-location {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--side-btn-bg);
+  border: 1px solid var(--side-btn-border);
+}
+.sidebar-location svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--side-accent);
+}
+.sidebar-location-text {
+  min-width: 0;
+}
+.sidebar-place {
+  font-family: "Fraunces", serif;
+  font-size: 14.5px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sidebar-sub {
   font-size: 11.5px;
-  opacity: 0.7;
+  color: var(--side-ink-soft);
   text-transform: capitalize;
+}
+
+/* Wenig Höhe: Sidebar enger, damit Standort und Datum unten sichtbar bleiben */
+@media (max-height: 760px) and (min-width: 761px) {
+  .sidebar {
+    padding: 16px 16px;
+    gap: 12px;
+  }
+  .sidebar-brand {
+    padding-bottom: 12px;
+  }
+  .sidebar-nav {
+    gap: 2px;
+  }
+  .nav-item {
+    padding: 7px 12px;
+  }
+  .sidebar-footer {
+    gap: 5px;
+    padding-top: 10px;
+  }
+  .sidebar-btn {
+    padding: 5px 10px;
+  }
+  .sidebar-location {
+    margin-top: 2px;
+    padding: 7px 10px;
+  }
 }
 
 .sidebar-nav {
@@ -1652,15 +1842,15 @@ body {
   border-radius: 10px;
   border: none;
   background: transparent;
-  color: var(--navy-ink);
-  opacity: 0.75;
+  color: var(--side-ink-soft);
   font-family: "Inter", sans-serif;
   font-size: 13.5px;
+  font-weight: 500;
   cursor: pointer;
   text-align: left;
   transition:
     background 0.15s ease,
-    opacity 0.15s ease;
+    color 0.15s ease;
 }
 .nav-item svg {
   width: 18px;
@@ -1668,14 +1858,18 @@ body {
   flex-shrink: 0;
 }
 .nav-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-  opacity: 1;
+  background: var(--side-hover);
+  color: var(--side-ink);
+}
+.nav-item:focus-visible {
+  outline: 2px solid var(--side-accent);
+  outline-offset: 1px;
 }
 .nav-item.active {
   background: var(--orange);
   color: #201203;
-  opacity: 1;
   font-weight: 600;
+  box-shadow: 0 4px 14px rgba(242, 153, 74, 0.28);
 }
 
 .menu-toggle {
@@ -1687,13 +1881,13 @@ body {
   flex-shrink: 0;
   padding: 0;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--navy-ink);
+  border: 1px solid var(--side-btn-border);
+  background: var(--side-btn-bg);
+  color: var(--side-ink);
   cursor: pointer;
 }
 .menu-toggle:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--side-btn-hover);
 }
 .menu-toggle svg {
   width: 22px;
@@ -1721,7 +1915,7 @@ body {
   flex-direction: column;
   gap: 8px;
   padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 1px solid var(--side-line);
 }
 
 .sidebar-btn {
@@ -1733,14 +1927,22 @@ body {
   font-weight: 500;
   padding: 8px 10px;
   border-radius: 9px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--navy-ink);
+  border: 1px solid var(--side-btn-border);
+  background: var(--side-btn-bg);
+  color: var(--side-ink);
   cursor: pointer;
   white-space: nowrap;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 .sidebar-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--side-btn-hover);
+  border-color: var(--side-accent);
+}
+.sidebar-btn[aria-pressed="true"] {
+  border-color: var(--side-accent);
+  color: var(--side-accent);
 }
 .sidebar-btn svg {
   width: 14px;
@@ -1773,9 +1975,11 @@ body {
 /* Pages - show only active page */
 .page {
   display: none;
+  width: 100%;
   max-width: 1080px;
   margin: 0 auto;
-  height: calc(100vh - 112px);
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
 }
 
@@ -1783,10 +1987,6 @@ body {
   display: flex;
   flex-direction: column;
   gap: 16px;
-}
-
-.page.active > * {
-  flex-shrink: 0;
 }
 
 /* Responsive widget grid */
@@ -1924,6 +2124,28 @@ body {
   color: var(--ink-soft);
   margin-top: 2px;
 }
+.stat-delta {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  margin-top: 3px;
+}
+.stat-delta:empty {
+  display: none;
+}
+
+.chart-empty {
+  flex: 1;
+  align-self: center;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
 
 /* Charts row: bar chart + donut */
 .charts-row {
@@ -1961,6 +2183,14 @@ body {
   gap: 6px;
 }
 
+.bar-track {
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
 .bar-col .bar {
   width: 60%;
   border-radius: 8px 8px 4px 4px;
@@ -2028,12 +2258,60 @@ body {
 
 .wave-chart {
   width: 100%;
-  height: 150px;
+  height: 172px;
+  display: flex;
 }
-.wave-chart svg {
+/* Achsen: links Temperatur, unten Uhrzeit */
+.wave-plot {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  grid-template-rows: 1fr 18px;
+  min-width: 0;
+}
+.wave-y {
+  position: relative;
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.wave-y span {
+  position: absolute;
+  right: 6px;
+  transform: translateY(-50%);
+}
+.wave-area {
+  position: relative;
+  min-width: 0;
+  border-left: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.wave-area svg {
   width: 100%;
   height: 100%;
   display: block;
+}
+.wave-x {
+  grid-column: 2;
+  position: relative;
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.wave-x span {
+  position: absolute;
+  top: 3px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+.wave-now-label {
+  position: absolute;
+  top: 2px;
+  transform: translateX(-50%);
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--orange);
+  background: var(--panel);
+  padding: 0 4px;
+  border-radius: 4px;
 }
 
 .lower-row .calendar {
@@ -2049,14 +2327,18 @@ body {
 }
 
 .detail-row .weather {
-  padding: 24px;
+  padding: 22px;
 }
 .detail-row .placeholder {
   min-height: 220px;
 }
 
-.panel.radar {
-  padding: 24px;
+/* Checkliste zweispaltig, damit die Seite ohne Scrollen passt */
+.disaster-checklist .todo-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 6px 14px;
+  max-height: none;
 }
 
 /* Katastrophenschutz-Seite */
@@ -2069,16 +2351,34 @@ body {
 .disaster-side {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 }
 .disaster-warn,
 .disaster-checklist,
 #disasterNumbersPanel,
 #disasterMeetingPanel {
-  padding: 22px;
+  padding: 18px 20px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+#disasterNumbersList .emerg-row {
+  gap: 14px;
+}
+#disasterNumbersList .emerg-label {
+  max-width: none;
+}
+.disaster-checklist .todo-item {
+  padding: 6px 10px;
+}
+/* "Gespeichert" überlagert den Panel-Rand, statt dauerhaft eine Zeile zu reservieren */
+#disasterMeetingPanel {
+  position: relative;
+}
+#meetingSaved {
+  position: absolute;
+  right: 20px;
+  bottom: 4px;
 }
 .scroll-list {
   max-height: 260px;
@@ -2140,11 +2440,18 @@ body {
   .sidebar-avatar {
     width: 36px;
     height: 36px;
+    border-radius: 11px;
     flex-shrink: 0;
   }
   .sidebar-avatar svg {
     width: 20px;
     height: 20px;
+  }
+  .sidebar-title {
+    font-size: 15px;
+  }
+  .sidebar-slogan {
+    margin-top: 1px;
   }
   .sidebar-sub {
     overflow: hidden;
@@ -2327,5 +2634,1061 @@ body.layout-drag-active * {
   .wave-card,
   .panel.radar {
     padding: 16px;
+  }
+}
+
+/* ===================================================================
+   Bildschirmfüllendes Layout: keine Seite scrollt. Die Widgets teilen
+   sich den verfügbaren Platz, eingeklappte Widgets geben ihn frei.
+   =================================================================== */
+.page,
+#disasterPage.page.active {
+  overflow: hidden;
+  padding-right: 0;
+}
+.page.active {
+  gap: clamp(8px, 1.8vh, 16px);
+}
+.page.active > * {
+  flex: 0 0 auto;
+  min-height: 0;
+}
+
+/* Zeilen mit mehreren Widgets nebeneinander */
+.charts-row,
+.lower-row,
+.detail-row,
+.disaster-row {
+  display: flex;
+  align-items: stretch;
+  gap: clamp(10px, 1.8vh, 18px);
+}
+.page.active > .charts-row,
+.page.active > .lower-row,
+.page.active > .detail-row,
+.page.active > .disaster-row {
+  flex: 1 1 0;
+}
+.charts-row > *,
+.lower-row > *,
+.detail-row > *,
+.disaster-row > * {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.charts-row > .chart-card {
+  flex-grow: 1.6;
+}
+.disaster-row > .disaster-warn {
+  flex-grow: 1.4;
+}
+.charts-row > .collapsed,
+.lower-row > .collapsed,
+.detail-row > .collapsed,
+.disaster-row > .collapsed {
+  flex: 0 0 auto;
+  align-self: flex-start;
+}
+/* Sind alle Widgets einer Zeile eingeklappt, schrumpft die Zeile */
+.page.active > .charts-row:not(:has(> .panel:not(.collapsed))),
+.page.active > .lower-row:not(:has(> .panel:not(.collapsed))),
+.page.active > .detail-row:not(:has(> .panel:not(.collapsed))):not(:has(> .weather-side > .panel:not(.collapsed))),
+.page.active > .disaster-row:not(:has(> .panel:not(.collapsed))):not(:has(> .disaster-side > .panel:not(.collapsed))) {
+  flex: 0 0 auto;
+}
+
+.panel,
+.stat-card {
+  position: relative;
+}
+
+/* Kennzahlen-Karten */
+.stat-row {
+  gap: clamp(8px, 1.6vh, 18px);
+  align-items: start;
+}
+.stat-card {
+  padding: clamp(10px, 1.8vh, 18px) 20px;
+}
+
+/* Diagramme passen sich der Kartenhöhe an */
+.chart-card,
+.donut-card,
+.wave-card {
+  min-height: 0;
+  overflow: hidden;
+  padding: clamp(12px, 2.2vh, 22px);
+  gap: clamp(4px, 1vh, 10px);
+}
+.bar-chart {
+  flex: 1 1 0;
+  min-height: 80px;
+}
+.donut-chart {
+  flex: 1 1 0;
+  min-height: 96px;
+  width: 100%;
+  height: auto;
+}
+.donut-chart svg {
+  transform: none;
+}
+.wave-chart {
+  flex: 1 1 0;
+  min-height: 80px;
+  height: auto;
+}
+
+/* Wetter-Seite */
+.detail-row .weather {
+  min-height: 0;
+  overflow: hidden;
+  gap: clamp(8px, 1.6vh, 15px);
+  padding: clamp(14px, 2.4vh, 22px);
+}
+.day-detail.show {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Kalender-Seite: Tage füllen die Höhe statt quadratisch zu sein */
+.page.active > .panel.calendar {
+  flex: 1 1 0;
+  overflow: hidden;
+  padding: clamp(14px, 2.4vh, 28px);
+  gap: clamp(8px, 1.4vh, 14px);
+}
+.calendar .cal-grid {
+  flex: 1 1 0;
+  min-height: 0;
+  grid-template-rows: auto;
+  grid-auto-rows: minmax(0, 1fr);
+}
+.calendar .cal-day {
+  aspect-ratio: auto;
+  height: auto;
+  min-height: 0;
+}
+.calendar .cal-events {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: 30%;
+  overflow: hidden;
+}
+
+/* Regenradar-Seite: Karte nimmt den Rest ein */
+.page.active > .panel.radar {
+  flex: 1 1 0;
+  overflow: hidden;
+  padding: clamp(14px, 2.4vh, 22px);
+  gap: clamp(8px, 1.4vh, 12px);
+}
+.panel.radar .map-wrap {
+  flex: 1 1 0;
+  min-height: 0;
+  height: auto;
+}
+
+/* Katastrophenschutz-Seite */
+.disaster-side {
+  display: flex;
+  flex-direction: column;
+}
+.disaster-side > .panel {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+.disaster-warn .scroll-list,
+.disaster-checklist .scroll-list {
+  flex: 1 1 0;
+  max-height: none;
+  min-height: 0;
+  overflow: hidden;
+}
+.page.active > .disaster-checklist {
+  flex: 0 1 auto;
+  overflow: hidden;
+}
+
+/* Eingeklappte Widgets: nur Titel und Pfeil */
+.page.active > .panel.collapsed {
+  flex: 0 0 auto;
+}
+.stat-card.collapsed {
+  align-self: start;
+}
+.stat-card.collapsed .stat-value,
+.stat-card.collapsed .stat-delta {
+  display: none;
+}
+.panel-toggle.auto-toggle {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 3;
+}
+.stat-card > .panel-toggle.auto-toggle {
+  top: 8px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+}
+.panel:has(> .auto-toggle) > .panel-title {
+  padding-right: 34px;
+}
+
+/* Wenig Höhe: Hinweistexte zuerst ausblenden */
+@media (max-height: 760px) {
+  .source-note,
+  .radar-note,
+  .radar-detail-note,
+  .panel-sub,
+  .warn-note {
+    display: none;
+  }
+}
+
+/* Bis 760px bleiben Widgets nebeneinander (überschreibt die ältere 1080px-Regel) */
+@media (max-width: 1080px) {
+  .stat-row {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .stat-card {
+    padding: clamp(8px, 1.6vh, 16px) 14px;
+    gap: 10px;
+    min-width: 0;
+  }
+  .stat-card > * {
+    min-width: 0;
+  }
+  .stat-label {
+    hyphens: auto;
+  }
+  .stat-icon {
+    width: 34px;
+    height: 34px;
+  }
+}
+@media (max-width: 900px) {
+  .stat-icon,
+  .stat-delta-suffix {
+    display: none;
+  }
+  .stat-value {
+    font-size: 20px;
+    white-space: nowrap;
+  }
+}
+
+/* Schmale Bildschirme: Widgets untereinander, teilen sich die Höhe */
+@media (max-width: 760px) {
+  .stat-row {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .stat-card {
+    padding: 8px;
+    gap: 0;
+    min-width: 0;
+  }
+  .stat-card > div {
+    min-width: 0;
+  }
+  .stat-icon,
+  .stat-delta-suffix,
+  .panel-sub {
+    display: none;
+  }
+  .stat-value {
+    font-size: 15px;
+    white-space: nowrap;
+  }
+  .stat-label {
+    font-size: 10px;
+    padding-right: 0;
+    hyphens: auto;
+  }
+  .stat-value {
+    padding-right: 18px;
+  }
+  .stat-delta {
+    white-space: nowrap;
+  }
+  .donut-caption {
+    display: none;
+  }
+  .disaster-row > .disaster-side {
+    flex: 0 0 auto;
+  }
+  .stat-card > .panel-toggle.auto-toggle {
+    top: 4px;
+    right: 4px;
+    width: 18px;
+    height: 18px;
+  }
+  .stat-card > .panel-toggle.auto-toggle svg {
+    width: 11px;
+    height: 11px;
+  }
+  .charts-row,
+  .lower-row,
+  .detail-row,
+  .disaster-row {
+    flex-direction: column;
+  }
+  .charts-row > *,
+  .lower-row > *,
+  .detail-row > *,
+  .disaster-row > *,
+  .charts-row > .chart-card,
+  .disaster-row > .disaster-warn {
+    flex: 1 1 0;
+  }
+  .charts-row > .collapsed,
+  .lower-row > .collapsed,
+  .detail-row > .collapsed,
+  .disaster-row > .collapsed {
+    flex: 0 0 auto;
+    align-self: stretch;
+  }
+  .page.active > .disaster-checklist:not(.collapsed) {
+    flex: 1 1 0;
+  }
+  .detail-row > .weather-side:not(:has(> .panel:not(.collapsed))) {
+    flex: 0 0 auto;
+  }
+}
+
+/* ===================== Feuerwehr-Seite ===================== */
+.bar-label .bar-date {
+  display: block;
+  font-size: 10px;
+  opacity: 0.8;
+}
+.fire-table-card {
+  background: var(--panel);
+  padding: clamp(12px, 2.2vh, 22px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px, 1vh, 10px);
+}
+.fire-table-wrap {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.fire-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.fire-table th,
+.fire-table td {
+  padding: clamp(3px, 0.7vh, 7px) 10px;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+  white-space: nowrap;
+}
+.fire-table th:first-child,
+.fire-table td:first-child {
+  text-align: left;
+}
+.fire-table th {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.fire-table tbody tr:first-child td {
+  font-weight: 600;
+}
+.fire-table .fire-table-empty {
+  text-align: center;
+  color: var(--ink-soft);
+  padding: 18px;
+}
+#firePage > .lower-row {
+  flex-grow: 1.3;
+}
+.fire-export {
+  position: absolute;
+  top: 12px;
+  right: 46px;
+  height: 26px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 0 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.fire-export:hover:not(:disabled) {
+  border-color: var(--orange);
+}
+.fire-export:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+@media (max-width: 760px) {
+  .fire-table {
+    font-size: 11px;
+  }
+  .fire-table th,
+  .fire-table td {
+    padding: 3px 4px;
+  }
+  .fire-table th {
+    font-size: 10px;
+    white-space: normal;
+  }
+  #fireSourceNote {
+    font-size: 10.5px;
+  }
+  .stat-unit {
+    display: none;
+  }
+  #firePage .charts-row > .donut-card:not(.collapsed) {
+    flex: 0 0 auto;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    text-align: left;
+  }
+  #firePage .donut-card .donut-chart {
+    flex: 0 0 auto;
+    width: 64px;
+    height: 64px;
+    min-height: 0;
+    margin-right: 34px;
+  }
+  #firePage .donut-card .donut-pct {
+    font-size: 14px;
+  }
+  #firePage .donut-card .donut-word {
+    display: none;
+  }
+  #firePage > .charts-row {
+    flex-grow: 1.5;
+  }
+  #firePage > .lower-row {
+    flex-grow: 1;
+  }
+}
+@media (max-height: 760px) {
+  .fire-table th,
+  .fire-table td {
+    padding-top: 2px;
+    padding-bottom: 2px;
+  }
+}
+
+/* ===================== Wetter-Seite: Diagramme rechts neben dem Wetter ===================== */
+.detail-row > .weather {
+  flex-grow: 1.4;
+}
+.weather-side {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 1.6vh, 14px);
+}
+.weather-side > * {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.weather-side > .collapsed {
+  flex: 0 0 auto;
+}
+.detail-row > .weather-side:not(:has(> .panel:not(.collapsed))) {
+  align-self: flex-start;
+}
+.weather-side .bar-chart,
+.weather-side .wave-chart,
+.weather-side .donut-chart {
+  min-height: 40px;
+}
+.weather-side > .donut-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr);
+  align-items: center;
+}
+.weather-side > .donut-card > .panel-title {
+  grid-column: 1 / -1;
+}
+.weather-side > .donut-card > .donut-chart {
+  height: 100%;
+}
+
+/* ===================== Übersicht: frei zusammenstellbar ===================== */
+.overview-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.overview-title {
+  font-family: "Fraunces", serif;
+  font-weight: 500;
+  font-size: clamp(20px, 3vh, 26px);
+  margin: 0;
+  color: var(--ink);
+}
+.overview-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.overview-btn {
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--line-strong);
+  background: var(--panel);
+  color: var(--ink);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease,
+    background 0.15s ease;
+}
+.overview-btn:hover,
+.overview-btn:focus-visible {
+  border-color: var(--teal);
+  color: var(--teal);
+  outline: none;
+}
+.overview-btn.primary {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: #fff;
+}
+.overview-btn.primary:hover,
+.overview-btn.primary:focus-visible {
+  color: #fff;
+  filter: brightness(1.08);
+}
+.overview-btn[aria-pressed="true"] {
+  border-color: var(--teal);
+  color: var(--teal);
+  background: var(--panel-2);
+}
+
+.page.active > .overview-grid {
+  flex: 1 1 0;
+}
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  gap: clamp(8px, 1.6vh, 16px);
+  min-height: 0;
+  overflow: hidden;
+}
+.overview-grid.ov-overfull {
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.overview-grid[hidden],
+.overview-empty[hidden] {
+  display: none;
+}
+.page.active > .overview-empty {
+  flex: 1 1 0;
+}
+.overview-empty .label {
+  max-width: 240px;
+}
+
+.ov-widget {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1vh, 10px);
+  padding: clamp(12px, 2vh, 18px);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.ov-widget.collapsed {
+  align-self: start;
+}
+.ov-widget > .panel-title {
+  padding-right: 66px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ov-body {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1vh, 10px);
+  overflow: hidden;
+  container-type: size;
+}
+/* Flache Kacheln zeigen nur das Wesentliche */
+@container (max-height: 120px) {
+  .ov-body .stat-delta,
+  .ov-body .donut-caption,
+  .ov-body .warn-note,
+  .ov-body .panel-sub,
+  .ov-body .notes-saved {
+    display: none;
+  }
+  .ov-body .stat-card {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+}
+@container (max-height: 80px) {
+  .ov-body .range,
+  .ov-body .stat-label {
+    display: none;
+  }
+  .ov-body .temp-now {
+    font-size: 32px;
+  }
+}
+.ov-remove {
+  position: absolute;
+  top: 12px;
+  right: 44px;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+}
+.ov-remove:hover {
+  border-color: #c2412d;
+  color: #c2412d;
+}
+.layout-editing .ov-widget > .panel-title {
+  padding-left: 28px;
+}
+
+/* Inhalte in den Übersichts-Widgets füllen die Kachel */
+.ov-body .bar-chart,
+.ov-body .wave-chart,
+.ov-body .donut-chart {
+  flex: 1 1 0;
+  min-height: 40px;
+  height: auto;
+}
+.ov-body .todo-list,
+.ov-body .warn-list,
+.ov-body .clock-list,
+.ov-body .scroll-list,
+.ov-body .ov-events {
+  flex: 1 1 0;
+  min-height: 0;
+  max-height: none;
+  overflow: hidden;
+}
+.ov-body .notes-area {
+  flex: 1 1 0;
+  min-height: 40px;
+  resize: none;
+}
+.ov-body .stat-row {
+  flex: 1 1 0;
+  min-height: 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-content: start;
+}
+@container (max-width: 460px) {
+  .ov-body .stat-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@container (max-width: 620px) {
+  .ov-body .stat-icon {
+    display: none;
+  }
+}
+.ov-body .stat-card {
+  background: var(--panel-2);
+  box-shadow: none;
+  min-width: 0;
+}
+.ov-body .fire-table-wrap {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+}
+#countdownBody {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  justify-content: center;
+}
+
+.ov-body-weather-now {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 4px 12px;
+}
+.ov-body-weather-now > .condition-icon {
+  grid-column: 2;
+  grid-row: 1 / -1;
+}
+.ov-body-weather-now > .temp-row {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: center;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+.ov-body .temp-now {
+  font-size: clamp(38px, 7vh, 64px);
+  animation: none;
+  opacity: 1;
+  flex-shrink: 0;
+}
+.ov-body .temp-meta {
+  padding-bottom: 0;
+  min-width: 0;
+}
+.ov-body .range {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.ov-body-weather-now > .condition-icon {
+  width: clamp(36px, 7vh, 56px);
+  height: clamp(36px, 7vh, 56px);
+}
+
+.ov-body-rain-donut {
+  align-items: center;
+}
+.ov-body .bar-chart {
+  padding-top: 4px;
+}
+.ov-body .bar-col {
+  min-width: 0;
+}
+
+/* Schmale Kacheln (z. B. zwei Spalten auf dem Handy) */
+.ov-widget {
+  container-type: inline-size;
+}
+@container (max-width: 240px) {
+  .ov-widget > .panel-title {
+    font-size: 14.5px;
+    padding-right: 52px;
+  }
+  .ov-widget > .ov-remove,
+  .ov-widget > .panel-toggle.auto-toggle {
+    top: 9px;
+    width: 22px;
+    height: 22px;
+  }
+  .ov-widget > .panel-toggle.auto-toggle {
+    right: 8px;
+  }
+  .ov-widget > .ov-remove {
+    right: 34px;
+  }
+  .ov-body-weather-now > .condition-icon {
+    display: none;
+  }
+  .ov-body-weather-now > .temp-row {
+    grid-column: 1 / -1;
+    flex-wrap: wrap;
+    gap: 2px 10px;
+  }
+  .ov-body .temp-now {
+    font-size: 34px;
+  }
+  .ov-body .bar-chart {
+    gap: 3px;
+  }
+  .ov-body .bar-col .bar-value,
+  .ov-body .bar-col .bar-label {
+    font-size: 10px;
+  }
+  .ov-body .bar-label .bar-date {
+    display: none;
+  }
+}
+
+.ov-map {
+  flex: 1 1 0;
+  min-height: 80px;
+  border-radius: 12px;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.ov-date {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.ov-events {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ov-event {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 7px 10px;
+  border-radius: 9px;
+  background: var(--panel-2);
+  font-size: 13px;
+}
+.ov-event-time {
+  font-weight: 600;
+  color: var(--teal);
+  white-space: nowrap;
+}
+.ov-event-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .overview-bar .panel-sub {
+    display: none;
+  }
+  .overview-title {
+    font-size: 20px;
+  }
+  .overview-btn {
+    padding: 7px 10px;
+    font-size: 12px;
+  }
+  .weather-side {
+    flex-direction: row;
+    gap: 6px;
+  }
+  .weather-side > .panel {
+    padding: 10px;
+  }
+  .weather-side > .donut-card {
+    display: flex;
+  }
+  .weather-side .panel-title {
+    font-size: 13px;
+    padding-right: 22px;
+  }
+  .weather-side .bar-chart {
+    gap: 2px;
+  }
+  .weather-side .bar-col {
+    min-width: 0;
+  }
+  .weather-side .bar-col .bar-value,
+  .weather-side .bar-col .bar-label {
+    font-size: 9.5px;
+  }
+  .weather-side .panel-toggle.auto-toggle {
+    top: 8px;
+    right: 6px;
+    width: 20px;
+    height: 20px;
+  }
+  .detail-row > .weather-side:not(.collapsed) {
+    flex: 0.8 1 0;
+  }
+  .weather-side > .collapsed {
+    align-self: flex-start;
+  }
+}
+
+/* Einklapp-Pfeile und Entfernen-Knopf erscheinen erst beim Überfahren */
+.panel-toggle,
+.ov-remove {
+  opacity: 0;
+  transition:
+    opacity 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+.panel:hover .panel-toggle,
+.stat-card:hover > .panel-toggle,
+.panel:hover > .ov-remove,
+.panel-toggle:focus-visible,
+.ov-remove:focus-visible {
+  opacity: 1;
+}
+@media (hover: none) {
+  .panel-toggle,
+  .ov-remove {
+    opacity: 1;
+  }
+}
+
+/* ===================================================================
+   Mobile Ansicht: die Seite scrollt, Widgets haben ihre natürliche Höhe.
+   !important überschreibt die flex-Verteilung des bildschirmfüllenden Layouts.
+   =================================================================== */
+@media (max-width: 760px) {
+  html,
+  body {
+    height: auto;
+    overflow: visible;
+  }
+  body {
+    overflow-x: hidden;
+  }
+  .app-shell {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+  .sidebar {
+    position: sticky;
+    top: 0;
+  }
+  .main-content {
+    overflow: visible;
+    padding-bottom: 28px;
+  }
+  .page,
+  #disasterPage.page.active {
+    flex: none;
+    overflow: visible;
+  }
+  .page.active > *,
+  .charts-row > *,
+  .lower-row > *,
+  .detail-row > *,
+  .disaster-row > *,
+  .disaster-side > *,
+  .weather-side > * {
+    flex: 0 0 auto !important;
+    overflow: visible;
+  }
+  .charts-row > .panel,
+  .lower-row > .panel,
+  .detail-row > .panel,
+  .disaster-row > .panel,
+  .weather-side > .panel {
+    overflow: hidden;
+  }
+
+  /* Diagramme bekommen feste Höhen statt den Rest der Seite */
+  .bar-chart {
+    flex: none;
+    height: 190px;
+  }
+  .donut-chart {
+    flex: none;
+    width: 170px;
+    height: 170px;
+    align-self: center;
+  }
+  .wave-chart {
+    flex: none;
+    height: 180px;
+  }
+  .day-detail.show {
+    flex: none;
+    overflow: visible;
+  }
+
+  /* Wetter-Seite: Diagramme wieder untereinander in voller Breite */
+  .weather-side {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .weather-side > .panel {
+    padding: 16px;
+  }
+  .weather-side .panel-title {
+    font-size: 16px;
+    padding-right: 34px;
+  }
+  .weather-side .bar-chart {
+    gap: 8px;
+  }
+  .weather-side .bar-col .bar-value,
+  .weather-side .bar-col .bar-label {
+    font-size: 11px;
+  }
+  .weather-side .panel-toggle.auto-toggle {
+    top: 12px;
+    right: 12px;
+    width: 26px;
+    height: 26px;
+  }
+  .detail-row > .weather-side:not(.collapsed) {
+    flex: 0 0 auto;
+  }
+
+  /* Kalender, Radar, Listen: natürliche Höhe */
+  .calendar .cal-grid {
+    flex: none;
+    grid-auto-rows: minmax(52px, auto);
+  }
+  .calendar .cal-events {
+    max-height: none;
+    overflow: visible;
+  }
+  .panel.radar .map-wrap {
+    flex: none;
+    height: 360px;
+  }
+  .disaster-warn .scroll-list,
+  .disaster-checklist .scroll-list,
+  .scroll-list {
+    flex: none;
+    max-height: none;
+    overflow: visible;
+  }
+  .fire-table-wrap {
+    flex: none;
+    overflow-x: auto;
+  }
+  #firePage .charts-row > .donut-card:not(.collapsed) {
+    min-height: 0;
+  }
+
+  /* Wieder sichtbar, da jetzt Platz ist */
+  .panel-sub,
+  .donut-caption,
+  .warn-note,
+  .source-note {
+    display: revert;
+  }
+
+  /* Übersicht: Zeilenhöhe setzt fitOverviewGrid(), die Seite scrollt */
+  .overview-grid {
+    overflow: visible;
+  }
+  .overview-empty {
+    min-height: 200px;
   }
 }

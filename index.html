@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Übersicht</title>
+<title>Katastrophenschutz – Wir helfen Berlin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -17,10 +17,12 @@
   <aside class="sidebar">
     <div class="sidebar-brand">
       <div class="sidebar-avatar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 2.8l7.5 3v5.6c0 4.6-3.1 8.4-7.5 9.8-4.4-1.4-7.5-5.2-7.5-9.8V5.8z"/><path d="M12 8.5v6M9 11.5h6" stroke-linecap="round"/></svg>
       </div>
-      <div class="sidebar-title" id="sidebarPlaceName">Wiesbaden</div>
-      <div class="sidebar-sub" id="headerDate">–</div>
+      <div class="sidebar-brand-text">
+        <div class="sidebar-title">Katastrophenschutz</div>
+        <div class="sidebar-slogan">„Wir helfen Berlin“</div>
+      </div>
     </div>
 
     <button type="button" class="menu-toggle" id="menuToggle" aria-label="Menü öffnen" aria-expanded="false" aria-controls="sidebarNav">
@@ -29,32 +31,7 @@
       </svg>
     </button>
 
-    <nav class="sidebar-nav" id="sidebarNav">
-      <button type="button" class="nav-item active" data-target="overviewSection">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11.5L12 4l9 7.5"/><path d="M5.5 10v9.5a1 1 0 0 0 1 1H17.5a1 1 0 0 0 1-1V10"/></svg>
-        <span>Übersicht</span>
-      </button>
-      <button type="button" class="nav-item" data-target="weatherPanel">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 15.5a3.8 3.8 0 0 1 .3-7.6 5.4 5.4 0 0 1 10.4-1.7A4.3 4.3 0 0 1 17 15z"/></svg>
-        <span>Wetter</span>
-      </button>
-      <button type="button" class="nav-item" data-target="calendarPanel">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 9.5h17M8 3v3.5M16 3v3.5"/></svg>
-        <span>Kalender</span>
-      </button>
-      <button type="button" class="nav-item" data-target="radarPanel">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v6M12 3a9 9 0 1 0 9 9M12 3a5 5 0 0 1 5 5"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg>
-        <span>Regenradar</span>
-      </button>
-      <button type="button" class="nav-item" data-target="disasterPage">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3.5l7.5 3v5.2c0 4.6-3.1 8.2-7.5 9.8-4.4-1.6-7.5-5.2-7.5-9.8V6.5l7.5-3z"/><path d="M12 8v5"/><circle cx="12" cy="15.8" r="0.6" fill="currentColor" stroke="none"/></svg>
-        <span>Katastrophenschutz</span>
-      </button>
-      <button type="button" class="nav-item" data-target="widgetSlot">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="3.5" width="7.5" height="7.5" rx="1.6"/><rect x="13" y="3.5" width="7.5" height="7.5" rx="1.6"/><rect x="3.5" y="13" width="7.5" height="7.5" rx="1.6"/><rect x="13" y="13" width="7.5" height="7.5" rx="1.6"/></svg>
-        <span>Widget</span>
-      </button>
-    </nav>
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
 
     <div class="sidebar-footer">
       <button type="button" id="themeToggle" class="sidebar-btn" aria-label="Farbmodus wechseln" title="Light/Dark Mode"></button>
@@ -71,6 +48,13 @@
       <button type="button" id="layoutResetBtn" class="sidebar-btn">
         <span>↺ Layout zurücksetzen</span>
       </button>
+      <div class="sidebar-location">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>
+        <div class="sidebar-location-text">
+          <div class="sidebar-place" id="sidebarPlaceName">Berlin</div>
+          <div class="sidebar-sub" id="headerDate">–</div>
+        </div>
+      </div>
       <div class="sidebar-status" id="headerStatus"><span id="lastUpdated">Zuletzt aktualisiert: –</span></div>
     </div>
   </aside>
@@ -78,9 +62,28 @@
   <!-- ===================== MAIN CONTENT ===================== -->
   <main class="main-content">
 
-    <!-- ÜBERSICHT SEITE -->
+    <!-- ÜBERSICHT SEITE: frei zusammenstellbar -->
     <div id="overviewPage" class="page active">
-      <div class="stat-row" id="overviewSection">
+      <div class="overview-bar" data-layout-fixed>
+        <div>
+          <h1 class="overview-title">Meine Übersicht</h1>
+          <div class="panel-sub">Widgets hinzufügen, entfernen und mit „Anordnen“ verschieben</div>
+        </div>
+        <div class="overview-actions">
+          <button type="button" class="overview-btn" id="overviewArrangeBtn" aria-pressed="false">✥ Anordnen</button>
+          <button type="button" class="overview-btn primary" id="overviewAddBtn">+ Widget</button>
+        </div>
+      </div>
+      <div class="overview-grid" id="overviewGrid"></div>
+      <button type="button" class="placeholder overview-empty" id="overviewEmpty" data-layout-fixed hidden>
+        <span class="plus">+</span>
+        <span class="label">Deine Übersicht ist leer — füge Widgets hinzu</span>
+      </button>
+    </div> <!-- Ende Übersicht Page -->
+
+    <!-- WETTER SEITE -->
+    <div id="weatherPage" class="page">
+      <div class="stat-row" id="weatherKpiRow">
       <div class="stat-card accent-navy">
         <div class="stat-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="17" r="3.2"/><path d="M12 13.5V5a2 2 0 1 0-4 0v8.5" opacity="0"/><path d="M13 13.8V5.2a1.8 1.8 0 1 0-3.6 0v8.6a3.2 3.2 0 1 0 3.6 0z"/></svg>
@@ -88,6 +91,7 @@
         <div class="stat-body">
           <div class="stat-value" id="statTempNow">–</div>
           <div class="stat-label">Temperatur</div>
+          <div class="stat-delta" id="statTempDelta"></div>
         </div>
       </div>
       <div class="stat-card accent-orange">
@@ -97,6 +101,7 @@
         <div class="stat-body">
           <div class="stat-value" id="statWind">–</div>
           <div class="stat-label">Wind</div>
+          <div class="stat-delta" id="statWindDelta"></div>
         </div>
       </div>
       <div class="stat-card accent-light">
@@ -106,6 +111,7 @@
         <div class="stat-body">
           <div class="stat-value" id="statHumidity">–</div>
           <div class="stat-label">Luftfeuchte</div>
+          <div class="stat-delta" id="statHumidityDelta"></div>
         </div>
       </div>
       <div class="stat-card accent-navy2">
@@ -115,34 +121,11 @@
         <div class="stat-body">
           <div class="stat-value" id="statRain">–</div>
           <div class="stat-label">Regenchance heute</div>
+          <div class="stat-delta" id="statRainDelta"></div>
         </div>
       </div>
     </div>
 
-    <div class="charts-row">
-      <section class="panel chart-card" aria-label="Temperaturvorhersage">
-        <div class="panel-title">Vorhersage · Höchsttemperatur</div>
-        <div class="panel-sub">Nächste Tage</div>
-        <div id="barChart" class="bar-chart"></div>
-      </section>
-      <section class="panel donut-card" aria-label="Regenwahrscheinlichkeit">
-        <div class="panel-title">Regenwahrscheinlichkeit</div>
-        <div id="donutChart" class="donut-chart"></div>
-        <div class="donut-caption" id="donutCaption">heute</div>
-      </section>
-    </div>
-
-    <div class="lower-row">
-      <section class="panel wave-card" aria-label="Temperaturverlauf">
-        <div class="panel-title">Temperaturverlauf</div>
-        <div class="panel-sub" id="waveDayLabel">heute, stündlich</div>
-        <div id="waveChart" class="wave-chart"></div>
-      </section>
-    </div>
-    </div> <!-- Ende Übersicht Page -->
-
-    <!-- WETTER SEITE -->
-    <div id="weatherPage" class="page">
       <div class="detail-row">
         <!-- Weather detail panel (full data, forecast strip, search) -->
         <section class="panel weather" id="weatherPanel" aria-label="Wetter">
@@ -150,8 +133,9 @@
           <div>
             <div class="place" id="weatherPlace">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>
-              <span id="weatherPlaceName">Wiesbaden</span>
+              <span id="weatherPlaceName">Berlin</span>
             </div>
+            <div class="tz-note" id="weatherTzNote" hidden></div>
           </div>
           <div class="weather-top-right">
             <svg class="condition-icon" id="weatherIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -172,10 +156,10 @@
         <div class="weather-loading" id="weatherLoading"></div>
 
         <div class="temp-row">
-          <div class="temp-now" id="weatherTempNow">11°</div>
+          <div class="temp-now" id="weatherTempNow">–</div>
           <div class="temp-meta">
-            <div class="condition-text" id="weatherConditionText">Bewölkt</div>
-            <div class="range" id="weatherRange">Heute 9° – 22° · 10 % Regenwahrscheinlichkeit</div>
+            <div class="condition-text" id="weatherConditionText">–</div>
+            <div class="range" id="weatherRange">Wetterdaten werden geladen …</div>
           </div>
         </div>
 
@@ -186,12 +170,38 @@
         <div class="day-detail" id="dayDetail">
           <div class="day-detail-title" id="dayDetailTitle">Details</div>
           <div class="day-detail-rain" id="dayDetailRain"></div>
-          <div class="hour-strip" id="dayDetailHours"></div>
+          <div class="hour-strip-wrap">
+            <button type="button" class="hour-scroll" id="hourScrollPrev" aria-label="Frühere Stunden">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <div class="hour-strip" id="dayDetailHours"></div>
+            <button type="button" class="hour-scroll" id="hourScrollNext" aria-label="Spätere Stunden">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+            </button>
+          </div>
         </div>
 
         <div class="source-note" id="weatherSourceNote">Wetterdaten werden geladen … · Quelle: Open-Meteo</div>
       </section>
-    </div>
+
+        <div class="weather-side">
+          <section class="panel chart-card" aria-label="Temperaturvorhersage">
+            <div class="panel-title">Vorhersage · Höchsttemperatur</div>
+            <div class="panel-sub">Nächste Tage</div>
+            <div id="barChart" class="bar-chart"><div class="chart-empty">Daten werden geladen …</div></div>
+          </section>
+          <section class="panel donut-card" aria-label="Regenwahrscheinlichkeit">
+            <div class="panel-title">Regenwahrscheinlichkeit</div>
+            <div id="donutChart" class="donut-chart"><div class="chart-empty">Daten werden geladen …</div></div>
+            <div class="donut-caption" id="donutCaption">heute</div>
+          </section>
+          <section class="panel wave-card" aria-label="Temperaturverlauf">
+            <div class="panel-title">Temperaturverlauf</div>
+            <div class="panel-sub" id="waveDayLabel">heute, stündlich</div>
+            <div id="waveChart" class="wave-chart"><div class="chart-empty">Daten werden geladen …</div></div>
+          </section>
+        </div>
+      </div>
     </div> <!-- Ende Wetter Page -->
 
     <!-- KALENDER SEITE -->
@@ -226,14 +236,6 @@
       </section>
     </div> <!-- Ende Kalender Page -->
 
-    <!-- WIDGET SEITE -->
-    <div id="widgetPage" class="page">
-      <button class="placeholder" id="widgetSlot" data-name="Weiteres">
-        <span class="plus">+</span>
-        <span class="label">Noch ein Platz frei für dein nächstes Widget</span>
-      </button>
-    </div> <!-- Ende Widget Page -->
-
     <!-- REGENRADAR SEITE -->
     <div id="radarPage" class="page">
       <!-- Live rain radar -->
@@ -257,8 +259,8 @@
       </form>
 
       <div class="radar-quick" id="radarQuick">
-        <button type="button" data-city="Wiesbaden">Wiesbaden</button>
         <button type="button" data-city="Berlin">Berlin</button>
+        <button type="button" data-city="Potsdam">Potsdam</button>
         <button type="button" data-city="München">München</button>
         <button type="button" data-city="Hamburg">Hamburg</button>
       </div>
@@ -285,7 +287,7 @@
         <div class="frame-time" id="frameTime">–</div>
       </div>
 
-      <div class="radar-note">Kartenbasis © Esri · Radar © RainViewer · Niederschlagskarte © OpenWeather · Ortssuche: Open-Meteo. Testschlüssel ist im HTML und in Netzwerkanfragen sichtbar.</div>
+      <div class="radar-note">Kartenbasis © Esri · Radar © RainViewer · Niederschlagskarte © OpenWeather · Ortssuche: Open-Meteo. Der API-Key aus js/config.js ist in Netzwerkanfragen sichtbar.</div>
     </section>
     </div> <!-- Ende Regenradar Page -->
 
@@ -296,7 +298,7 @@
           <div class="panel-title">Amtliche Warnungen</div>
           <div class="panel-sub">MoWaS, KATWARN, BIWAPP, DWD &amp; Hochwasser — bundesweit</div>
           <form class="warn-search" id="disasterWarnSearchForm">
-            <input type="text" id="disasterWarnSearchInput" placeholder="Ort filtern, z. B. Wiesbaden …" autocomplete="off">
+            <input type="text" id="disasterWarnSearchInput" placeholder="Ort filtern, z. B. Berlin …" autocomplete="off">
             <button type="submit">Filtern</button>
           </form>
           <div class="warn-note" id="disasterWarnLoading">Warnungen werden geladen …</div>
@@ -308,7 +310,7 @@
           <section class="panel" id="disasterNumbersPanel" aria-label="Notrufnummern">
             <div class="panel-title">Notrufnummern</div>
             <div class="clock-list" id="disasterNumbersList"></div>
-            <div class="warn-note">Giftnotruf ist je nach Bundesland unterschiedlich — regional nachschlagen.</div>
+            <div class="warn-note">Außerhalb von Berlin und Brandenburg gelten andere Giftnotruf-Nummern.</div>
           </section>
 
           <section class="panel" id="disasterMeetingPanel" aria-label="Familien-Treffpunkt">
@@ -327,6 +329,81 @@
       </section>
     </div> <!-- Ende Katastrophenschutz Page -->
 
+    <!-- FEUERWEHR SEITE -->
+    <div id="firePage" class="page">
+      <div class="stat-row" id="fireStats">
+        <div class="stat-card accent-orange">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21c-3.9 0-6.5-2.6-6.5-6.2 0-3.3 2.3-5.4 3.6-7.6.3 1.6 1.1 2.8 2.2 3.4.2-2.9 1.4-5.6 3.7-7.6.3 2.7 1.3 4.6 2.6 6.4 1 1.4.9 2.9.9 5.4 0 3.6-2.6 6.2-6.5 6.2z"/></svg>
+          </div>
+          <div class="stat-body">
+            <div class="stat-value" id="fireTotal">–</div>
+            <div class="stat-label">Brandeinsätze (7 Tage)</div>
+            <div class="stat-delta" id="fireTotalDelta"></div>
+          </div>
+        </div>
+        <div class="stat-card accent-navy">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 9.5h17M8 3v3.5M16 3v3.5"/></svg>
+          </div>
+          <div class="stat-body">
+            <div class="stat-value" id="fireAvg">–</div>
+            <div class="stat-label">Ø pro Tag</div>
+            <div class="stat-delta" id="fireAvgDelta"></div>
+          </div>
+        </div>
+        <div class="stat-card accent-light">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+          </div>
+          <div class="stat-body">
+            <div class="stat-value" id="firePeak">–</div>
+            <div class="stat-label">Spitzentag</div>
+            <div class="stat-delta" id="firePeakDelta"></div>
+          </div>
+        </div>
+        <div class="stat-card accent-navy2">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9.5 2.5h5"/></svg>
+          </div>
+          <div class="stat-body">
+            <div class="stat-value" id="fireResponse">–</div>
+            <div class="stat-label">Eintreffzeit 1. Löschfahrzeug</div>
+            <div class="stat-delta" id="fireResponseDelta"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <section class="panel chart-card" aria-label="Brandeinsätze pro Tag">
+          <div class="panel-title">Brandeinsätze pro Tag</div>
+          <div class="panel-sub" id="fireChartSub">Berliner Feuerwehr · orange = Spitzentag</div>
+          <div id="fireBarChart" class="bar-chart"><div class="chart-empty">Daten werden geladen …</div></div>
+        </section>
+        <section class="panel donut-card" aria-label="Anteil an allen Einsätzen">
+          <div class="panel-title">Anteil an allen Einsätzen</div>
+          <div id="fireDonut" class="donut-chart"><div class="chart-empty">Daten werden geladen …</div></div>
+          <div class="donut-caption" id="fireDonutCaption"></div>
+        </section>
+      </div>
+
+      <div class="lower-row">
+        <section class="panel fire-table-card" id="fireTablePanel" aria-label="Tagesübersicht Feuerwehr">
+          <div class="panel-title">Tagesübersicht</div>
+          <button type="button" class="fire-export" id="fireExportBtn" disabled>CSV exportieren</button>
+          <div class="fire-table-wrap">
+            <table class="fire-table">
+              <thead>
+                <tr><th>Tag</th><th>Brände</th><th>Techn. Hilfe</th><th>Alle Einsätze</th><th>Eintreffzeit 1. LF</th></tr>
+              </thead>
+              <tbody id="fireTableBody"><tr><td colspan="5" class="fire-table-empty">Daten werden geladen …</td></tr></tbody>
+            </table>
+          </div>
+          <div class="warn-note" id="fireSourceNote">Quelle: Berliner Feuerwehr Open Data · Tage nach Berliner Ortszeit</div>
+        </section>
+      </div>
+    </div> <!-- Ende Feuerwehr Page -->
+
   </main>
 </div>
 
@@ -336,63 +413,14 @@
       <div class="panel-title">Widget hinzufügen</div>
       <button type="button" class="widget-picker-close" id="widgetPickerClose" aria-label="Schließen">×</button>
     </div>
-    <div class="widget-picker-grid">
-      <button type="button" class="widget-option" data-widget="todo">
-        <div class="widget-option-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l2 2 4-4"/><rect x="3.5" y="3.5" width="17" height="17" rx="4"/></svg>
-        </div>
-        <div class="widget-option-title">Aufgaben</div>
-        <div class="widget-option-desc">Kleine To-do-Liste mit abhaken und löschen</div>
-      </button>
-      <button type="button" class="widget-option" data-widget="notes">
-        <div class="widget-option-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3.5h9l4 4V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1z"/><path d="M14.5 3.5V7a1 1 0 0 0 1 1H19"/><path d="M8 12h7M8 15.5h7M8 8.5h3"/></svg>
-        </div>
-        <div class="widget-option-title">Notizen</div>
-        <div class="widget-option-desc">Freier Notizzettel, speichert automatisch</div>
-      </button>
-      <button type="button" class="widget-option" data-widget="clock">
-        <div class="widget-option-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>
-        </div>
-        <div class="widget-option-title">Weltzeituhr</div>
-        <div class="widget-option-desc">Aktuelle Uhrzeit in mehreren Städten</div>
-      </button>
-      <button type="button" class="widget-option" data-widget="countdown">
-        <div class="widget-option-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 9.5h17M8 3v3.5M16 3v3.5"/></svg>
-        </div>
-        <div class="widget-option-title">Countdown</div>
-        <div class="widget-option-desc">Tage bis zu einem Termin deiner Wahl</div>
-      </button>
-      <button type="button" class="widget-option" data-widget="warnings">
-        <div class="widget-option-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3.5L2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><circle cx="12" cy="17.2" r="0.6" fill="currentColor"/></svg>
-        </div>
-        <div class="widget-option-title">Warnungen</div>
-        <div class="widget-option-desc">Amtliche Katastrophenwarnungen (BBK/NINA), nach Ort filterbar</div>
-      </button>
-      <button type="button" class="widget-option" data-widget="checklist">
-        <div class="widget-option-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l2 2 4-4"/><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M9 17l2 2 4-4" opacity="0.4"/></svg>
-        </div>
-        <div class="widget-option-title">Notfall-Checkliste</div>
-        <div class="widget-option-desc">Vorrat & Ausrüstung fürs Notfallgepäck, zum Abhaken</div>
-      </button>
-      <button type="button" class="widget-option" data-widget="emergencynumbers">
-        <div class="widget-option-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6.5 3.5c1 2 1.5 3.5 1.5 4.5 0 1-2 1.5-2 2.5 0 2.5 4 6.5 6.5 6.5 1 0 1.5-2 2.5-2 1 0 2.5 0.5 4.5 1.5 0 2-1.5 4-3.5 4-6 0-13-7-13-13 0-2 2-4 4-4z"/></svg>
-        </div>
-        <div class="widget-option-title">Notrufnummern</div>
-        <div class="widget-option-desc">112, 110 und weitere wichtige Nummern im Überblick</div>
-      </button>
-    </div>
+    <div class="widget-picker-body" id="widgetPickerBody"></div>
   </div>
 </div>
 
 <div class="toast" id="toast">Hier entsteht bald ein neues Widget</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="js/config.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
