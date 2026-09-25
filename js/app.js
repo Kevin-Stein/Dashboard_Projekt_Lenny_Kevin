@@ -184,6 +184,23 @@ function setupToggle(panelEl, btnEl) {
 // Navigation bei Initialisierung aktualisieren
 updateNavigation();
 
+// ---- Hamburger-Menü (mobile Ansicht) ----
+const sidebarEl = document.querySelector(".sidebar");
+const menuToggleBtn = document.getElementById("menuToggle");
+
+function setMenuOpen(open) {
+  sidebarEl.classList.toggle("menu-open", open);
+  menuToggleBtn.setAttribute("aria-expanded", String(open));
+  menuToggleBtn.setAttribute("aria-label", open ? "Menü schließen" : "Menü öffnen");
+}
+menuToggleBtn.addEventListener("click", () => {
+  setMenuOpen(!sidebarEl.classList.contains("menu-open"));
+});
+// Nav-Buttons werden dynamisch neu erzeugt, daher per Delegation
+document.getElementById("sidebarNav").addEventListener("click", (e) => {
+  if (e.target.closest(".nav-item")) setMenuOpen(false);
+});
+
 setupToggle(document.querySelector("section.panel.weather"), document.getElementById("weatherToggle"));
 setupToggle(document.querySelector("section.panel.calendar"), document.getElementById("calToggle"));
 setupToggle(document.querySelector("section.panel.radar"), document.getElementById("radarToggle"));
