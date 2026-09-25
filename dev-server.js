@@ -1,9 +1,10 @@
-// Lokaler Server: liefert die statischen Dateien aus und stellt /api/warnings wie auf Vercel bereit.
+// Lokaler Server: liefert die statischen Dateien aus und stellt /api/warnings und /api/radar wie auf Vercel bereit.
 // Start: node dev-server.js  ->  http://localhost:3000
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const warnings = require("./api/warnings");
+const radar = require("./api/radar");
 
 const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
@@ -37,6 +38,12 @@ function handle(req, res) {
   if (urlPath === "/api/warnings") {
     return Promise.resolve(warnings(req, res)).catch((err) => {
       console.error("[api/warnings]", err);
+      sendText(res, 500, "Interner Fehler");
+    });
+  }
+  if (urlPath === "/api/radar") {
+    return Promise.resolve(radar(req, res)).catch((err) => {
+      console.error("[api/radar]", err);
       sendText(res, 500, "Interner Fehler");
     });
   }

@@ -90,6 +90,18 @@ async function stubDashboardApis(page) {
       ],
     }),
   );
+  const png = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+    "base64",
+  );
+  await page.route("**/api/radar**", async (route) => {
+    const url = route.request().url();
+    if (/[?&]z=/.test(url)) return route.fulfill({ contentType: "image/png", body: png });
+    return route.fulfill({ json: { available: true } });
+  });
+  await page.route("**/tile.openweathermap.org/**", (route) =>
+    route.fulfill({ contentType: "image/png", body: png }),
+  );
   await page.route("**/pegelonline.wsv.de/**", async (route) => {
     const url = route.request().url();
     if (url.includes("stations.json")) return route.fulfill({ json: WATER_STATIONS });

@@ -148,6 +148,7 @@ test.describe("Eingabefelder", () => {
   test("Radar-Anbieter und Auto-Aktualisierung lassen sich umschalten", async ({ page }) => {
     await openWithLang(page, "/", "de");
     await openPage(page, "radarPage");
+    await expect(page.locator('#radarProvider option[value="openweather"]')).toBeEnabled();
     await page.locator("#radarProvider").selectOption("openweather");
     await expect(page.locator("#radarProvider")).toHaveValue("openweather");
     await expect(page.locator("#radarPlayback")).toBeHidden();

@@ -1594,8 +1594,9 @@ L.tileLayer(
   },
 ).addTo(map);
 
-// Kommt aus js/config.js (nicht im Repository, Vorlage: js/config.example.js) und ist im Browser trotzdem sichtbar
-const OPENWEATHER_KEY = (window.DASHBOARD_CONFIG && window.DASHBOARD_CONFIG.openWeatherKey) || "";
+// OpenWeather-Key: bevorzugt /api/radar (Vercel-Env oder lokaler Server). Fallback: js/config.js im Browser (Live Server).
+const OPENWEATHER_CLIENT_KEY = (window.DASHBOARD_CONFIG && window.DASHBOARD_CONFIG.openWeatherKey) || "";
+let openWeatherViaProxy = false;
 let radarLayers = [];
 let frames = [];
 let currentFrame = 0;
@@ -1610,12 +1611,30 @@ const playBtn = document.getElementById("playBtn");
 const playIcon = document.getElementById("playIcon");
 const radarProvider = document.getElementById("radarProvider");
 const radarDetailNote = document.getElementById("radarDetailNote");
-if (!OPENWEATHER_KEY) {
-  const option = radarProvider.querySelector('option[value="openweather"]');
-  option.disabled = true;
-  option.textContent += t("radar.noKey");
-  radarProvider.value = "rainviewer";
+const openWeatherOption = radarProvider.querySelector('option[value="openweather"]');
+
+function openWeatherEnabled() {
+  return openWeatherViaProxy || Boolean(OPENWEATHER_CLIENT_KEY);
 }
+
+function applyOpenWeatherOption() {
+  const on = openWeatherEnabled();
+  openWeatherOption.disabled = !on;
+  openWeatherOption.textContent = t("radar.providerOpenweather") + (on ? "" : t("radar.noKey"));
+  if (!on && radarProvider.value === "openweather") radarProvider.value = "rainviewer";
+}
+
+applyOpenWeatherOption();
+fetch("/api/radar", { headers: { Accept: "application/json" } })
+  .then((r) => (r.ok ? r.json() : null))
+  .then((data) => {
+    openWeatherViaProxy = Boolean(data && data.available);
+    applyOpenWeatherOption();
+  })
+  .catch(() => {
+    openWeatherViaProxy = false;
+    applyOpenWeatherOption();
+  });
 const playback = document.getElementById("radarPlayback");
 
 function formatFrameTime(unixSeconds) {
@@ -1710,25 +1729,25 @@ async function loadRainViewer() {
 }
 
 function loadOpenWeather() {
-  if (!LEAFLET_AVAILABLE) return loadRainViewer();
+  if (!LEAFLET_AVAILABLE || !openWeatherEnabled()) return loadRainViewer();
   ++radarEpoch;
   clearRadar();
   playback.hidden = true;
   radarDetailNote.textContent = t("radar.noteOpenweather");
   setRadarStatus(t("radar.owLoading"));
   let seen = false;
-  openWeatherLayer = L.tileLayer(
-    "https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=" +
-      encodeURIComponent(OPENWEATHER_KEY),
-    {
-      attribution: t("radar.owAttribution"),
-      opacity: 0.7,
-      zIndex: 400,
-      maxNativeZoom: 12,
-      maxZoom: 16,
-      updateWhenIdle: true,
-    },
-  );
+  const tileUrl = openWeatherViaProxy
+    ? "/api/radar?z={z}&x={x}&y={y}"
+    : "https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=" +
+      encodeURIComponent(OPENWEATHER_CLIENT_KEY);
+  openWeatherLayer = L.tileLayer(tileUrl, {
+    attribution: t("radar.owAttribution"),
+    opacity: 0.7,
+    zIndex: 400,
+    maxNativeZoom: 12,
+    maxZoom: 16,
+    updateWhenIdle: true,
+  });
   openWeatherLayer.on("tileload", () => {
     if (!seen && radarProvider.value === "openweather") {
       seen = true;
