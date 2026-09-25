@@ -1477,7 +1477,7 @@ h1 {
 
 /* Inhalt jedes Widgets vollständig ausblenden, Header bleibt sichtbar */
 .panel.collapsed
-  > *:not(.weather-top):not(.cal-header):not(.radar-header):not(.widget-panel-header):not(.widget-remove) {
+  > *:not(.weather-top):not(.cal-header):not(.radar-header):not(.widget-panel-header):not(.widget-remove):not(.layout-handle) {
   display: none;
 }
 
@@ -1599,6 +1599,7 @@ body {
   position: sticky;
   top: 0;
   height: 100vh;
+  overflow-y: auto;
 }
 
 .sidebar-brand {
@@ -1738,13 +1739,17 @@ body {
   max-width: 1080px;
   margin: 0 auto;
   height: calc(100vh - 112px);
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .page.active {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.page.active > * {
+  flex-shrink: 0;
 }
 
 /* Responsive widget grid */
@@ -1911,9 +1916,11 @@ body {
 
 .bar-col {
   flex: 1;
+  align-self: stretch;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-end;
   gap: 6px;
 }
 
@@ -2178,28 +2185,69 @@ body {
 #radarPlayback[hidden] {
   display: none !important;
 }
+/* Keine sichtbaren Scrollbars — Scrollen per Mausrad/Touch bleibt möglich */
 * {
-  scrollbar-width: thin;
-  scrollbar-color: var(--teal-soft) var(--panel-2);
+  scrollbar-width: none;
 }
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  display: none;
 }
-::-webkit-scrollbar-track {
-  background: var(--panel-2);
+
+/* ---- Layout anpassen: Widgets per Drag & Drop verschieben ---- */
+[data-layout-item] {
+  position: relative;
+}
+.layout-handle {
+  display: none;
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  width: 44px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
   border-radius: 99px;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--teal-soft);
-  border: 2px solid var(--panel-2);
-  border-radius: 99px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--teal);
-}
-::-webkit-scrollbar-corner {
   background: var(--panel-2);
+  color: var(--ink-soft);
+  cursor: grab;
+  touch-action: none;
+  align-items: center;
+  justify-content: center;
+}
+.layout-handle svg {
+  width: 18px;
+  height: 10px;
+}
+.layout-handle:hover {
+  color: var(--teal);
+  border-color: var(--teal-soft);
+}
+.layout-editing .layout-handle {
+  display: flex;
+}
+.layout-editing [data-layout-item] {
+  outline: 1.5px dashed var(--line-strong);
+  outline-offset: -2px;
+}
+.layout-editing .layout-group {
+  padding-top: 28px;
+  border-radius: var(--card-radius);
+}
+.layout-dragging {
+  opacity: 0.6;
+}
+body.layout-drag-active,
+body.layout-drag-active * {
+  cursor: grabbing !important;
+  user-select: none;
+}
+#layoutResetBtn {
+  display: none;
+}
+.layout-editing #layoutResetBtn {
+  display: flex;
 }
 @media (max-width: 560px) {
   .main-content {

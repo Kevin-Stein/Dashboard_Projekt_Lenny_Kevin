@@ -62,6 +62,16 @@ const NAV_CATEGORIES = {
     </svg><span>Katastrophenschutz</span>`,
     target: "disasterPage",
   },
+  widgets: {
+    id: "widgets",
+    label: "Widget",
+    alwaysShow: true,
+    html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+      <rect x="3.5" y="3.5" width="7.5" height="7.5" rx="1.6" /><rect x="13" y="3.5" width="7.5" height="7.5" rx="1.6" />
+      <rect x="3.5" y="13" width="7.5" height="7.5" rx="1.6" /><rect x="13" y="13" width="7.5" height="7.5" rx="1.6" />
+    </svg><span>Widget</span>`,
+    target: "widgetPage",
+  },
 };
 
 // Widget-Kategorien Zuordnung
@@ -114,8 +124,9 @@ function updateNavigation() {
     btn.dataset.target = category.target;
     btn.innerHTML = category.html;
 
-    // Ersten Item als aktiv setzen
-    if (Object.keys(NAV_CATEGORIES).indexOf(key) === 0) {
+    // Aktuell sichtbare Seite in der Navigation markieren
+    const activePage = document.querySelector(".page.active");
+    if (activePage && activePage.id === category.target) {
       btn.classList.add("active");
     }
 
@@ -124,7 +135,12 @@ function updateNavigation() {
       document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
       const target = document.getElementById(category.target);
       if (target) target.classList.add("active");
-      
+
+      // Leaflet kann die Kartengröße auf einer versteckten Seite nicht messen
+      if (target && target.querySelector("#map")) {
+        setTimeout(() => map.invalidateSize(), 50);
+      }
+
       // Navigation aktualisieren
       document.querySelectorAll(".nav-item").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
@@ -335,6 +351,7 @@ function removeWidget() {
 
   // Navigation aktualisieren
   updateNavigation();
+  refreshLayoutHandles();
 }
 
 function mountWidget(type, innerHtml) {
@@ -397,6 +414,7 @@ function addWidget(type) {
 
   // Navigation nach Hinzufügen aktualisieren
   updateNavigation();
+  refreshLayoutHandles();
 }
 
 // ---- To-do Widget ----
@@ -404,9 +422,6 @@ function mountTodoWidget() {
   const panel = mountWidget(
     "todo",
     `
-    <div class="widget-panel-header">
-      <div class="panel-title">Aufgaben</div>
-    </div>
     <form class="todo-add" id="todoAddForm">
       <input type="text" id="todoAddInput" placeholder="Neue Aufgabe …" autocomplete="off">
       <button type="submit">+</button>
@@ -474,9 +489,6 @@ function mountNotesWidget() {
   const panel = mountWidget(
     "notes",
     `
-    <div class="widget-panel-header">
-      <div class="panel-title">Notizen</div>
-    </div>
     <textarea class="notes-area" id="notesArea" placeholder="Hier ist Platz für alles, was dir einfällt …"></textarea>
     <div class="notes-saved" id="notesSaved">&nbsp;</div>
   `,
@@ -514,9 +526,6 @@ function mountClockWidget() {
   const panel = mountWidget(
     "clock",
     `
-    <div class="widget-panel-header">
-      <div class="panel-title">Weltzeituhr</div>
-    </div>
     <div class="clock-list" id="clockList"></div>
   `,
   );
@@ -568,9 +577,6 @@ function mountCountdownWidget() {
   const panel = mountWidget(
     "countdown",
     `
-    <div class="widget-panel-header">
-      <div class="panel-title">Countdown</div>
-    </div>
     <div id="countdownBody"></div>
   `,
   );
@@ -666,9 +672,6 @@ function mountWarningsWidget() {
   const panel = mountWidget(
     "warnings",
     `
-    <div class="widget-panel-header">
-      <div class="panel-title">Warnungen</div>
-    </div>
     <form class="warn-search" id="warnSearchForm">
       <input type="text" id="warnSearchInput" placeholder="Ort filtern, z. B. Wiesbaden …" autocomplete="off">
       <button type="submit">Filtern</button>
@@ -779,9 +782,6 @@ function mountChecklistWidget() {
   const panel = mountWidget(
     "checklist",
     `
-    <div class="widget-panel-header">
-      <div class="panel-title">Notfall-Checkliste</div>
-    </div>
     <div class="todo-list" id="checklistList"></div>
     <div class="warn-note">Orientiert an den Empfehlungen des BBK für die private Notfallvorsorge.</div>
   `,
@@ -828,9 +828,6 @@ function mountEmergencyNumbersWidget() {
   mountWidget(
     "emergencynumbers",
     `
-    <div class="widget-panel-header">
-      <div class="panel-title">Notrufnummern</div>
-    </div>
     <div class="clock-list">
       ${numbers.map((n) => `<div class="emerg-row"><div class="emerg-num">${n.num}</div><div class="emerg-label">${n.label}</div></div>`).join("")}
     </div>
@@ -998,6 +995,134 @@ function initDisasterPage() {
 }
 initDisasterPage();
 
+// ---- Layout anpassen: Widgets per Drag & Drop umsortieren ----
+const LAYOUT_GROUP_CLASSES = ["stat-row", "charts-row", "lower-row", "detail-row", "disaster-row", "disaster-side"];
+const LAYOUT_CONTAINER_SELECTOR = [".page", ...LAYOUT_GROUP_CLASSES.map((c) => "." + c)].join(", ");
+const LAYOUT_STORAGE_PREFIX = "dashboard-layout-";
+const LAYOUT_HANDLE_SVG =
+  '<svg viewBox="0 0 18 10" fill="currentColor"><circle cx="3" cy="3" r="1.4"/><circle cx="9" cy="3" r="1.4"/><circle cx="15" cy="3" r="1.4"/><circle cx="3" cy="7" r="1.4"/><circle cx="9" cy="7" r="1.4"/><circle cx="15" cy="7" r="1.4"/></svg>';
+
+function layoutContainerKey(container) {
+  if (container.id) return container.id;
+  const page = container.closest(".page");
+  const cls = LAYOUT_GROUP_CLASSES.find((c) => container.classList.contains(c));
+  return `${page ? page.id : "root"}:${cls}`;
+}
+function layoutItemId(item) {
+  return item.id || item.dataset.layoutId;
+}
+function layoutItems(container) {
+  return [...container.children].filter((c) => !c.classList.contains("layout-handle"));
+}
+
+function saveLayoutOrder(container) {
+  const order = layoutItems(container).map(layoutItemId).filter(Boolean);
+  try {
+    localStorage.setItem(LAYOUT_STORAGE_PREFIX + layoutContainerKey(container), JSON.stringify(order));
+  } catch (err) {}
+}
+function applySavedLayoutOrder(container) {
+  let saved = null;
+  try {
+    saved = JSON.parse(localStorage.getItem(LAYOUT_STORAGE_PREFIX + layoutContainerKey(container)) || "null");
+  } catch (err) {}
+  if (!Array.isArray(saved)) return;
+  const items = layoutItems(container);
+  const known = saved.map((id) => items.find((el) => layoutItemId(el) === id)).filter(Boolean);
+  const rest = items.filter((el) => !known.includes(el));
+  [...known, ...rest].forEach((el) => container.appendChild(el));
+}
+
+function startLayoutDrag(e, item) {
+  if (e.button !== 0) return;
+  e.preventDefault();
+  const container = item.parentElement;
+  let lastTarget = null;
+  item.classList.add("layout-dragging");
+  document.body.classList.add("layout-drag-active");
+
+  function onMove(ev) {
+    const items = layoutItems(container);
+    const target = items.find((el) => {
+      if (el === item) return false;
+      const r = el.getBoundingClientRect();
+      return ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom;
+    });
+    // Erst neu tauschen, wenn der Zeiger das zuletzt getauschte Element verlassen hat
+    if (!target || target === lastTarget) {
+      if (!target) lastTarget = null;
+      return;
+    }
+    lastTarget = target;
+    if (items.indexOf(target) > items.indexOf(item)) target.after(item);
+    else target.before(item);
+  }
+  function onUp() {
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("pointerup", onUp);
+    window.removeEventListener("pointercancel", onUp);
+    item.classList.remove("layout-dragging");
+    document.body.classList.remove("layout-drag-active");
+    saveLayoutOrder(container);
+    window.dispatchEvent(new Event("resize"));
+  }
+  window.addEventListener("pointermove", onMove);
+  window.addEventListener("pointerup", onUp);
+  window.addEventListener("pointercancel", onUp);
+}
+
+function refreshLayoutHandles() {
+  document.querySelectorAll(LAYOUT_CONTAINER_SELECTOR).forEach((container) => {
+    const items = layoutItems(container);
+    items.forEach((item) => {
+      const existing = [...item.children].find((c) => c.classList.contains("layout-handle"));
+      if (items.length < 2) {
+        if (existing) existing.remove();
+        delete item.dataset.layoutItem;
+        return;
+      }
+      item.dataset.layoutItem = "";
+      if (LAYOUT_GROUP_CLASSES.some((c) => item.classList.contains(c))) item.classList.add("layout-group");
+      if (existing) return;
+      const handle = document.createElement("button");
+      handle.type = "button";
+      handle.className = "layout-handle";
+      handle.setAttribute("aria-label", "Zum Verschieben ziehen");
+      handle.title = "Zum Verschieben ziehen";
+      handle.innerHTML = LAYOUT_HANDLE_SVG;
+      handle.addEventListener("pointerdown", (e) => startLayoutDrag(e, item));
+      item.prepend(handle);
+    });
+  });
+}
+
+function initLayout() {
+  document.querySelectorAll(LAYOUT_CONTAINER_SELECTOR).forEach((container) => {
+    const key = layoutContainerKey(container);
+    layoutItems(container).forEach((child, i) => {
+      if (!child.id && !child.dataset.layoutId) child.dataset.layoutId = `${key}#${i}`;
+    });
+    applySavedLayoutOrder(container);
+  });
+  refreshLayoutHandles();
+
+  const editBtn = document.getElementById("layoutEditToggle");
+  const editLabel = document.getElementById("layoutEditLabel");
+  editBtn.addEventListener("click", () => {
+    const editing = document.body.classList.toggle("layout-editing");
+    editBtn.setAttribute("aria-pressed", String(editing));
+    editLabel.textContent = editing ? "✓ Layout fertig" : "✥ Layout anpassen";
+  });
+  document.getElementById("layoutResetBtn").addEventListener("click", () => {
+    try {
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith(LAYOUT_STORAGE_PREFIX))
+        .forEach((k) => localStorage.removeItem(k));
+    } catch (err) {}
+    location.reload();
+  });
+}
+
 // Beim Laden: gespeichertes Widget wiederherstellen
 (function restoreWidget() {
   let saved = null;
@@ -1006,6 +1131,8 @@ initDisasterPage();
   } catch (err) {}
   if (saved) addWidget(saved);
 })();
+
+initLayout();
 
 // ---- Live-Regenradar (Leaflet + RainViewer + Open-Meteo Geocoding) ----
 const map = L.map("map", {

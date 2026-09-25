@@ -59,6 +59,12 @@
       <button type="button" id="autoRefreshToggle" class="sidebar-btn" aria-label="Automatische Aktualisierung umschalten">
         <span id="autoRefreshLabel">⏸ Auto-Aktualisierung: AN</span>
       </button>
+      <button type="button" id="layoutEditToggle" class="sidebar-btn" aria-pressed="false">
+        <span id="layoutEditLabel">✥ Layout anpassen</span>
+      </button>
+      <button type="button" id="layoutResetBtn" class="sidebar-btn">
+        <span>↺ Layout zurücksetzen</span>
+      </button>
       <div class="sidebar-status" id="headerStatus"><span id="lastUpdated">Zuletzt aktualisiert: –</span></div>
     </div>
   </aside>
@@ -212,12 +218,15 @@
           <button type="submit" aria-label="Termin hinzufügen">+</button>
         </form>
       </section>
+    </div> <!-- Ende Kalender Page -->
 
+    <!-- WIDGET SEITE -->
+    <div id="widgetPage" class="page">
       <button class="placeholder" id="widgetSlot" data-name="Weiteres">
         <span class="plus">+</span>
         <span class="label">Noch ein Platz frei für dein nächstes Widget</span>
       </button>
-    </div> <!-- Ende Kalender Page -->
+    </div> <!-- Ende Widget Page -->
 
     <!-- REGENRADAR SEITE -->
     <div id="radarPage" class="page">
