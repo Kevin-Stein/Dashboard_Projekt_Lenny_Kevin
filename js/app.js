@@ -71,62 +71,15 @@ const NAV_CATEGORIES = {
     </svg><span>Feuerwehr</span>`,
     target: "firePage",
   },
-  widgets: {
-    id: "widgets",
-    label: "Widget",
-    alwaysShow: true,
-    html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-      <rect x="3.5" y="3.5" width="7.5" height="7.5" rx="1.6" /><rect x="13" y="3.5" width="7.5" height="7.5" rx="1.6" />
-      <rect x="3.5" y="13" width="7.5" height="7.5" rx="1.6" /><rect x="13" y="13" width="7.5" height="7.5" rx="1.6" />
-    </svg><span>Widget</span>`,
-    target: "widgetPage",
-  },
-};
-
-// Widget-Kategorien Zuordnung
-const WIDGET_CATEGORIES = {
-  notes: "calendar",
-  todo: "widgets",
-  clock: "widgets",
-  countdown: "widgets",
-  warnings: "widgets",
-  checklist: "widgets",
-  emergencynumbers: "widgets",
 };
 
 function updateNavigation() {
   const navContainer = document.getElementById("sidebarNav");
   if (!navContainer) return;
-
-  // Prüfe welche Widgets vorhanden sind
-  const widgetSlot = document.getElementById("widgetSlot");
-  const hasWidget = widgetSlot && widgetSlot.classList.contains("panel");
-
-  // Hole gespeicherte Widget-Typen
-  let activeWidgets = [];
-  try {
-    const stored = localStorage.getItem("dashboard-widget-slot");
-    if (stored) activeWidgets.push(stored);
-  } catch (err) {}
-
-  // Navigation neu erstellen
   navContainer.innerHTML = "";
 
   Object.keys(NAV_CATEGORIES).forEach((key) => {
     const category = NAV_CATEGORIES[key];
-
-    // Wenn Kategorie alwaysShow hat, immer anzeigen
-    if (category.alwaysShow) {
-      // Kategorie anzeigen (Kalender ist immer sichtbar, auch ohne Notizen)
-    } else if (category.widgets && category.widgets.length > 0) {
-      // Wenn Kategorie Widgets hat, prüfe ob mindestens eines aktiv ist
-      const hasActiveWidget = category.widgets.some((w) => activeWidgets.includes(w));
-      if (!hasActiveWidget) return; // Kategorie nicht anzeigen wenn keine Widgets da sind
-    } else if (!hasWidget && key === "widgets") {
-      // Widget-Slot Kategorie nur wenn Widget vorhanden
-      return;
-    }
-
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "nav-item";
@@ -169,11 +122,6 @@ function showToast(msg) {
   toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
 }
 
-// ---- Widget-Auswahl öffnen/schließen ----
-document.querySelectorAll(".placeholder").forEach((btn) => {
-  btn.addEventListener("click", openWidgetPicker);
-});
-
 const COLLAPSED_STORAGE_KEY = "dashboard-collapsed";
 
 function loadCollapsedIds() {
@@ -205,6 +153,7 @@ function setupToggle(panelEl, btnEl) {
     const willCollapse = !panelEl.classList.contains("collapsed");
     setCollapsed(panelEl, btnEl, willCollapse);
     if (id) storeCollapsed(id, willCollapse);
+    document.dispatchEvent(new Event("widget-collapse"));
   });
 }
 
@@ -277,7 +226,8 @@ function effectiveTheme() {
 }
 function updateThemeIcon() {
   const eff = effectiveTheme();
-  themeToggleBtn.innerHTML = eff === "dark" ? moonIconSvg : sunIconSvg;
+  themeToggleBtn.innerHTML =
+    eff === "dark" ? `${moonIconSvg}<span>Modus: Dunkel</span>` : `${sunIconSvg}<span>Modus: Hell</span>`;
   themeToggleBtn.title = eff === "dark" ? "Zu Light Mode wechseln" : "Zu Dark Mode wechseln";
 }
 function applyTheme(stored) {
@@ -296,7 +246,8 @@ themeToggleBtn.addEventListener("click", () => {
 });
 
 // ---- Manuelles Aktualisieren ----
-let currentWeatherCoords = { lat: 50.0782, lon: 8.2398, label: "Wiesbaden" };
+const DEFAULT_PLACE = { lat: 52.52, lon: 13.405, label: "Berlin" };
+let currentWeatherCoords = { ...DEFAULT_PLACE };
 const lastUpdatedEl = document.getElementById("lastUpdated");
 
 function setLastUpdatedNow() {
@@ -317,6 +268,7 @@ async function refreshDashboardData() {
       loadDisasterWarnings(document.getElementById("disasterWarnSearchInput")?.value || ""),
       loadFireData(),
     ]);
+    document.dispatchEvent(new Event("dashboard-refresh"));
   } finally {
     refreshIcon.classList.remove("spinning");
     refreshBtn.disabled = false;
@@ -376,112 +328,16 @@ autoRefreshToggleBtn.addEventListener("click", () => {
 
 applyAutoRefreshState();
 
-// ---- Widget Picker ----
-const widgetSlot = document.getElementById("widgetSlot");
-const pickerOverlay = document.getElementById("widgetPickerOverlay");
-
-function openWidgetPicker() {
-  pickerOverlay.classList.add("show");
-}
-function closeWidgetPicker() {
-  pickerOverlay.classList.remove("show");
-}
-document.getElementById("widgetPickerClose").addEventListener("click", closeWidgetPicker);
-pickerOverlay.addEventListener("click", (e) => {
-  if (e.target === pickerOverlay) closeWidgetPicker();
-});
-
-document.querySelectorAll(".widget-option").forEach((opt) => {
-  opt.addEventListener("click", () => {
-    addWidget(opt.dataset.widget);
-    closeWidgetPicker();
-  });
-});
-
-function removeWidget() {
-  try {
-    localStorage.removeItem("dashboard-widget-slot");
-  } catch (err) {}
-  const fresh = document.createElement("button");
-  fresh.className = "placeholder";
-  fresh.id = "widgetSlot";
-  fresh.dataset.name = "Weiteres";
-  fresh.innerHTML = `<span class="plus">+</span><span class="label">Noch ein Platz frei für dein nächstes Widget</span>`;
-  fresh.addEventListener("click", openWidgetPicker);
-  document.getElementById("widgetSlot").replaceWith(fresh);
-
-  // Navigation aktualisieren
-  updateNavigation();
-  refreshLayoutHandles();
-}
-
-function mountWidget(type, innerHtml) {
-  try {
-    localStorage.setItem("dashboard-widget-slot", type);
-  } catch (err) {}
-
-  // Widget-Titel basierend auf Typ setzen
-  const widgetTitles = {
-    todo: "Aufgaben",
-    notes: "Notizen",
-    clock: "Weltzeituhr",
-    countdown: "Countdown",
-    warnings: "Warnungen",
-    checklist: "Notfall-Checkliste",
-    emergencynumbers: "Notrufnummern",
-  };
-
-  const panel = document.createElement("section");
-  panel.className = "panel widget-panel";
-  panel.id = "widgetSlot";
-
-  // Widget-Struktur mit Header und Body
-  panel.innerHTML = `
-    <button type="button" class="widget-remove" aria-label="Widget entfernen">×</button>
-    <div class="widget-panel-header">
-      <div class="panel-title">${widgetTitles[type] || "Widget"}</div>
-    </div>
-    <div class="widget-panel-body">
-      ${innerHtml}
-    </div>
-  `;
-
-  document.getElementById("widgetSlot").replaceWith(panel);
-  panel.querySelector(".widget-remove").addEventListener("click", removeWidget);
-
-  const header = panel.querySelector(".widget-panel-header");
-  if (header) {
-    const toggleBtn = document.createElement("button");
-    toggleBtn.type = "button";
-    toggleBtn.className = "panel-toggle";
-    toggleBtn.setAttribute("aria-label", "Widget ein-/ausklappen");
-    toggleBtn.innerHTML =
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>';
-    header.appendChild(toggleBtn);
-    setupToggle(panel, toggleBtn);
-  }
-
-  return panel;
-}
-
-function addWidget(type) {
-  if (type === "todo") mountTodoWidget();
-  else if (type === "notes") mountNotesWidget();
-  else if (type === "clock") mountClockWidget();
-  else if (type === "countdown") mountCountdownWidget();
-  else if (type === "warnings") mountWarningsWidget();
-  else if (type === "checklist") mountChecklistWidget();
-  else if (type === "emergencynumbers") mountEmergencyNumbersWidget();
-
-  // Navigation nach Hinzufügen aktualisieren
-  updateNavigation();
-  refreshLayoutHandles();
+// Die Widgets rendern in einen Container der Übersicht; zurückgegebene Funktionen räumen beim Entfernen auf
+function renderInto(body, html) {
+  body.innerHTML = html;
+  return body;
 }
 
 // ---- To-do Widget ----
-function mountTodoWidget() {
-  const panel = mountWidget(
-    "todo",
+function mountTodoWidget(body) {
+  const panel = renderInto(
+    body,
     `
     <form class="todo-add" id="todoAddForm">
       <input type="text" id="todoAddInput" placeholder="Neue Aufgabe …" autocomplete="off">
@@ -546,9 +402,9 @@ function mountTodoWidget() {
 }
 
 // ---- Notizen Widget ----
-function mountNotesWidget() {
-  const panel = mountWidget(
-    "notes",
+function mountNotesWidget(body) {
+  const panel = renderInto(
+    body,
     `
     <textarea class="notes-area" id="notesArea" placeholder="Hier ist Platz für alles, was dir einfällt …"></textarea>
     <div class="notes-saved" id="notesSaved">&nbsp;</div>
@@ -577,15 +433,15 @@ function mountNotesWidget() {
 }
 
 // ---- Weltzeituhr Widget ----
-function mountClockWidget() {
+function mountClockWidget(body) {
   const zones = [
-    { city: "Wiesbaden", tz: "Europe/Berlin" },
+    { city: "Berlin", tz: "Europe/Berlin" },
     { city: "London", tz: "Europe/London" },
     { city: "New York", tz: "America/New_York" },
     { city: "Tokio", tz: "Asia/Tokyo" },
   ];
-  const panel = mountWidget(
-    "clock",
+  const panel = renderInto(
+    body,
     `
     <div class="clock-list" id="clockList"></div>
   `,
@@ -630,13 +486,14 @@ function mountClockWidget() {
     });
   }
   tickClocks();
-  setInterval(tickClocks, 30000);
+  const clockTimer = setInterval(tickClocks, 30000);
+  return () => clearInterval(clockTimer);
 }
 
 // ---- Countdown Widget ----
-function mountCountdownWidget() {
-  const panel = mountWidget(
-    "countdown",
+function mountCountdownWidget(body) {
+  const panel = renderInto(
+    body,
     `
     <div id="countdownBody"></div>
   `,
@@ -702,8 +559,8 @@ function mountCountdownWidget() {
       const target = new Date(data.date + "T00:00:00");
       const now = new Date();
       const diffMs = target - now;
-      const numberEl = document.getElementById("cdNumber");
-      const labelEl = document.getElementById("cdLabel");
+      const numberEl = panel.querySelector("#cdNumber");
+      const labelEl = panel.querySelector("#cdLabel");
       if (!numberEl) {
         clearInterval(countdownTimer);
         return;
@@ -726,15 +583,16 @@ function mountCountdownWidget() {
   }
 
   renderCountdown();
+  return () => clearInterval(countdownTimer);
 }
 
 // ---- Warnungen Widget ----
-function mountWarningsWidget() {
-  const panel = mountWidget(
-    "warnings",
+function mountWarningsWidget(body) {
+  const panel = renderInto(
+    body,
     `
     <form class="warn-search" id="warnSearchForm">
-      <input type="text" id="warnSearchInput" placeholder="Ort filtern, z. B. Wiesbaden …" autocomplete="off">
+      <input type="text" id="warnSearchInput" placeholder="Ort filtern, z. B. Berlin …" autocomplete="off">
       <button type="submit">Filtern</button>
     </form>
     <div class="warn-note" id="warnLoading">Warnungen werden geladen …</div>
@@ -822,77 +680,66 @@ function mountWarningsWidget() {
   });
 
   loadWarnings("");
+  const reload = () => loadWarnings(panel.querySelector("#warnSearchInput").value);
+  document.addEventListener("dashboard-refresh", reload);
+  return () => document.removeEventListener("dashboard-refresh", reload);
 }
 
 // ---- Notfall-Checkliste Widget ----
-function mountChecklistWidget() {
-  const items = [
-    "Trinkwasser (mind. 2 Liter pro Person und Tag)",
-    "Haltbare Lebensmittel für mehrere Tage",
-    "Wichtige Dokumente griffbereit (Ausweis, Impfpass, Versicherung)",
-    "Erste-Hilfe-Set",
-    "Wichtige Medikamente",
-    "Taschenlampe & Ersatzbatterien",
-    "Batteriebetriebenes oder Kurbelradio",
-    "Powerbank bzw. Ersatzakku fürs Handy",
-    "Bargeld in kleinen Scheinen",
-    "Warme Kleidung & Decken",
-    "Hygieneartikel",
-  ];
+const CHECKLIST_STORAGE_KEY = "dashboard-widget-checklist";
 
-  const panel = mountWidget(
-    "checklist",
-    `
-    <div class="todo-list" id="checklistList"></div>
-    <div class="warn-note">Orientiert an den Empfehlungen des BBK für die private Notfallvorsorge.</div>
-  `,
-  );
-
-  function loadChecked() {
-    try {
-      return JSON.parse(localStorage.getItem("dashboard-widget-checklist") || "[]");
-    } catch (err) {
-      return [];
-    }
+function loadChecklistState() {
+  try {
+    return JSON.parse(localStorage.getItem(CHECKLIST_STORAGE_KEY) || "[]");
+  } catch (err) {
+    return [];
   }
-  function saveChecked(arr) {
-    try {
-      localStorage.setItem("dashboard-widget-checklist", JSON.stringify(arr));
-    } catch (err) {}
-  }
-  let checked = loadChecked();
-
-  const list = panel.querySelector("#checklistList");
-  items.forEach((text, i) => {
+}
+function toggleChecklistItem(i) {
+  let checked = loadChecklistState();
+  checked = checked.includes(i) ? checked.filter((x) => x !== i) : [...checked, i];
+  try {
+    localStorage.setItem(CHECKLIST_STORAGE_KEY, JSON.stringify(checked));
+  } catch (err) {}
+  document.dispatchEvent(new Event("checklist-change"));
+}
+function renderChecklist(list) {
+  const checked = loadChecklistState();
+  list.innerHTML = "";
+  DISASTER_CHECKLIST_ITEMS.forEach((text, i) => {
     const row = document.createElement("div");
     row.className = "todo-item" + (checked.includes(i) ? " done" : "");
     row.innerHTML = `<input type="checkbox" ${checked.includes(i) ? "checked" : ""}><span></span>`;
     row.querySelector("span").textContent = text;
-    row.querySelector("input").addEventListener("change", () => {
-      checked = loadChecked();
-      if (checked.includes(i)) checked = checked.filter((x) => x !== i);
-      else checked.push(i);
-      saveChecked(checked);
-      row.classList.toggle("done");
-    });
+    row.querySelector("input").addEventListener("change", () => toggleChecklistItem(i));
     list.appendChild(row);
   });
 }
 
+function mountChecklistWidget(body) {
+  renderInto(
+    body,
+    `
+    <div class="todo-list scroll-list" data-checklist></div>
+    <div class="warn-note">Orientiert an den Empfehlungen des BBK für die private Notfallvorsorge.</div>
+  `,
+  );
+  const list = body.querySelector("[data-checklist]");
+  const render = () => renderChecklist(list);
+  render();
+  document.addEventListener("checklist-change", render);
+  return () => document.removeEventListener("checklist-change", render);
+}
+
 // ---- Notrufnummern Widget ----
-function mountEmergencyNumbersWidget() {
-  const numbers = [
-    { num: "112", label: "Feuerwehr & Rettungsdienst — lebensbedrohliche Notfälle, Brand" },
-    { num: "110", label: "Polizei-Notruf" },
-    { num: "116 117", label: "Ärztlicher Bereitschaftsdienst — dringend, aber nicht lebensbedrohlich" },
-  ];
-  mountWidget(
-    "emergencynumbers",
+function mountEmergencyNumbersWidget(body) {
+  renderInto(
+    body,
     `
     <div class="clock-list">
-      ${numbers.map((n) => `<div class="emerg-row"><div class="emerg-num">${n.num}</div><div class="emerg-label">${n.label}</div></div>`).join("")}
+      ${DISASTER_NUMBERS.map((n) => `<div class="emerg-row"><div class="emerg-num">${n.num}</div><div class="emerg-label">${n.label}</div></div>`).join("")}
     </div>
-    <div class="warn-note">Giftnotruf: Die Nummer ist je nach Bundesland unterschiedlich — bei Bedarf regional nachschlagen. In ganz Europa gilt zusätzlich die 112 für alle lebensbedrohlichen Notfälle.</div>
+    <div class="warn-note">Außerhalb von Berlin und Brandenburg gelten andere Giftnotruf-Nummern.</div>
   `,
   );
 }
@@ -902,7 +749,7 @@ const DISASTER_NUMBERS = [
   { num: "112", label: "Feuerwehr & Rettungsdienst — lebensbedrohliche Notfälle, Brand" },
   { num: "110", label: "Polizei-Notruf" },
   { num: "116 117", label: "Ärztlicher Bereitschaftsdienst — dringend, aber nicht lebensbedrohlich" },
-  { num: "19222", label: "Feuerwehr-Leitstelle Wiesbaden (Festnetz-Ausweichnummer)" },
+  { num: "030 19240", label: "Giftnotruf Berlin (Charité) — rund um die Uhr" },
 ];
 const DISASTER_CHECKLIST_ITEMS = [
   "Trinkwasser (mind. 2 Liter pro Person und Tag)",
@@ -928,35 +775,9 @@ function renderDisasterNumbers() {
 
 function renderDisasterChecklist() {
   const list = document.getElementById("disasterChecklistList");
-  if (!list) return;
-  let checked = [];
-  try {
-    checked = JSON.parse(localStorage.getItem("dashboard-widget-checklist") || "[]");
-  } catch (err) {}
-  function save(arr) {
-    try {
-      localStorage.setItem("dashboard-widget-checklist", JSON.stringify(arr));
-    } catch (err) {}
-  }
-  list.innerHTML = "";
-  DISASTER_CHECKLIST_ITEMS.forEach((text, i) => {
-    const row = document.createElement("div");
-    row.className = "todo-item" + (checked.includes(i) ? " done" : "");
-    row.innerHTML = `<input type="checkbox" ${checked.includes(i) ? "checked" : ""}><span></span>`;
-    row.querySelector("span").textContent = text;
-    row.querySelector("input").addEventListener("change", () => {
-      let cur = [];
-      try {
-        cur = JSON.parse(localStorage.getItem("dashboard-widget-checklist") || "[]");
-      } catch (err) {}
-      if (cur.includes(i)) cur = cur.filter((x) => x !== i);
-      else cur.push(i);
-      save(cur);
-      row.classList.toggle("done");
-    });
-    list.appendChild(row);
-  });
+  if (list) renderChecklist(list);
 }
+document.addEventListener("checklist-change", renderDisasterChecklist);
 
 const DISASTER_SOURCES = ["mowas", "katwarn", "biwapp", "dwd", "lhp"];
 const DISASTER_SEV_RANK = { Extreme: 4, Severe: 3, Moderate: 2, Minor: 1, Unknown: 0 };
@@ -1021,13 +842,14 @@ async function loadDisasterWarnings(filterText) {
   }
 }
 
-function setupDisasterMeetingPoint() {
-  const input = document.getElementById("meetingPointInput");
-  const saved = document.getElementById("meetingSaved");
-  if (!input) return;
-  try {
-    input.value = localStorage.getItem("dashboard-meeting-point") || "";
-  } catch (err) {}
+// Treffpunkt-Eingabe auf der Katastrophenschutz-Seite und im Übersichts-Widget teilen sich den Wert
+function bindMeetingPointInput(input, saved) {
+  const load = () => {
+    try {
+      if (document.activeElement !== input) input.value = localStorage.getItem("dashboard-meeting-point") || "";
+    } catch (err) {}
+  };
+  load();
   let saveTimer;
   input.addEventListener("input", () => {
     clearTimeout(saveTimer);
@@ -1035,10 +857,18 @@ function setupDisasterMeetingPoint() {
       try {
         localStorage.setItem("dashboard-meeting-point", input.value);
         saved.textContent = "Gespeichert";
-        setTimeout(() => (saved.textContent = ""), 1500);
+        setTimeout(() => (saved.textContent = "\u00a0"), 1500);
+        document.dispatchEvent(new Event("meeting-change"));
       } catch (err) {}
     }, 500);
   });
+  document.addEventListener("meeting-change", load);
+  return () => document.removeEventListener("meeting-change", load);
+}
+
+function setupDisasterMeetingPoint() {
+  const input = document.getElementById("meetingPointInput");
+  if (input) bindMeetingPointInput(input, document.getElementById("meetingSaved"));
 }
 
 function initDisasterPage() {
@@ -1057,7 +887,16 @@ function initDisasterPage() {
 initDisasterPage();
 
 // ---- Layout anpassen: Widgets per Drag & Drop umsortieren ----
-const LAYOUT_GROUP_CLASSES = ["stat-row", "charts-row", "lower-row", "detail-row", "disaster-row", "disaster-side"];
+const LAYOUT_GROUP_CLASSES = [
+  "stat-row",
+  "charts-row",
+  "lower-row",
+  "detail-row",
+  "disaster-row",
+  "disaster-side",
+  "weather-side",
+  "overview-grid",
+];
 const LAYOUT_CONTAINER_SELECTOR = [".page", ...LAYOUT_GROUP_CLASSES.map((c) => "." + c)].join(", ");
 const LAYOUT_STORAGE_PREFIX = "dashboard-layout-";
 const LAYOUT_HANDLE_SVG =
@@ -1073,7 +912,7 @@ function layoutItemId(item) {
   return item.id || item.dataset.layoutId;
 }
 function layoutItems(container) {
-  return [...container.children].filter((c) => !c.classList.contains("layout-handle"));
+  return [...container.children].filter((c) => !c.classList.contains("layout-handle") && !c.hasAttribute("data-layout-fixed"));
 }
 
 function saveLayoutOrder(container) {
@@ -1157,6 +996,15 @@ function refreshLayoutHandles() {
   });
 }
 
+function setLayoutEditing(editing) {
+  document.body.classList.toggle("layout-editing", editing);
+  document.getElementById("layoutEditToggle").setAttribute("aria-pressed", String(editing));
+  document.getElementById("layoutEditLabel").textContent = editing ? "✓ Layout fertig" : "✥ Layout anpassen";
+  const arrangeBtn = document.getElementById("overviewArrangeBtn");
+  arrangeBtn.setAttribute("aria-pressed", String(editing));
+  arrangeBtn.textContent = editing ? "✓ Fertig" : "✥ Anordnen";
+}
+
 function initLayout() {
   document.querySelectorAll(LAYOUT_CONTAINER_SELECTOR).forEach((container) => {
     const key = layoutContainerKey(container);
@@ -1167,12 +1015,8 @@ function initLayout() {
   });
   refreshLayoutHandles();
 
-  const editBtn = document.getElementById("layoutEditToggle");
-  const editLabel = document.getElementById("layoutEditLabel");
-  editBtn.addEventListener("click", () => {
-    const editing = document.body.classList.toggle("layout-editing");
-    editBtn.setAttribute("aria-pressed", String(editing));
-    editLabel.textContent = editing ? "✓ Layout fertig" : "✥ Layout anpassen";
+  document.getElementById("layoutEditToggle").addEventListener("click", () => {
+    setLayoutEditing(!document.body.classList.contains("layout-editing"));
   });
   document.getElementById("layoutResetBtn").addEventListener("click", () => {
     try {
@@ -1184,15 +1028,6 @@ function initLayout() {
   });
 }
 
-// Beim Laden: gespeichertes Widget wiederherstellen
-(function restoreWidget() {
-  let saved = null;
-  try {
-    saved = localStorage.getItem("dashboard-widget-slot");
-  } catch (err) {}
-  if (saved) addWidget(saved);
-})();
-
 initLayout();
 addMissingToggles();
 
@@ -1201,7 +1036,7 @@ const map = L.map("map", {
   zoomControl: true,
   attributionControl: true,
   maxZoom: 16,
-}).setView([50.0782, 8.2398], 8);
+}).setView([DEFAULT_PLACE.lat, DEFAULT_PLACE.lon], 8);
 new ResizeObserver(() => map.invalidateSize()).observe(document.getElementById("map"));
 
 L.tileLayer(
@@ -1890,8 +1725,7 @@ document.getElementById("weatherSearchForm").addEventListener("submit", (e) => {
   searchWeatherPlace(document.getElementById("weatherSearchInput").value);
 });
 
-// Startwetter für Wiesbaden laden
-loadWeatherForPlace(50.0782, 8.2398, "Wiesbaden");
+loadWeatherForPlace(DEFAULT_PLACE.lat, DEFAULT_PLACE.lon, DEFAULT_PLACE.label);
 
 // ---- Interaktiver Kalender mit lokal gespeicherten Terminen ----
 function loadCalEvents() {
@@ -1907,6 +1741,7 @@ function saveCalEvents(events) {
   try {
     localStorage.setItem("dashboard-cal-events", JSON.stringify(events));
   } catch (err) {}
+  document.dispatchEvent(new Event("calendar-change"));
 }
 
 let calEvents = loadCalEvents();
@@ -2282,3 +2117,515 @@ document.getElementById("fireExportBtn").addEventListener("click", () => {
 });
 
 loadFireData();
+
+// ---- Übersicht: frei zusammenstellbare Widgets ----
+const OVERVIEW_STORAGE_KEY = "dashboard-overview-widgets";
+const OVERVIEW_DEFAULT = ["weather-now", "weather-kpis", "forecast-bars", "rain-donut", "temp-wave"];
+const OVERVIEW_MIN_COL = 260;
+const OVERVIEW_MIN_COL_TIGHT = 160;
+const OVERVIEW_MIN_ROW = 150;
+const OVERVIEW_MIN_TILE = 110;
+const OVERVIEW_MOBILE_ROW = 200;
+const MOBILE_SCROLL_QUERY = window.matchMedia("(max-width: 760px)");
+const BASE_TILE_URL =
+  "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}";
+const CHEVRON_SVG =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>';
+
+const svgIcon = (paths) =>
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">${paths}</svg>`;
+const OVERVIEW_ICONS = {
+  cloud: svgIcon('<path d="M7 15.5a3.8 3.8 0 0 1 .3-7.6 5.4 5.4 0 0 1 10.4-1.7A4.3 4.3 0 0 1 17 15z"/>'),
+  kpi: svgIcon('<rect x="3.5" y="3.5" width="7.5" height="7.5" rx="1.6"/><rect x="13" y="3.5" width="7.5" height="7.5" rx="1.6"/><rect x="3.5" y="13" width="7.5" height="7.5" rx="1.6"/><rect x="13" y="13" width="7.5" height="7.5" rx="1.6"/>'),
+  bars: svgIcon('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'),
+  donut: svgIcon('<circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 8 8"/>'),
+  wave: svgIcon('<path d="M3 16c3-6 5-6 8-2s5 4 10-6"/>'),
+  radar: svgIcon('<path d="M12 3v6M12 3a9 9 0 1 0 9 9M12 3a5 5 0 0 1 5 5"/>'),
+  calendar: svgIcon('<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 9.5h17M8 3v3.5M16 3v3.5"/>'),
+  notes: svgIcon('<path d="M6 3.5h9l4 4V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1z"/><path d="M8 12h7M8 15.5h7"/>'),
+  todo: svgIcon('<path d="M9 11l2 2 4-4"/><rect x="3.5" y="3.5" width="17" height="17" rx="4"/>'),
+  clock: svgIcon('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'),
+  warning: svgIcon('<path d="M12 3.5L2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/>'),
+  phone: svgIcon('<path d="M6.5 3.5c1 2 1.5 3.5 1.5 4.5 0 1-2 1.5-2 2.5 0 2.5 4 6.5 6.5 6.5 1 0 1.5-2 2.5-2 1 0 2.5.5 4.5 1.5 0 2-1.5 4-3.5 4-6 0-13-7-13-13 0-2 2-4 4-4z"/>'),
+  pin: svgIcon('<path d="M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/>'),
+  fire: svgIcon('<path d="M12 21c-3.9 0-6.5-2.6-6.5-6.2 0-3.3 2.3-5.4 3.6-7.6.3 1.6 1.1 2.8 2.2 3.4.2-2.9 1.4-5.6 3.7-7.6.3 2.7 1.3 4.6 2.6 6.4 1 1.4.9 2.9.9 5.4 0 3.6-2.6 6.2-6.5 6.2z"/>'),
+  table: svgIcon('<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M3.5 14.5h17M9.5 9.5v10"/>'),
+};
+
+// "mirror" zeigt eine laufend aktualisierte Kopie eines Widgets von einer anderen Seite
+const OVERVIEW_WIDGETS = {
+  "weather-now": {
+    group: "Wetter",
+    title: "Aktuelles Wetter",
+    desc: "Temperatur und Wetterlage am gewählten Ort",
+    icon: OVERVIEW_ICONS.cloud,
+    mirror: ["#weatherPlace", "#weatherIcon", "#weatherPanel .temp-row"],
+  },
+  "weather-kpis": {
+    group: "Wetter",
+    title: "Wetter-Kennzahlen",
+    desc: "Temperatur, Wind, Luftfeuchte und Regen im Vergleich zu gestern",
+    icon: OVERVIEW_ICONS.kpi,
+    mirror: ["#weatherKpiRow"],
+    wide: true,
+  },
+  "forecast-bars": {
+    group: "Wetter",
+    title: "Vorhersage · Höchsttemperatur",
+    desc: "Höchstwerte der nächsten Tage als Balken",
+    icon: OVERVIEW_ICONS.bars,
+    mirror: ["#barChart"],
+  },
+  "rain-donut": {
+    group: "Wetter",
+    title: "Regenwahrscheinlichkeit",
+    desc: "Regenchance für heute",
+    icon: OVERVIEW_ICONS.donut,
+    mirror: ["#donutChart", "#donutCaption"],
+  },
+  "temp-wave": {
+    group: "Wetter",
+    title: "Temperaturverlauf",
+    desc: "Stündlicher Verlauf mit Achsen und „jetzt“-Markierung",
+    icon: OVERVIEW_ICONS.wave,
+    mirror: ["#waveDayLabel", "#waveChart"],
+    wide: true,
+  },
+  radar: {
+    group: "Wetter",
+    title: "Regenradar",
+    desc: "Kleine Karte mit dem letzten Radarbild",
+    icon: OVERVIEW_ICONS.radar,
+    mount: mountRadarWidget,
+  },
+  "calendar-today": {
+    group: "Kalender & Organisation",
+    title: "Termine heute",
+    desc: "Heutige Einträge aus dem Kalender",
+    icon: OVERVIEW_ICONS.calendar,
+    mount: mountCalendarTodayWidget,
+  },
+  notes: {
+    group: "Kalender & Organisation",
+    title: "Notizen",
+    desc: "Freier Notizzettel, speichert automatisch",
+    icon: OVERVIEW_ICONS.notes,
+    mount: mountNotesWidget,
+  },
+  todo: {
+    group: "Kalender & Organisation",
+    title: "Aufgaben",
+    desc: "To-do-Liste zum Abhaken",
+    icon: OVERVIEW_ICONS.todo,
+    mount: mountTodoWidget,
+  },
+  countdown: {
+    group: "Kalender & Organisation",
+    title: "Countdown",
+    desc: "Tage bis zu einem Termin deiner Wahl",
+    icon: OVERVIEW_ICONS.calendar,
+    mount: mountCountdownWidget,
+  },
+  clock: {
+    group: "Kalender & Organisation",
+    title: "Weltzeituhr",
+    desc: "Uhrzeit in mehreren Städten",
+    icon: OVERVIEW_ICONS.clock,
+    mount: mountClockWidget,
+  },
+  warnings: {
+    group: "Sicherheit",
+    title: "Warnungen",
+    desc: "Amtliche Warnungen (BBK/NINA), nach Ort filterbar",
+    icon: OVERVIEW_ICONS.warning,
+    mount: mountWarningsWidget,
+  },
+  checklist: {
+    group: "Sicherheit",
+    title: "Notfall-Checkliste",
+    desc: "Vorrat & Ausrüstung zum Abhaken",
+    icon: OVERVIEW_ICONS.todo,
+    mount: mountChecklistWidget,
+  },
+  emergencynumbers: {
+    group: "Sicherheit",
+    title: "Notrufnummern",
+    desc: "112, 110 und weitere wichtige Nummern",
+    icon: OVERVIEW_ICONS.phone,
+    mount: mountEmergencyNumbersWidget,
+  },
+  meeting: {
+    group: "Sicherheit",
+    title: "Familien-Treffpunkt",
+    desc: "Vereinbarter Treffpunkt für den Notfall",
+    icon: OVERVIEW_ICONS.pin,
+    mount: mountMeetingWidget,
+  },
+  "fire-kpis": {
+    group: "Feuerwehr",
+    title: "Feuerwehr-Kennzahlen",
+    desc: "Brandeinsätze Berlin, 7 Tage im Vergleich zur Vorwoche",
+    icon: OVERVIEW_ICONS.fire,
+    mirror: ["#fireStats"],
+    wide: true,
+  },
+  "fire-chart": {
+    group: "Feuerwehr",
+    title: "Brandeinsätze pro Tag",
+    desc: "Balkendiagramm der letzten 7 Tage",
+    icon: OVERVIEW_ICONS.bars,
+    mirror: ["#fireChartSub", "#fireBarChart"],
+  },
+  "fire-share": {
+    group: "Feuerwehr",
+    title: "Anteil Brandeinsätze",
+    desc: "Anteil an allen Einsätzen der Woche",
+    icon: OVERVIEW_ICONS.donut,
+    mirror: ["#fireDonut", "#fireDonutCaption"],
+  },
+  "fire-table": {
+    group: "Feuerwehr",
+    title: "Feuerwehr-Tagesübersicht",
+    desc: "Tabelle mit Bränden, Hilfeleistungen und Eintreffzeit",
+    icon: OVERVIEW_ICONS.table,
+    mirror: ["#fireTablePanel .fire-table-wrap"],
+    wide: true,
+  },
+};
+
+// IDs werden umbenannt, damit sie eindeutig bleiben und SVG-Verläufe nicht auf die versteckte Vorlage zeigen
+function cloneForMirror(src) {
+  const clone = src.cloneNode(true);
+  clone.querySelectorAll(".panel-toggle, .layout-handle, .fire-export").forEach((el) => el.remove());
+  [clone, ...clone.querySelectorAll("*")].forEach((el) => {
+    el.classList.remove("collapsed", "layout-group", "layout-dragging");
+    el.removeAttribute("data-layout-id");
+    el.removeAttribute("data-layout-item");
+    if (el.id) el.id += "--ov";
+    ["fill", "stroke", "clip-path", "mask"].forEach((attr) => {
+      const value = el.getAttribute(attr);
+      if (value && value.includes("url(#")) el.setAttribute(attr, value.replace(/url\(#([^)]+)\)/g, "url(#$1--ov)"));
+    });
+  });
+  clone.hidden = false;
+  return clone;
+}
+
+function mountMirrorWidget(body, selectors) {
+  const sources = selectors.map((s) => document.querySelector(s)).filter(Boolean);
+  let queued = false;
+  const update = () => {
+    queued = false;
+    body.replaceChildren(...sources.map(cloneForMirror));
+  };
+  const observer = new MutationObserver(() => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(update);
+  });
+  sources.forEach((src) =>
+    observer.observe(src, { childList: true, subtree: true, characterData: true, attributes: true }),
+  );
+  update();
+  return () => observer.disconnect();
+}
+
+function mountRadarWidget(body) {
+  renderInto(body, '<div class="ov-map"></div><div class="warn-note ov-map-note">Radar wird geladen …</div>');
+  const mapEl = body.querySelector(".ov-map");
+  const note = body.querySelector(".ov-map-note");
+  const miniMap = L.map(mapEl, { zoomControl: false, attributionControl: false }).setView(
+    [currentWeatherCoords.lat, currentWeatherCoords.lon],
+    7,
+  );
+  L.tileLayer(BASE_TILE_URL, { maxZoom: 16 }).addTo(miniMap);
+  let layer = null;
+  async function load() {
+    try {
+      const res = await fetch("https://api.rainviewer.com/public/weather-maps.json");
+      if (!res.ok) throw new Error("RainViewer HTTP " + res.status);
+      const data = await res.json();
+      const past = data.radar?.past || [];
+      if (!past.length || !data.host?.startsWith("https://")) throw new Error("Keine Radarframes");
+      const frame = past[past.length - 1];
+      if (layer) miniMap.removeLayer(layer);
+      layer = L.tileLayer(`${data.host}${frame.path}/512/{z}/{x}/{y}/2/1_1.png`, {
+        opacity: 0.78,
+        maxNativeZoom: 7,
+        maxZoom: 16,
+      }).addTo(miniMap);
+      note.textContent = `Radar ${formatFrameTime(frame.time)} Uhr · © RainViewer · Karte © Esri`;
+    } catch (err) {
+      note.textContent = "Radardaten konnten nicht geladen werden.";
+    }
+  }
+  const resizeObserver = new ResizeObserver(() => miniMap.invalidateSize());
+  resizeObserver.observe(mapEl);
+  load();
+  document.addEventListener("dashboard-refresh", load);
+  return () => {
+    resizeObserver.disconnect();
+    document.removeEventListener("dashboard-refresh", load);
+    miniMap.remove();
+  };
+}
+
+function mountCalendarTodayWidget(body) {
+  const render = () => {
+    const now = new Date();
+    const events = [...(calEvents[dateKey(now)] || [])].sort(
+      (a, b) => (a.allDay ? 0 : 1) - (b.allDay ? 0 : 1) || (a.time || "").localeCompare(b.time || ""),
+    );
+    renderInto(
+      body,
+      `<div class="ov-date">${now.toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</div>
+      <div class="ov-events"></div>`,
+    );
+    const list = body.querySelector(".ov-events");
+    if (!events.length) {
+      list.innerHTML = '<div class="todo-empty">Heute keine Termine — im Kalender eintragen.</div>';
+      return;
+    }
+    events.forEach((ev) => {
+      const row = document.createElement("div");
+      row.className = "ov-event";
+      row.innerHTML = '<span class="ov-event-time"></span><span class="ov-event-text"></span>';
+      row.querySelector(".ov-event-time").textContent = ev.allDay ? "ganztags" : `${ev.time} Uhr`;
+      row.querySelector(".ov-event-text").textContent = ev.text;
+      list.appendChild(row);
+    });
+  };
+  render();
+  const dayTimer = setInterval(render, 15 * 60 * 1000);
+  document.addEventListener("calendar-change", render);
+  return () => {
+    clearInterval(dayTimer);
+    document.removeEventListener("calendar-change", render);
+  };
+}
+
+function mountMeetingWidget(body) {
+  renderInto(
+    body,
+    `<div class="panel-sub">Falls Netz oder Strom ausfallen</div>
+    <input type="text" class="meeting-input" placeholder="z. B. bei Oma, Nachbarschaftstreff …" autocomplete="off" aria-label="Familien-Treffpunkt">
+    <div class="notes-saved">&nbsp;</div>`,
+  );
+  return bindMeetingPointInput(body.querySelector(".meeting-input"), body.querySelector(".notes-saved"));
+}
+
+const overviewGrid = document.getElementById("overviewGrid");
+const overviewEmpty = document.getElementById("overviewEmpty");
+const overviewCleanups = new Map();
+
+function loadOverviewTypes() {
+  try {
+    const raw = localStorage.getItem(OVERVIEW_STORAGE_KEY);
+    if (raw) return JSON.parse(raw).filter((type) => OVERVIEW_WIDGETS[type]);
+  } catch (err) {}
+  const types = [...OVERVIEW_DEFAULT];
+  // Widget der früheren Widget-Seite übernehmen
+  try {
+    const legacy = localStorage.getItem("dashboard-widget-slot");
+    if (legacy && OVERVIEW_WIDGETS[legacy] && !types.includes(legacy)) types.push(legacy);
+    localStorage.removeItem("dashboard-widget-slot");
+  } catch (err) {}
+  return types;
+}
+let overviewTypes = loadOverviewTypes();
+
+function saveOverviewTypes() {
+  try {
+    localStorage.setItem(OVERVIEW_STORAGE_KEY, JSON.stringify(overviewTypes));
+  } catch (err) {}
+}
+
+function mountOverviewWidget(type) {
+  const def = OVERVIEW_WIDGETS[type];
+  const panel = document.createElement("section");
+  panel.className = "panel ov-widget" + (def.wide ? " ov-wide" : "");
+  panel.id = "ov-" + type;
+  panel.setAttribute("aria-label", def.title);
+  panel.innerHTML = `
+    <div class="panel-title">${def.title}</div>
+    <button type="button" class="ov-remove" aria-label="${def.title} entfernen" title="Entfernen">×</button>
+    <div class="ov-body ov-body-${type}"></div>`;
+  const toggle = document.createElement("button");
+  toggle.type = "button";
+  toggle.className = "panel-toggle auto-toggle";
+  toggle.setAttribute("aria-label", `${def.title} ein-/ausklappen`);
+  toggle.innerHTML = CHEVRON_SVG;
+  panel.appendChild(toggle);
+  setupToggle(panel, toggle);
+  panel.querySelector(".ov-remove").addEventListener("click", () => removeOverviewWidget(type));
+  overviewGrid.appendChild(panel);
+
+  const body = panel.querySelector(".ov-body");
+  const cleanup = def.mirror ? mountMirrorWidget(body, def.mirror) : def.mount(body);
+  overviewCleanups.set(type, typeof cleanup === "function" ? cleanup : null);
+}
+
+function addOverviewWidget(type) {
+  if (!OVERVIEW_WIDGETS[type] || overviewTypes.includes(type)) return;
+  overviewTypes.push(type);
+  saveOverviewTypes();
+  mountOverviewWidget(type);
+  saveLayoutOrder(overviewGrid);
+  afterOverviewChange();
+}
+
+function removeOverviewWidget(type) {
+  overviewTypes = overviewTypes.filter((t) => t !== type);
+  saveOverviewTypes();
+  const cleanup = overviewCleanups.get(type);
+  if (cleanup) cleanup();
+  overviewCleanups.delete(type);
+  document.getElementById("ov-" + type)?.remove();
+  storeCollapsed("ov-" + type, false);
+  saveLayoutOrder(overviewGrid);
+  afterOverviewChange();
+}
+
+function afterOverviewChange() {
+  overviewGrid.hidden = !overviewTypes.length;
+  overviewEmpty.hidden = overviewTypes.length > 0;
+  refreshLayoutHandles();
+  fitOverviewGrid();
+  if (pickerOverlay.classList.contains("show")) renderWidgetPicker();
+}
+
+// Zeilen, in denen alles eingeklappt ist, bekommen nur ihre Titelhöhe; alle anderen teilen sich den Rest
+function fitOverviewGrid() {
+  if (!overviewGrid.offsetParent) return;
+  const gap = parseFloat(getComputedStyle(overviewGrid).columnGap) || 0;
+  const width = overviewGrid.clientWidth;
+  const height = overviewGrid.clientHeight;
+  const items = layoutItems(overviewGrid);
+
+  // Mobil scrollt die Seite: feste Kachelhöhe, breite Widgets über die ganze Breite
+  if (MOBILE_SCROLL_QUERY.matches) {
+    const mobileCols = width >= 2 * OVERVIEW_MIN_COL_TIGHT + gap ? 2 : 1;
+    const mobileRows = packOverviewRows(items, mobileCols, 2);
+    overviewGrid.classList.remove("ov-overfull");
+    overviewGrid.style.gridTemplateColumns = `repeat(${mobileCols}, minmax(0, 1fr))`;
+    mobileRows.forEach((row) => row.forEach(({ el, span }) => (el.style.gridColumn = span > 1 ? `span ${span}` : "")));
+    overviewGrid.style.gridTemplateRows = mobileRows
+      .map((row) => (row.some(({ el }) => !el.classList.contains("collapsed")) ? `${OVERVIEW_MOBILE_ROW}px` : "auto"))
+      .join(" ");
+    return;
+  }
+
+  const rowHeight = (c) => {
+    const rowCount = packOverviewRows(items, c).length;
+    return (height - gap * (rowCount - 1)) / rowCount;
+  };
+  // Bei wenig Höhe lieber schmalere Kacheln nebeneinander als zu flache untereinander
+  let cols = Math.max(1, Math.floor((width + gap) / (OVERVIEW_MIN_COL + gap)));
+  while (
+    cols < items.length &&
+    rowHeight(cols) < OVERVIEW_MIN_ROW &&
+    (width - gap * cols) / (cols + 1) >= OVERVIEW_MIN_COL_TIGHT
+  ) {
+    cols++;
+  }
+  const rows = packOverviewRows(items, cols);
+  // Nur wenn so viele Widgets gewählt sind, dass nicht einmal die Titel passen, darf die Übersicht scrollen
+  const overfull = items.length > 0 && rowHeight(cols) < OVERVIEW_MIN_TILE;
+  overviewGrid.classList.toggle("ov-overfull", overfull);
+  const openRow = `minmax(${overfull ? OVERVIEW_MIN_TILE : 0}px, 1fr)`;
+  overviewGrid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+  rows.forEach((row) => row.forEach(({ el, span }) => (el.style.gridColumn = span > 1 ? `span ${span}` : "")));
+  overviewGrid.style.gridTemplateRows = rows
+    .map((row) => (row.some(({ el }) => !el.classList.contains("collapsed")) ? openRow : "auto"))
+    .join(" ");
+}
+
+// Verteilt die Kacheln zeilenweise; passt eine nicht mehr hinein, füllt die letzte Kachel der Zeile die Lücke
+function packOverviewRows(items, cols, minColsForWide = 3) {
+  const rows = [];
+  let row = [];
+  let used = 0;
+  const closeRow = () => {
+    if (!row.length) return;
+    row[row.length - 1].span += cols - used;
+    rows.push(row);
+    row = [];
+    used = 0;
+  };
+  items.forEach((el) => {
+    const span = el.classList.contains("ov-wide") && cols >= minColsForWide ? 2 : 1;
+    if (used + span > cols) closeRow();
+    row.push({ el, span });
+    used += span;
+  });
+  closeRow();
+  return rows;
+}
+
+// ---- Widget-Auswahl: fügt hinzu oder entfernt wieder ----
+const pickerOverlay = document.getElementById("widgetPickerOverlay");
+const pickerBody = document.getElementById("widgetPickerBody");
+
+function renderWidgetPicker() {
+  const groups = [...new Set(Object.values(OVERVIEW_WIDGETS).map((d) => d.group))];
+  pickerBody.innerHTML = groups
+    .map(
+      (group) => `<div class="widget-picker-group">
+      <div class="widget-picker-group-title">${group}</div>
+      <div class="widget-picker-grid">
+        ${Object.entries(OVERVIEW_WIDGETS)
+          .filter(([, d]) => d.group === group)
+          .map(([type, d]) => {
+            const added = overviewTypes.includes(type);
+            return `<button type="button" class="widget-option${added ? " added" : ""}" data-widget="${type}" aria-pressed="${added}">
+              <span class="widget-option-icon">${d.icon}</span>
+              <span class="widget-option-text">
+                <span class="widget-option-title">${d.title}</span>
+                <span class="widget-option-desc">${d.desc}</span>
+              </span>
+              <span class="widget-option-state" aria-hidden="true">${added ? "✓" : "+"}</span>
+            </button>`;
+          })
+          .join("")}
+      </div>
+    </div>`,
+    )
+    .join("");
+}
+function openWidgetPicker() {
+  renderWidgetPicker();
+  pickerOverlay.classList.add("show");
+  pickerBody.querySelector(".widget-option")?.focus();
+}
+function closeWidgetPicker() {
+  pickerOverlay.classList.remove("show");
+}
+pickerBody.addEventListener("click", (e) => {
+  const option = e.target.closest(".widget-option");
+  if (!option) return;
+  const type = option.dataset.widget;
+  if (overviewTypes.includes(type)) removeOverviewWidget(type);
+  else addOverviewWidget(type);
+  pickerBody.querySelector(`[data-widget="${type}"]`)?.focus();
+});
+document.getElementById("widgetPickerClose").addEventListener("click", closeWidgetPicker);
+pickerOverlay.addEventListener("click", (e) => {
+  if (e.target === pickerOverlay) closeWidgetPicker();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && pickerOverlay.classList.contains("show")) closeWidgetPicker();
+});
+
+document.getElementById("overviewAddBtn").addEventListener("click", openWidgetPicker);
+overviewEmpty.addEventListener("click", openWidgetPicker);
+document.getElementById("overviewArrangeBtn").addEventListener("click", () => {
+  setLayoutEditing(!document.body.classList.contains("layout-editing"));
+});
+
+saveOverviewTypes();
+overviewTypes.forEach(mountOverviewWidget);
+applySavedLayoutOrder(overviewGrid);
+afterOverviewChange();
+new ResizeObserver(fitOverviewGrid).observe(overviewGrid);
+document.addEventListener("widget-collapse", fitOverviewGrid);
+window.addEventListener("resize", fitOverviewGrid);

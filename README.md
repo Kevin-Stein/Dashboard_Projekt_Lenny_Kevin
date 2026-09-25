@@ -2,7 +2,7 @@
 
 ## test test
 
-Ein interaktives Wetter-Dashboard mit verschiedenen Widgets.
+**Katastrophenschutz – „Wir helfen Berlin“**: ein interaktives Dashboard für Berlin mit Wetter, Warnungen, Feuerwehr-Einsätzen und frei anordenbaren Widgets. Standardort ist Berlin.
 
 ## Features
 
@@ -10,7 +10,10 @@ Ein interaktives Wetter-Dashboard mit verschiedenen Widgets.
 - **Regenradar**: Live-Radardaten mit RainViewer und OpenWeather
 - **Kalender**: Terminverwaltung mit lokalen Speicher
 - **Feuerwehr**: Brandeinsätze der Berliner Feuerwehr der letzten 7 Tage (Berliner Feuerwehr Open Data)
-- **Widgets**:
+- **Übersicht**: frei zusammenstellbar – Widgets aller Bereiche hinzufügen, entfernen und per „Anordnen“ verschieben. Verfügbare Widgets u. a.:
+  - Wetter, Kennzahlen, Vorhersage, Regenchance, Temperaturverlauf, Mini-Regenradar
+  - Feuerwehr-Kennzahlen, -Diagramm und -Tabelle
+  - Termine heute, Familien-Treffpunkt
   - Aufgabenliste (To-do)
   - Notizen
   - Weltzeituhr
