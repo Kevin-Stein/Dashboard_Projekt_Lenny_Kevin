@@ -1183,138 +1183,316 @@ h1 {
   .corner-panel { position: static; margin-top: 16px; align-self: flex-end; box-shadow: none; }
 }
 
+
 /* ===================================================================
-   ÜBERSCHREIBUNGEN: alles auf einer Bildschirmseite ohne Scrollen
-   Layout wird von 2 Zeilen (Grid + Regenradar) auf eine einzige Zeile
-   mit 3 Spalten umgestellt: Wetter | Kalender/Widget | Regenradar.
-   Alle Größen skalieren mit der Fensterhöhe (vh), damit auf jedem
-   Bildschirm der komplette Inhalt sichtbar bleibt.
+   NEU: Sidebar-Layout im Stil der Vorlage (dunkle Sidebar, helle
+   Karten-Übersicht, Balken-/Donut-/Wellen-Charts). Kalender, Wetter-
+   Detail und Regenradar bleiben funktional unverändert.
    =================================================================== */
 
-html, body {
-  height: 100%;
-  overflow: hidden; /* die Seite selbst scrollt nicht mehr */
+:root {
+  --navy: #1E2A4A;
+  --navy-2: #263764;
+  --navy-ink: #EAF0FF;
+  --orange: #F2994A;
+  --orange-soft: #FDE9D7;
+  --card-radius: 18px;
+  --card-shadow: 0 10px 30px rgba(20, 30, 60, 0.06);
+  --sidebar-w: 240px;
 }
+:root:not([data-theme="light"]) {
+  @media (prefers-color-scheme: dark) {
+    --navy: #0E1730; --navy-2: #17224A; --orange-soft: #3A2E1E;
+    --card-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  }
+}
+:root[data-theme="dark"] {
+  --navy: #0E1730; --navy-2: #17224A; --orange-soft: #3A2E1E;
+  --card-shadow: 0 10px 30px rgba(0,0,0,0.35);
+}
+
+html, body { height: auto; overflow: visible; }
 
 body {
-  padding: clamp(10px, 1.6vh, 22px) clamp(14px, 2.4vw, 36px);
+  padding: 0;
+  display: block;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.app-shell {
   display: flex;
+  align-items: stretch;
+  min-height: 100vh;
+  max-width: 1500px;
+  margin: 0 auto;
 }
 
-.page {
-  max-width: 1600px;
-  width: 100%;
-  height: 100%;
-  display: grid;
-  grid-template-rows: auto 1fr;
-  grid-template-columns: 1.25fr 0.85fr 1.05fr;
-  gap: clamp(10px, 1.4vh, 18px);
-  min-height: 0;
-}
-
-header {
-  grid-column: 1 / -1;
-  margin-bottom: 0;
-  flex-wrap: wrap;
-}
-
-h1 { font-size: clamp(20px, 2.6vh, 30px); }
-.subline { font-size: clamp(11px, 1.3vh, 13px); margin-top: 3px; }
-.clock { font-size: clamp(12px, 1.4vh, 14px); }
-
-/* .grid gibt seine Kinder direkt an das Seiten-Grid weiter,
-   damit Wetter- und Seiten-Spalte echte Grid-Spalten werden */
-.grid {
-  display: contents;
-}
-
-.weather,
-.side,
-.panel.radar {
-  height: 100%;
-  min-height: 0;
-}
-
-.weather {
-  overflow-y: auto;
-  gap: clamp(10px, 1.6vh, 20px);
-  padding: clamp(14px, 2vh, 26px);
-}
-
-.side {
-  height: 100%;
-  min-height: 0;
-  gap: clamp(10px, 1.6vh, 18px);
-}
-
-.calendar {
+/* ---------- Sidebar ---------- */
+.sidebar {
+  width: var(--sidebar-w);
   flex-shrink: 0;
-  padding: clamp(12px, 1.8vh, 24px);
-  gap: clamp(8px, 1.2vh, 14px);
-}
-
-.cal-events { max-height: clamp(40px, 8vh, 90px); }
-
-.side .placeholder,
-.side .widget-panel {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding: clamp(12px, 1.8vh, 24px);
-}
-
-.panel.radar {
+  background: linear-gradient(180deg, var(--navy), var(--navy-2));
+  color: var(--navy-ink);
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  padding: clamp(14px, 2vh, 26px);
-  gap: clamp(8px, 1.4vh, 16px);
+  padding: 26px 18px;
+  gap: 26px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
 }
 
-.map-wrap {
-  height: auto;
+.sidebar-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+
+.sidebar-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sidebar-avatar svg { width: 28px; height: 28px; }
+
+.sidebar-title {
+  font-family: 'Fraunces', serif;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.sidebar-sub {
+  font-size: 11.5px;
+  opacity: 0.7;
+  text-transform: capitalize;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: var(--navy-ink);
+  opacity: 0.75;
+  font-family: 'Inter', sans-serif;
+  font-size: 13.5px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+.nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+.nav-item:hover { background: rgba(255,255,255,0.08); opacity: 1; }
+.nav-item.active { background: var(--orange); color: #201203; opacity: 1; font-weight: 600; }
+
+.sidebar-footer {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.12);
+}
+
+.sidebar-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 8px 10px;
+  border-radius: 9px;
+  border: 1px solid rgba(255,255,255,0.16);
+  background: rgba(255,255,255,0.05);
+  color: var(--navy-ink);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.sidebar-btn:hover { background: rgba(255,255,255,0.12); }
+.sidebar-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+#themeToggle.sidebar-btn svg { width: 15px; height: 15px; }
+
+.sidebar-status {
+  font-size: 10.5px;
+  opacity: 0.65;
+  margin-top: 2px;
+}
+
+/* ---------- Main content ---------- */
+.main-content {
   flex: 1;
-  min-height: 90px;
+  min-width: 0;
+  padding: 30px clamp(18px, 3vw, 40px);
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
 }
 
-.temp-now { font-size: clamp(40px, 7vh, 76px); }
-.condition-icon { width: clamp(32px, 4vh, 44px); height: clamp(32px, 4vh, 44px); }
+.panel { border-radius: var(--card-radius); box-shadow: var(--card-shadow); }
 
-.forecast { padding-top: clamp(8px, 1.2vh, 16px); }
-.day { padding: clamp(4px, 0.8vh, 10px) 4px; }
-
-.day-detail { padding-top: clamp(8px, 1.2vh, 14px); gap: clamp(6px, 1vh, 10px); }
-
-.weather-stats { gap: clamp(6px, 0.9vh, 10px); }
-
-.todo-list, .warn-list { max-height: none; }
-
-/* Auf schmalen/mobilen Bildschirmen lässt sich echtes 3-spaltiges
-   Ein-Screen-Layout nicht sinnvoll umsetzen — dort wird wieder
-   gestapelt und normal gescrollt. */
-@media (max-width: 900px) {
-  html, body { overflow: auto; height: auto; }
-  body { display: block; }
-  .page {
-    display: block;
-    height: auto;
-  }
-  .grid { display: contents; }
-  .weather, .side, .panel.radar { height: auto; overflow: visible; }
-  .map-wrap { height: 320px; }
+/* Stat cards row */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
 }
 
-#headerStatus { font-size: clamp(13px,1.7vh,17px); margin-top: 0; line-height: 1.5; }
-.page { grid-template-columns: minmax(0,1.25fr) minmax(0,.85fr) minmax(0,1.05fr); }
-.weather.collapsed, .panel.radar.collapsed { height: auto; align-self: start; }
-.side > .widget-panel.collapsed { flex: 0 0 auto; }
-.weather, .side, .calendar, .widget-panel, .panel.radar, .weather-top,.radar-header, .cal-header, .toolbar { min-width: 0; }
-* { scrollbar-width: thin; scrollbar-color: var(--teal-soft) var(--panel-2); }
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: var(--panel-2); border-radius: 99px; }
-::-webkit-scrollbar-thumb { background: var(--teal-soft); border: 2px solid var(--panel-2); border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: var(--teal); }
-::-webkit-scrollbar-corner { background: var(--panel-2); }
+.stat-card {
+  background: var(--panel);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.stat-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #fff;
+}
+.stat-icon svg { width: 20px; height: 20px; }
+
+.accent-navy .stat-icon { background: var(--navy); }
+.accent-navy2 .stat-icon { background: var(--navy-2); }
+.accent-orange .stat-icon { background: var(--orange); }
+.accent-light .stat-icon { background: var(--teal-soft); }
+
+.stat-value {
+  font-family: 'Fraunces', serif;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
+
+/* Charts row: bar chart + donut */
+.charts-row {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 18px;
+}
+
+.chart-card, .donut-card, .wave-card {
+  background: var(--panel);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bar-chart {
+  flex: 1;
+  min-height: 160px;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding-top: 10px;
+}
+
+.bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.bar-col .bar {
+  width: 60%;
+  border-radius: 8px 8px 4px 4px;
+  background: var(--navy);
+  transition: height 0.5s ease;
+}
+
+.bar-col.today .bar { background: var(--orange); }
+
+.bar-col .bar-value { font-size: 11.5px; font-weight: 600; }
+.bar-col .bar-label { font-size: 11px; color: var(--ink-soft); }
+
+.donut-card { align-items: center; text-align: center; }
+
+.donut-chart { width: 150px; height: 150px; position: relative; }
+.donut-chart svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.donut-chart .donut-center {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.donut-chart .donut-pct {
+  font-family: 'Fraunces', serif; font-size: 26px; font-weight: 500;
+}
+.donut-chart .donut-word { font-size: 11px; color: var(--ink-soft); }
+.donut-caption { font-size: 12px; color: var(--ink-soft); }
+
+/* Lower row: wave chart + calendar */
+.lower-row {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 18px;
+  align-items: stretch;
+}
+
+.wave-chart { width: 100%; height: 150px; }
+.wave-chart svg { width: 100%; height: 100%; display: block; }
+
+.lower-row .calendar { padding: 22px; }
+
+/* Detail row: original weather panel + widget slot */
+.detail-row {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 18px;
+  align-items: stretch;
+}
+
+.detail-row .weather { padding: 24px; }
+.detail-row .placeholder { min-height: 220px; }
+
+.panel.radar { padding: 24px; }
+
+@media (max-width: 1080px) {
+  .stat-row { grid-template-columns: repeat(2, 1fr); }
+  .charts-row, .lower-row, .detail-row { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 760px) {
+  .app-shell { flex-direction: column; }
+  .sidebar { width: 100%; height: auto; position: static; flex-direction: row; flex-wrap: wrap; align-items: center; }
+  .sidebar-brand { flex-direction: row; border-bottom: none; padding-bottom: 0; }
+  .sidebar-nav { flex-direction: row; flex-wrap: wrap; }
+  .sidebar-footer { flex-direction: row; flex-wrap: wrap; margin-top: 0; border-top: none; }
+  .stat-row { grid-template-columns: 1fr 1fr; }
+  .map-wrap { height: 280px; }
+}
+
 .cal-add { flex-wrap: wrap; }
 .cal-add #calAddInput { flex: 1 1 100%; }
 .cal-add #calAddTime { flex: 0 1 105px; max-width: 120px; }
@@ -1329,35 +1507,14 @@ h1 { font-size: clamp(20px, 2.6vh, 30px); }
 .radar-legend { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; color: var(--ink-soft); font-size: 11px; }
 .radar-gradient { width: 110px; height: 8px; border-radius: 6px; background: linear-gradient(90deg,#95b4d7,#54a7cb,#4cbd80,#efd94d,#f49645,#d83754); }
 #radarPlayback[hidden] { display: none !important; }
-@media (min-width: 901px) {
-  .weather, .panel.radar, .side .widget-panel { padding: clamp(12px,1.5vh,22px); gap: clamp(6px,1vh,13px); }
-  .side { gap: clamp(6px,1vh,12px); }
-  .calendar { padding: clamp(10px,1.4vh,19px); gap: clamp(5px,.8vh,10px); }
-  .cal-day { aspect-ratio: auto; min-height: clamp(24px,3vh,35px); }
-  .map-wrap { min-height: 130px; }
-}
-@media (max-width: 1100px) and (min-width: 901px) {
-  .page { grid-template-columns: minmax(0,1fr) minmax(0,.9fr); grid-template-rows: auto minmax(0,1fr) minmax(250px,.55fr); }
-  .panel.radar { grid-column: 1 / -1; height: 100%; }
-}
-@media (max-width: 900px) {
-  html,body { height: auto; overflow-x: hidden; overflow-y: auto; }
-  body { display: block; padding: 14px; }
-  .page { display: flex; flex-direction: column; height: auto; gap: 14px; }
-  header { align-items: flex-start; gap: 12px; }
-  .header-right { max-width: 100%; }
-  .toolbar { flex-wrap: wrap; }
-  .grid { display: contents; }
-  .weather, .side, .panel.radar { height: auto; overflow: visible; }
-  .side .widget-panel,.side .placeholder { min-height: 120px; overflow: visible; }
-  .map-wrap { height: clamp(250px,45vh,420px); flex: none; }
-}
+* { scrollbar-width: thin; scrollbar-color: var(--teal-soft) var(--panel-2); }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--panel-2); border-radius: 99px; }
+::-webkit-scrollbar-thumb { background: var(--teal-soft); border: 2px solid var(--panel-2); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--teal); }
+::-webkit-scrollbar-corner { background: var(--panel-2); }
 @media (max-width: 560px) {
-  body { padding: 10px; }
-  .panel { padding: 14px; }
-  .weather, .calendar, .panel.radar, .side .widget-panel { padding: 14px; }
-  .calendar .cal-day { min-height: 36px; aspect-ratio: auto; }
-  .radar-quick { flex-wrap: wrap; }
-  .radar-form input,.weather-search input { min-width: 0; }
-  .map-wrap { height: 260px; }
+  .main-content { padding: 20px 14px; }
+  .panel { padding: 16px; }
+  .detail-row .weather, .lower-row .calendar, .chart-card, .donut-card, .wave-card, .panel.radar { padding: 16px; }
 }

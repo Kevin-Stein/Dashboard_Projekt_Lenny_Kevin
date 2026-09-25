@@ -35,6 +35,16 @@ function setupToggle(panelEl, btnEl) {
   });
 }
 
+// ---- NEU: Sidebar-Navigation ----
+document.querySelectorAll('.nav-item').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = document.getElementById(btn.dataset.target);
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
 setupToggle(document.querySelector('section.panel.weather'), document.getElementById('weatherToggle'));
 setupToggle(document.querySelector('section.panel.calendar'), document.getElementById('calToggle'));
 setupToggle(document.querySelector('section.panel.radar'), document.getElementById('radarToggle'));
@@ -824,6 +834,78 @@ function formatHour(iso) {
   return new Date(iso).toLocaleTimeString('de-DE', { hour: '2-digit' }).replace(' Uhr', '') + ' Uhr';
 }
 
+// ---- NEU: Balkendiagramm (Höchsttemperatur je Tag) ----
+function renderForecastBars(data) {
+  const el = document.getElementById('barChart');
+  if (!el) return;
+  const highs = data.daily.temperature_2m_max;
+  const maxVal = Math.max(...highs);
+  const minVal = Math.min(...highs);
+  const span = Math.max(maxVal - minVal, 1);
+  el.innerHTML = data.daily.time.map((dateStr, i) => {
+    const d = new Date(dateStr + 'T00:00:00');
+    const high = Math.round(highs[i]);
+    const heightPct = 22 + ((high - minVal) / span) * 78; // 22%–100%
+    const label = i === 0 ? 'Heute' : weatherDayLabels[d.getDay()];
+    return `<div class="bar-col${i === 0 ? ' today' : ''}">
+      <div class="bar-value">${high}°</div>
+      <div class="bar" style="height:${heightPct.toFixed(0)}%"></div>
+      <div class="bar-label">${label}</div>
+    </div>`;
+  }).join('');
+}
+
+// ---- NEU: Donut-Diagramm (Regenwahrscheinlichkeit) ----
+function renderRainDonut(percent, captionText) {
+  const el = document.getElementById('donutChart');
+  if (!el) return;
+  const p = Math.max(0, Math.min(100, Math.round(percent || 0)));
+  const r = 52;
+  const circumference = 2 * Math.PI * r;
+  const filled = (p / 100) * circumference;
+  el.innerHTML = `
+    <svg viewBox="0 0 120 120">
+      <circle cx="60" cy="60" r="${r}" fill="none" style="stroke:var(--line)" stroke-width="14"/>
+      <circle cx="60" cy="60" r="${r}" fill="none" style="stroke:var(--orange)" stroke-width="14"
+        stroke-linecap="round" stroke-dasharray="${filled.toFixed(1)} ${circumference.toFixed(1)}"/>
+    </svg>
+    <div class="donut-center">
+      <div class="donut-pct">${p}%</div>
+      <div class="donut-word">Regen</div>
+    </div>`;
+  const caption = document.getElementById('donutCaption');
+  if (caption) caption.textContent = captionText || '';
+}
+
+// ---- NEU: Wellen-/Flächendiagramm (stündlicher Temperaturverlauf) ----
+function renderTempWave(hourIdxForDay, hourly) {
+  const el = document.getElementById('waveChart');
+  if (!el || !hourIdxForDay.length) return;
+  const temps = hourIdxForDay.map(i => hourly.temperature_2m[i]);
+  const w = 600, h = 150, pad = 10;
+  const maxT = Math.max(...temps), minT = Math.min(...temps);
+  const span = Math.max(maxT - minT, 1);
+  const stepX = (w - pad * 2) / (temps.length - 1 || 1);
+  const points = temps.map((t, i) => {
+    const x = pad + i * stepX;
+    const y = h - pad - ((t - minT) / span) * (h - pad * 2);
+    return [x, y];
+  });
+  const linePath = points.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+  const areaPath = linePath + ` L${points[points.length - 1][0].toFixed(1)} ${h - pad} L${points[0][0].toFixed(1)} ${h - pad} Z`;
+  el.innerHTML = `
+    <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="waveFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" style="stop-color:var(--orange);stop-opacity:0.35"/>
+          <stop offset="100%" style="stop-color:var(--orange);stop-opacity:0"/>
+        </linearGradient>
+      </defs>
+      <path d="${areaPath}" fill="url(#waveFill)" stroke="none"/>
+      <path d="${linePath}" fill="none" style="stroke:var(--navy)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+    </svg>`;
+}
+
 function renderDayDetail(index) {
   if (!weatherData) return;
   selectedDayIndex = index;
@@ -871,6 +953,13 @@ function renderDayDetail(index) {
 
   document.getElementById('dayDetail').classList.add('show');
 
+  const dayPop = d.precipitation_probability_max[index] ?? 0;
+  const shortLabel = index === 0 ? 'heute' : dateLabel;
+  renderRainDonut(dayPop, shortLabel);
+  renderTempWave(hourIdxForDay, hourly);
+  const waveLabelEl = document.getElementById('waveDayLabel');
+  if (waveLabelEl) waveLabelEl.textContent = shortLabel + ', stündlich';
+
   const statsEl = document.getElementById('weatherStats');
   if (index === 0) {
     const c = weatherData.current;
@@ -913,6 +1002,8 @@ async function loadWeatherForPlace(lat, lon, label) {
     weatherData = data;
 
     document.getElementById('weatherPlaceName').textContent = label;
+    const sidebarPlaceEl = document.getElementById('sidebarPlaceName');
+    if (sidebarPlaceEl) sidebarPlaceEl.textContent = label;
 
     const cur = weatherCodeInfo(data.current.weather_code);
     document.getElementById('weatherTempNow').textContent = `${Math.round(data.current.temperature_2m)}°`;
@@ -923,6 +1014,18 @@ async function loadWeatherForPlace(lat, lon, label) {
     const lo = Math.round(data.daily.temperature_2m_min[0]);
     const pop = data.daily.precipitation_probability_max[0];
     document.getElementById('weatherRange').textContent = `Heute ${lo}° – ${hi}° · ${pop ?? 0} % Regenwahrscheinlichkeit`;
+
+    // NEU: Kopfzeilen-Stat-Karten
+    const statTempEl = document.getElementById('statTempNow');
+    const statWindEl = document.getElementById('statWind');
+    const statHumEl = document.getElementById('statHumidity');
+    const statRainEl = document.getElementById('statRain');
+    if (statTempEl) statTempEl.textContent = `${Math.round(data.current.temperature_2m)}°`;
+    if (statWindEl) statWindEl.textContent = `${Math.round(data.current.wind_speed_10m)} km/h`;
+    if (statHumEl) statHumEl.textContent = `${data.current.relative_humidity_2m}%`;
+    if (statRainEl) statRainEl.textContent = `${pop ?? 0}%`;
+
+    renderForecastBars(data);
 
     const forecastEl = document.getElementById('weatherForecast');
     forecastEl.innerHTML = '';
