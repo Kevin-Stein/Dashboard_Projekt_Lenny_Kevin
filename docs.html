@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dokumentation – Katastrophenschutz „Wir helfen Berlin“</title>
+<title data-i18n="docs.pageTitle">Dokumentation – Katastrophenschutz „Wir helfen Berlin“</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -20,46 +20,51 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M4.5 4.5A1.5 1.5 0 0 1 6 3h12.5v15.5H6a1.5 1.5 0 0 0-1.5 1.5z"/><path d="M4.5 20A1.5 1.5 0 0 0 6 21h12.5v-2.5M8.5 7.5h6M8.5 11h6" stroke-linecap="round"/></svg>
       </div>
       <div class="sidebar-brand-text">
-        <div class="sidebar-title">Dokumentation</div>
-        <div class="sidebar-slogan">„Wir helfen Berlin“</div>
+        <div class="sidebar-title" data-i18n="docs.title">Dokumentation</div>
+        <div class="sidebar-slogan" data-i18n="brand.slogan">„Wir helfen Berlin“</div>
       </div>
     </div>
 
-    <button type="button" class="menu-toggle" id="menuToggle" aria-label="Menü öffnen" aria-expanded="false" aria-controls="docsNav">
+    <button type="button" class="menu-toggle" id="menuToggle" aria-label="Menü öffnen" data-i18n-attr="aria-label=menu.open" aria-expanded="false" aria-controls="docsNav">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
         <path class="menu-line-top" d="M4 7h16"/><path class="menu-line-mid" d="M4 12h16"/><path class="menu-line-bot" d="M4 17h16"/>
       </svg>
     </button>
 
     <nav class="sidebar-nav docs-nav" id="docsNav">
-      <div class="docs-nav-group">Benutzerhandbuch</div>
-      <a class="nav-item" href="#start">Erste Schritte</a>
-      <a class="nav-item" href="#bedienung">Seitenleiste &amp; Bedienung</a>
-      <a class="nav-item" href="#uebersicht">Übersicht</a>
-      <a class="nav-item" href="#anordnen">Anordnen &amp; Größe</a>
-      <a class="nav-item" href="#seiten">Die Seiten</a>
-      <a class="nav-item" href="#widgets">Widget-Katalog</a>
-      <a class="nav-item" href="#mobil">Smartphone &amp; Tablet</a>
-      <a class="nav-item" href="#daten">Deine Daten</a>
-      <a class="nav-item" href="#hilfe">Hilfe bei Problemen</a>
-      <div class="docs-nav-group">Technik</div>
-      <a class="nav-item" href="#architektur">Architektur &amp; Dateien</a>
-      <a class="nav-item" href="#entwicklung">Entwicklung &amp; Deployment</a>
-      <a class="nav-item" href="#apis">Datenquellen &amp; APIs</a>
-      <a class="nav-item" href="#fehler">Fehlerbehandlung</a>
-      <a class="nav-item" href="#layout">Layout-System</a>
-      <a class="nav-item" href="#speicher">Speicherschlüssel</a>
-      <a class="nav-item" href="#erweitern">Erweitern</a>
-      <a class="nav-item" href="#lizenzen">Lizenzen</a>
+      <div class="docs-nav-group" data-i18n="docs.nav.userGuide">Benutzerhandbuch</div>
+      <a class="nav-item" href="#start" data-i18n="docs.nav.start">Erste Schritte</a>
+      <a class="nav-item" href="#bedienung" data-i18n="docs.nav.sidebar">Seitenleiste &amp; Bedienung</a>
+      <a class="nav-item" href="#uebersicht" data-i18n="docs.nav.overview">Übersicht</a>
+      <a class="nav-item" href="#anordnen" data-i18n="docs.nav.arrange">Anordnen &amp; Größe</a>
+      <a class="nav-item" href="#seiten" data-i18n="docs.nav.pages">Die Seiten</a>
+      <a class="nav-item" href="#widgets" data-i18n="docs.nav.widgets">Widget-Katalog</a>
+      <a class="nav-item" href="#mobil" data-i18n="docs.nav.mobile">Smartphone &amp; Tablet</a>
+      <a class="nav-item" href="#daten" data-i18n="docs.nav.data">Deine Daten</a>
+      <a class="nav-item" href="#hilfe" data-i18n="docs.nav.help">Hilfe bei Problemen</a>
+      <div class="docs-nav-group" data-i18n="docs.nav.technical">Technik</div>
+      <a class="nav-item" href="#architektur" data-i18n="docs.nav.architecture">Architektur &amp; Dateien</a>
+      <a class="nav-item" href="#entwicklung" data-i18n="docs.nav.development">Entwicklung &amp; Deployment</a>
+      <a class="nav-item" href="#tests" data-i18n="docs.nav.tests">Tests</a>
+      <a class="nav-item" href="#apis" data-i18n="docs.nav.apis">Datenquellen &amp; APIs</a>
+      <a class="nav-item" href="#fehler" data-i18n="docs.nav.errors">Fehlerbehandlung</a>
+      <a class="nav-item" href="#layout" data-i18n="docs.nav.layout">Layout-System</a>
+      <a class="nav-item" href="#speicher" data-i18n="docs.nav.storage">Speicherschlüssel</a>
+      <a class="nav-item" href="#erweitern" data-i18n="docs.nav.extend">Erweitern</a>
+      <a class="nav-item" href="#sprachen" data-i18n="docs.nav.languages">Mehrsprachigkeit</a>
+      <a class="nav-item" href="#lizenzen" data-i18n="docs.nav.licenses">Lizenzen</a>
     </nav>
 
     <div class="sidebar-footer">
-      <button type="button" id="themeToggle" class="sidebar-btn" aria-label="Farbmodus wechseln"></button>
+      <div class="sidebar-row">
+        <button type="button" id="themeToggle" class="sidebar-btn" aria-label="Farbmodus wechseln" data-i18n-attr="aria-label=theme.toggle"></button>
+        <select id="langSelect" class="sidebar-btn lang-select" aria-label="Sprache" data-i18n-attr="aria-label=lang.label;title=lang.label"></select>
+      </div>
       <a class="sidebar-btn" href="index.html" id="backToDashboard">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>
-        <span>Zum Dashboard</span>
+        <span data-i18n="docs.back">Zum Dashboard</span>
       </a>
-      <div class="sidebar-status">Stand: September 2026</div>
+      <div class="sidebar-status" data-i18n="docs.updated">Stand: September 2026</div>
     </div>
   </aside>
 
@@ -94,6 +99,7 @@
         <dt>Navigation</dt><dd>Die Einträge oben wechseln die Seite. Der aktive Eintrag ist orange hinterlegt.</dd>
         <dt>Dokumentation</dt><dd>Öffnet diese Anleitung in einem eigenen Fenster.</dd>
         <dt>Modus: Hell / Dunkel</dt><dd>Wechselt das Farbschema. Ohne eigene Wahl richtet sich das Dashboard nach der Systemeinstellung.</dd>
+        <dt>Sprache</dt><dd>Das Auswahlfeld neben dem Farbmodus stellt Dashboard und Dokumentation auf eine andere Sprache um (derzeit Deutsch und English). Die Seite lädt dabei kurz neu, alle Einstellungen bleiben erhalten. Ohne eigene Wahl gilt die Sprache des Browsers.</dd>
         <dt>Aktualisieren</dt><dd>Lädt Wetter, Radar, Warnungen, Feuerwehr- und Pegeldaten sofort neu.</dd>
         <dt>Auto-Aktualisierung</dt><dd>Bei „AN“ werden alle Daten alle 5 Minuten neu geladen. Ein Klick schaltet die Funktion aus oder wieder an.</dd>
         <dt>Standort &amp; Datum</dt><dd>Zeigt den aktuell gewählten Wetterort sowie Datum und Uhrzeit. Darunter steht, wann zuletzt aktualisiert wurde.</dd>
@@ -272,9 +278,13 @@
             <tr><td><code>index.html</code></td><td>Struktur aller Seiten (<code>.page</code>), Seitenleiste, Dialoge für „Widget hinzufügen“ und „Zurücksetzen“</td></tr>
             <tr><td><code>css/style.css</code></td><td>Alle Styles: Farbvariablen für Hell/Dunkel, Seitenleiste, Widgets, Container-Queries, Mobile-Ansicht</td></tr>
             <tr><td><code>js/app.js</code></td><td>Gesamte Logik: Navigation, Theme, Datenabrufe, Diagramme, Widget-Katalog, Layout-System</td></tr>
+            <tr><td><code>js/i18n.js</code></td><td>Mehrsprachigkeit: Übersetzungsfunktion <code>t()</code>, Sprachwahl, Sprach-Auswahlfeld</td></tr>
+            <tr><td><code>js/lang/&lt;code&gt;.js</code>, <code>js/lang/docs.&lt;code&gt;.js</code></td><td>Texte des Dashboards bzw. der Dokumentation pro Sprache (<code>de</code>, <code>en</code>)</td></tr>
             <tr><td><code>js/config.js</code></td><td>Optionaler OpenWeather-Key. Steht in <code>.gitignore</code>, Vorlage ist <code>js/config.example.js</code></td></tr>
             <tr><td><code>api/warnings.js</code></td><td>Serverless-Funktion (Vercel): holt MoWaS, KATWARN, BIWAPP, DWD und LHP und liefert sie gebündelt als JSON</td></tr>
             <tr><td><code>dev-server.js</code></td><td>Lokaler Node-Server: liefert die Dateien aus und stellt <code>/api/warnings</code> bereit</td></tr>
+            <tr><td><code>package.json</code>, <code>playwright.config.js</code>, <code>tests/</code></td><td>Playwright-Suite. Start mit <code>npm test</code>, siehe <a href="#tests">Tests</a></td></tr>
+            <tr><td><code>testresults/</code></td><td>Markdown-Protokoll des letzten Testlaufs, eine Datei je Test plus Übersicht</td></tr>
             <tr><td><code>docs.html</code>, <code>css/docs.css</code>, <code>js/docs.js</code>, <code>img/docs/</code></td><td>Diese Dokumentation mit Screenshots (WebP, 1440 × 900 bzw. Smartphone 390 px bei doppelter Auflösung)</td></tr>
             <tr><td><code>.cursor/skills/</code>, <code>.claude/skills/</code></td><td>Projekt-Skills für den KI-Assistenten. Per <code>.vercelignore</code> vom Deployment ausgeschlossen</td></tr>
           </tbody>
@@ -304,6 +314,64 @@
         <li>Die statischen Dateien werden direkt ausgeliefert, <code>api/warnings.js</code> läuft als Serverless-Funktion unter <code>/api/warnings</code>.</li>
         <li>Die Antwort wird mit <code>Cache-Control: s-maxage=60, stale-while-revalidate=300</code> gecacht.</li>
         <li><code>.vercelignore</code> schließt <code>.cursor/</code> und <code>.claude/</code> vom Upload aus.</li>
+      </ul>
+      <p>Die automatisierten Tests stehen im Abschnitt <a href="#tests">Tests</a>.</p>
+    </section>
+
+    <section class="docs-card" id="tests">
+      <h2>Tests</h2>
+      <p>Die Oberfläche wird mit Playwright im echten Chromium geprüft. Die Suite startet selbst <code>dev-server.js</code> auf Port <code>3125</code> (<code>127.0.0.1</code>), damit ein lokal laufendes Dashboard und dessen <code>localStorage</code> unberührt bleiben. Wetter, Radar, Warnungen, Pegel und Feuerwehr werden im Test nachgebaut, es gehen also keine echten API-Aufrufe raus.</p>
+      <h3>Starten</h3>
+      <pre><code>npm install          # einmalig: Pakete und Chromium
+npm test             # alle Tests, unsichtbar
+npm run test:headed  # dieselben Tests, Browser sichtbar</code></pre>
+      <p><code>npm install</code> lädt Chromium über das Skript <code>postinstall</code>. Einzelne Dateien: <code>npx playwright test tests/injection.spec.js</code>.</p>
+      <p>Nach jedem Lauf schreibt <code>tests/markdown-reporter.js</code> die Ergebnisse nach <code>testresults/</code>: <code>README.md</code> als Übersicht und eine Markdown-Datei je Test mit Zweck, Ablauf, Erwartung und Status.</p>
+      <h3>Dateien</h3>
+      <div class="docs-table-wrap">
+        <table class="docs-table">
+          <thead><tr><th>Datei</th><th>Aufgabe</th></tr></thead>
+          <tbody>
+            <tr><td><code>playwright.config.js</code></td><td>Port 3125, Locale <code>de-DE</code>, Reporter (Liste + Markdown)</td></tr>
+            <tr><td><code>tests/helpers.js</code></td><td>Sprache setzen, Seiten öffnen, Widgets hinzufügen, API-Stubs</td></tr>
+            <tr><td><code>tests/dashboard.spec.js</code></td><td>Navigation, Sprachen, Theme, Widget-Katalog, Doku, Smartphone-Menü</td></tr>
+            <tr><td><code>tests/inputs.spec.js</code></td><td>Formulare, Suche, Speichern</td></tr>
+            <tr><td><code>tests/injection.spec.js</code></td><td>XSS- und HTML-Payloads in allen Eingabefeldern</td></tr>
+            <tr><td><code>tests/stress.spec.js</code></td><td>Viele Klicks, lange Texte, viele Widgets</td></tr>
+            <tr><td><code>tests/markdown-reporter.js</code></td><td>Schreibt <code>testresults/*.md</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Was die Suite prüft</h3>
+      <h4>Dashboard und Dokumentation</h4>
+      <ul>
+        <li>Sprachmenü steht neben dem Farbmodus, Einträge Deutsch und English.</li>
+        <li>Start auf Deutsch, Wechsel auf Englisch inkl. Reload: Titel, Navigation, Übersicht.</li>
+        <li>Alle sechs Seiten (Übersicht, Wetter, Regenradar, Katastrophenschutz, Feuerwehr, Wasserpegel).</li>
+        <li>Widget-Katalog auf Deutsch und Englisch öffnen und schließen.</li>
+        <li>Farbmodus Hell → Dunkel.</li>
+        <li>Smartphone (390×844): Navigation verborgen, Menü öffnet die Seitenleiste.</li>
+        <li>Dokumentation: deutsche Texte, Sprachwechsel, Abschnitt Mehrsprachigkeit, Knopf „Zum Dashboard“.</li>
+      </ul>
+      <h4>Eingabefelder</h4>
+      <ul>
+        <li>Leeres Absenden bei Wetter, Radar und Pegel ändert nichts.</li>
+        <li>Ortssuche: Treffer (Hamburg), unbekannter Name, Radar-Schnellwahl Potsdam.</li>
+        <li>Familien-Treffpunkt inkl. Sonderzeichen, Speichern, Reload.</li>
+        <li>Warnungsfilter (Dresden / kein Treffer) und Checkliste abhaken.</li>
+        <li>Pegelsuche: Dresden anzeigen, unbekannter Name als Toast.</li>
+        <li>Aufgaben anlegen, abhaken, löschen; Notizen speichern; Kalendertermin; Countdown.</li>
+        <li>Radar-Quelle OpenWeather und Auto-Aktualisierung aus.</li>
+      </ul>
+      <h4>Code-Injection</h4>
+      <p>Payloads wie <code>&lt;script&gt;alert(1)&lt;/script&gt;</code>, <code>&lt;img src=x onerror=alert(1)&gt;</code>, SVG-<code>onload</code>, Textarea-Breakout, <code>javascript:</code>-URLs und Template-Injection in Treffpunkt, Aufgaben, Notizen, Kalender, Countdown, Wetter-/Radar-/Pegelsuche und Warnungsfilter. Erwartung: kein Dialog, Payload nur als Text, keine eingeschleusten <code>img</code>/<code>script</code>-Knoten. Ortsnamen im Radar-Popup werden per <code>textContent</code> gesetzt, nicht als HTML.</p>
+      <h4>Belastung</h4>
+      <ul>
+        <li>Alle Seiten achtmal hintereinander umschalten.</li>
+        <li>Theme, Widget-Katalog und Anordnen sehr oft klicken.</li>
+        <li>Leere Formulare und 4000-Zeichen-Text mit HTML und Umlauten.</li>
+        <li>40 Aufgaben, mehrere Widgets hinzufügen und wieder entfernen.</li>
+        <li>Aktualisieren, Auto-Aktualisierung und Sprachwechsel mehrfach.</li>
       </ul>
     </section>
 
@@ -390,6 +458,7 @@
           <thead><tr><th>Schlüssel</th><th>Inhalt</th></tr></thead>
           <tbody>
             <tr><td><code>dashboard-theme</code></td><td><code>light</code> oder <code>dark</code>. Fehlt der Wert, gilt die Systemeinstellung</td></tr>
+            <tr><td><code>dashboard-lang</code></td><td>Sprachcode, z. B. <code>de</code> oder <code>en</code>. Fehlt der Wert, gilt die Browsersprache</td></tr>
             <tr><td><code>dashboard-auto-refresh</code></td><td>Auto-Aktualisierung an/aus</td></tr>
             <tr><td><code>dashboard-overview-widgets</code></td><td>Widget-Typen der Übersicht</td></tr>
             <tr><td><code>dashboard-page-widgets-&lt;seite&gt;</code></td><td>Zusätzliche Widgets einer Unterseite</td></tr>
@@ -409,18 +478,21 @@
     <section class="docs-card" id="erweitern">
       <h2>Erweitern</h2>
       <h3>Neues Widget</h3>
-      <p>Einen Eintrag in <code>OVERVIEW_WIDGETS</code> (<code>js/app.js</code>) ergänzen. Das Widget erscheint dann automatisch im Katalog jeder Seite.</p>
-      <pre><code>"mein-widget": {
-  group: "Kalender &amp; Organisation",   // Gruppe im Katalog
-  title: "Mein Widget",
-  desc: "Kurze Beschreibung für den Katalog",
+      <p>Einen Eintrag in <code>OVERVIEW_WIDGETS</code> (<code>js/app.js</code>) ergänzen und Titel und Beschreibung in jeder Sprachdatei eintragen. Das Widget erscheint dann automatisch im Katalog jeder Seite.</p>
+      <pre><code>// js/lang/de.js (und entsprechend en.js)
+"widget.mein-widget.title": "Mein Widget",
+"widget.mein-widget.desc": "Kurze Beschreibung für den Katalog",
+
+// js/app.js
+"mein-widget": {
+  group: "calendar",                  // Gruppe im Katalog (Schlüssel groups.calendar)
   icon: OVERVIEW_ICONS.notes,
   mount: mountMeinWidget,             // oder: mirror: ["#quellElement"]
   wide: true,                         // optional: startet breiter
 },
 
 function mountMeinWidget(body) {
-  body.innerHTML = `&lt;div class="mein-inhalt"&gt;…&lt;/div&gt;`;
+  body.innerHTML = `&lt;div class="mein-inhalt"&gt;${t("widget.mein-widget.empty")}&lt;/div&gt;`;
   const timer = setInterval(update, 60000);
   return () =&gt; clearInterval(timer);   // optional: Aufräumen beim Entfernen
 }</code></pre>
@@ -429,14 +501,39 @@ function mountMeinWidget(body) {
       <ol>
         <li>In <code>index.html</code> ein <code>&lt;div id="meinePage" class="page"&gt;</code> mit der <code>.overview-bar</code> (Titel und die drei Schaltflächen) anlegen.</li>
         <li>Am Ende der Seite das Widget-Raster <code>&lt;div class="overview-grid" id="meinePageWidgets" hidden&gt;&lt;/div&gt;</code> einfügen. Die ID muss <code>&lt;Seiten-ID&gt;Widgets</code> lauten, damit „+ Widget“ funktioniert.</li>
-        <li>In <code>NAV_CATEGORIES</code> einen Eintrag mit <code>target: "meinePage"</code> und einem SVG-Icon ergänzen.</li>
+        <li>In <code>NAV_CATEGORIES</code> einen Eintrag mit <code>target: "meinePage"</code> und einem SVG-Icon ergänzen. Den Seitennamen als <code>nav.&lt;id&gt;</code> in jede Sprachdatei eintragen, sichtbare Texte der Seite mit <code>data-i18n</code> auszeichnen.</li>
         <li>Eigene Reihen oder Spalten, die anordenbar sein sollen, in <code>LAYOUT_GROUP_CLASSES</code> eintragen. Danach nimmt das Layout-System (Anordnen, Zurücksetzen) die Seite beim Start automatisch auf.</li>
       </ol>
     </section>
 
+    <section class="docs-card" id="sprachen">
+      <h2>Mehrsprachigkeit</h2>
+      <p>Alle sichtbaren Texte kommen aus Sprachdateien. <code>js/i18n.js</code> wählt die Sprache in dieser Reihenfolge: gespeicherte Wahl (<code>dashboard-lang</code>), Browsersprache, Deutsch. Fehlt ein Text in einer Sprache, wird der deutsche verwendet.</p>
+      <ul>
+        <li><strong>In JavaScript:</strong> <code>t("weather.loadingFor", { place: "Berlin" })</code>. Platzhalter stehen in geschweiften Klammern im Text.</li>
+        <li><strong>In HTML:</strong> <code>data-i18n="schlüssel"</code> setzt den Text, <code>data-i18n-html</code> erlaubt Auszeichnungen, <code>data-i18n-attr="placeholder=schlüssel;aria-label=schlüssel2"</code> übersetzt Attribute.</li>
+        <li><strong>Datum und Zahlen</strong> nutzen <code>I18N.locale()</code> (z. B. <code>de-DE</code>, <code>en-GB</code>) mit <code>toLocaleString</code> bzw. <code>Intl</code>.</li>
+        <li>Beim Sprachwechsel lädt die Seite neu. Ein zweites offenes Fenster (Dashboard oder Dokumentation) übernimmt die Sprache automatisch.</li>
+      </ul>
+      <h3>Neue Sprache hinzufügen</h3>
+      <ol>
+        <li><code>js/lang/en.js</code> nach z. B. <code>js/lang/fr.js</code> kopieren, Code, Name und Locale anpassen und alle Texte übersetzen:
+<pre><code>I18N.register("fr", {
+  name: "Français",
+  locale: "fr-FR",
+  strings: {
+    "nav.overview": "Aperçu",
+    …
+  },
+});</code></pre></li>
+        <li>In <code>index.html</code> und <code>docs.html</code> unter den anderen Sprachdateien <code>&lt;script src="js/lang/fr.js"&gt;&lt;/script&gt;</code> einfügen.</li>
+        <li>Optional die Dokumentation übersetzen: <code>js/lang/docs.en.js</code> nach <code>docs.fr.js</code> kopieren, übersetzen und ebenfalls in <code>docs.html</code> einbinden. Ohne diese Datei erscheint die Dokumentation auf Deutsch.</li>
+      </ol>
+      <p>Die neue Sprache erscheint danach automatisch im Auswahlfeld.</p>
+    </section>
+
     <section class="docs-card" id="lizenzen">
-      <h2>Lizenzen</h2>
-      <p>Schulprojekt – Lernfeld 5+8. Genutzte Quellen:</p>
+      <h2>Lizenzen & Quellen</h2>
       <div class="docs-table-wrap">
         <table class="docs-table">
           <thead><tr><th>Quelle</th><th>Lizenz / Bedingungen</th></tr></thead>
@@ -457,10 +554,14 @@ function mountMeinWidget(body) {
     </section>
   </main>
 </div>
-<div class="docs-lightbox" id="docsLightbox" role="dialog" aria-modal="true" aria-label="Screenshot vergrößert" hidden>
+<div class="docs-lightbox" id="docsLightbox" role="dialog" aria-modal="true" aria-label="Screenshot vergrößert" data-i18n-attr="aria-label=docs.lightbox" hidden>
   <img alt="">
   <p></p>
 </div>
+<script src="js/i18n.js"></script>
+<script src="js/lang/de.js"></script>
+<script src="js/lang/en.js"></script>
+<script src="js/lang/docs.en.js"></script>
 <script src="js/docs.js"></script>
 </body>
 </html>

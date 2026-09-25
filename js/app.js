@@ -1,3 +1,8 @@
+// ---- Sprache (js/i18n.js, Texte in js/lang/) ----
+I18N.apply();
+I18N.mountSwitcher(document.getElementById("langSelect"));
+const LOCALE = I18N.locale();
+
 // ---- Fehlerbehandlung ----
 const FETCH_TIMEOUT_MS = 12000;
 
@@ -70,16 +75,16 @@ async function fetchData(url, { source = "Anfrage", parse = "json", timeout = FE
 }
 
 function describeError(err) {
-  if (!(err instanceof FetchError)) return "unerwarteter Fehler";
-  if (err.kind === "offline") return "keine Internetverbindung";
-  if (err.kind === "timeout") return "der Dienst antwortet nicht";
-  if (err.kind === "network") return "Dienst nicht erreichbar";
-  if (err.kind === "data") return "Antwort unvollständig oder fehlerhaft";
-  if (err.status === 429) return "zu viele Anfragen, bitte in einer Minute erneut versuchen";
-  if (err.status === 401 || err.status === 403) return "Zugriff verweigert (API-Key prüfen)";
-  if (err.status === 404) return "Daten nicht gefunden";
-  if (err.status >= 500) return "Dienst gerade gestört";
-  return `Fehler HTTP ${err.status}`;
+  if (!(err instanceof FetchError)) return t("err.unexpected");
+  if (err.kind === "offline") return t("err.offline");
+  if (err.kind === "timeout") return t("err.timeout");
+  if (err.kind === "network") return t("err.network");
+  if (err.kind === "data") return t("err.data");
+  if (err.status === 429) return t("err.rateLimit");
+  if (err.status === 401 || err.status === 403) return t("err.forbidden");
+  if (err.status === 404) return t("err.notFound");
+  if (err.status >= 500) return t("err.server");
+  return t("err.http", { status: err.status });
 }
 
 function reportError(source, err) {
@@ -101,7 +106,7 @@ function renderRetry(el, message, onRetry, className = "") {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "retry-btn";
-    btn.textContent = "Erneut versuchen";
+    btn.textContent = t("common.retry");
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
       onRetry();
@@ -120,7 +125,7 @@ function storageSet(key, value) {
     if (!storageWarned) {
       storageWarned = true;
       console.warn("[Dashboard] localStorage:", err);
-      showToast("Speichern im Browser nicht möglich – Änderungen gehen beim Schließen verloren", "error");
+      showToast(t("storage.failed"), "error");
     }
     return false;
   }
@@ -132,7 +137,7 @@ function handleUnexpectedError(err) {
   if (Date.now() - lastGlobalErrorToast < 15000) return;
   lastGlobalErrorToast = Date.now();
   try {
-    showToast("Unerwarteter Fehler – Details in der Browser-Konsole", "error");
+    showToast(t("err.unexpectedToast"), "error");
   } catch (e) {}
 }
 window.addEventListener("error", (e) => handleUnexpectedError(e.error || e.message));
@@ -154,10 +159,9 @@ if (!LEAFLET_AVAILABLE) {
 function updateClock() {
   const now = new Date();
   document.getElementById("headerDate").textContent =
-    now.toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long", year: "numeric" }) +
+    now.toLocaleDateString(LOCALE, { weekday: "long", day: "numeric", month: "long", year: "numeric" }) +
     " · " +
-    now.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) +
-    " Uhr";
+    t("time.clock", { time: now.toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" }) });
 }
 updateClock();
 setInterval(updateClock, 30000);
@@ -166,59 +170,59 @@ setInterval(updateClock, 30000);
 const NAV_CATEGORIES = {
   overview: {
     id: "overview",
-    label: "Übersicht",
+    label: t("nav.overview"),
     alwaysShow: true,
     html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
       <path d="M3 11.5L12 4l9 7.5" />
       <path d="M5.5 10v9.5a1 1 0 0 0 1 1H17.5a1 1 0 0 0 1-1V10" />
-    </svg><span>Übersicht</span>`,
+    </svg><span>${t("nav.overview")}</span>`,
     target: "overviewPage",
   },
   weather: {
     id: "weather",
-    label: "Wetter",
+    label: t("nav.weather"),
     alwaysShow: true,
     html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
       <path d="M7 15.5a3.8 3.8 0 0 1 .3-7.6 5.4 5.4 0 0 1 10.4-1.7A4.3 4.3 0 0 1 17 15z" />
-    </svg><span>Wetter</span>`,
+    </svg><span>${t("nav.weather")}</span>`,
     target: "weatherPage",
   },
   radar: {
     id: "radar",
-    label: "Regenradar",
+    label: t("nav.radar"),
     alwaysShow: true,
     html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
       <path d="M12 3v6M12 3a9 9 0 1 0 9 9M12 3a5 5 0 0 1 5 5" />
       <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" />
-    </svg><span>Regenradar</span>`,
+    </svg><span>${t("nav.radar")}</span>`,
     target: "radarPage",
   },
   disaster: {
     id: "disaster",
-    label: "Katastrophenschutz",
+    label: t("nav.disaster"),
     alwaysShow: true,
     html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
       <path d="M12 3.5l7.5 3v5.2c0 4.6-3.1 8.2-7.5 9.8-4.4-1.6-7.5-5.2-7.5-9.8V6.5l7.5-3z" />
       <path d="M12 8v5" /><circle cx="12" cy="15.8" r="0.6" fill="currentColor" stroke="none" />
-    </svg><span>Katastrophenschutz</span>`,
+    </svg><span>${t("nav.disaster")}</span>`,
     target: "disasterPage",
   },
   fire: {
     id: "fire",
-    label: "Feuerwehr",
+    label: t("nav.fire"),
     alwaysShow: true,
     html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
       <path d="M12 21c-3.9 0-6.5-2.6-6.5-6.2 0-3.3 2.3-5.4 3.6-7.6.3 1.6 1.1 2.8 2.2 3.4.2-2.9 1.4-5.6 3.7-7.6.3 2.7 1.3 4.6 2.6 6.4 1 1.4.9 2.9.9 5.4 0 3.6-2.6 6.2-6.5 6.2z" />
-    </svg><span>Feuerwehr</span>`,
+    </svg><span>${t("nav.fire")}</span>`,
     target: "firePage",
   },
   water: {
     id: "water",
-    label: "Wasserpegel",
+    label: t("nav.water"),
     alwaysShow: true,
     html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
       <path d="M3 9c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0M3 15c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0" />
-    </svg><span>Wasserpegel</span>`,
+    </svg><span>${t("nav.water")}</span>`,
     target: "waterPage",
   },
 };
@@ -315,7 +319,7 @@ function addMissingToggles() {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "panel-toggle auto-toggle";
-    btn.setAttribute("aria-label", `${title ? title.textContent.trim() : "Widget"} ein-/ausklappen`);
+    btn.setAttribute("aria-label", t("widget.toggleAria", { title: title ? title.textContent.trim() : "Widget" }));
     btn.innerHTML =
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>';
     el.appendChild(btn);
@@ -333,7 +337,7 @@ const menuToggleBtn = document.getElementById("menuToggle");
 function setMenuOpen(open) {
   sidebarEl.classList.toggle("menu-open", open);
   menuToggleBtn.setAttribute("aria-expanded", String(open));
-  menuToggleBtn.setAttribute("aria-label", open ? "Menü schließen" : "Menü öffnen");
+  menuToggleBtn.setAttribute("aria-label", t(open ? "menu.close" : "menu.open"));
 }
 menuToggleBtn.addEventListener("click", () => {
   setMenuOpen(!sidebarEl.classList.contains("menu-open"));
@@ -391,8 +395,8 @@ function effectiveTheme() {
 function updateThemeIcon() {
   const eff = effectiveTheme();
   themeToggleBtn.innerHTML =
-    eff === "dark" ? `${moonIconSvg}<span>Modus: Dunkel</span>` : `${sunIconSvg}<span>Modus: Hell</span>`;
-  themeToggleBtn.title = eff === "dark" ? "Zu Light Mode wechseln" : "Zu Dark Mode wechseln";
+    eff === "dark" ? `${moonIconSvg}<span>${t("theme.dark")}</span>` : `${sunIconSvg}<span>${t("theme.light")}</span>`;
+  themeToggleBtn.title = t(eff === "dark" ? "theme.toLight" : "theme.toDark");
 }
 function applyTheme(stored) {
   if (stored === "light" || stored === "dark") {
@@ -416,7 +420,7 @@ const lastUpdatedEl = document.getElementById("lastUpdated");
 
 function setLastUpdatedNow() {
   const now = new Date();
-  lastUpdatedEl.textContent = `Zuletzt aktualisiert: ${now.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}`;
+  lastUpdatedEl.textContent = t("refresh.lastUpdated", { time: now.toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" }) });
 }
 
 const refreshBtn = document.getElementById("refreshBtn");
@@ -428,11 +432,11 @@ let refreshInFlight = null;
 // Jede Quelle liefert true/false; eine fehlerhafte Quelle hält die anderen nicht auf
 async function runRefresh(manual) {
   const sources = [
-    ["Wetter", () => loadWeatherForPlace(currentWeatherCoords.lat, currentWeatherCoords.lon, currentWeatherCoords.label)],
-    ["Radar", () => loadRadar()],
-    ["Warnungen", () => loadDisasterWarnings(document.getElementById("disasterWarnSearchInput")?.value || "")],
-    ["Feuerwehr", () => loadFireData()],
-    ["Pegel", () => loadWaterData()],
+    [t("source.weather"), () => loadWeatherForPlace(currentWeatherCoords.lat, currentWeatherCoords.lon, currentWeatherCoords.label)],
+    [t("source.radar"), () => loadRadar()],
+    [t("source.warnings"), () => loadDisasterWarnings(document.getElementById("disasterWarnSearchInput")?.value || "")],
+    [t("source.fire"), () => loadFireData()],
+    [t("source.water"), () => loadWaterData()],
   ];
   refreshBtn.disabled = true;
   refreshIcon.classList.add("spinning");
@@ -445,10 +449,10 @@ async function runRefresh(manual) {
     document.dispatchEvent(new Event("dashboard-refresh"));
 
     refreshErrorsEl.hidden = !failed.length;
-    refreshErrorsEl.textContent = failed.length ? `Nicht aktualisiert: ${failed.join(", ")}` : "";
+    refreshErrorsEl.textContent = failed.length ? t("refresh.failedList", { list: failed.join(", ") }) : "";
     if (failed.length && manual) {
-      const hint = navigator.onLine === false ? "keine Internetverbindung" : "ältere Daten bleiben sichtbar";
-      showToast(`${failed.join(", ")} nicht aktualisiert – ${hint}`, "error");
+      const hint = navigator.onLine === false ? t("err.offline") : t("refresh.staleHint");
+      showToast(t("refresh.failedToast", { list: failed.join(", "), hint }), "error");
     }
   } finally {
     refreshIcon.classList.remove("spinning");
@@ -466,10 +470,10 @@ refreshBtn.addEventListener("click", () => {
 });
 
 window.addEventListener("offline", () => {
-  showToast("Keine Internetverbindung – angezeigte Daten können veraltet sein", "error");
+  showToast(t("net.offline"), "error");
 });
 window.addEventListener("online", () => {
-  showToast("Wieder online – Daten werden aktualisiert");
+  showToast(t("net.online"));
   refreshDashboardData();
 });
 
@@ -504,7 +508,7 @@ function stopAutoRefreshTimer() {
   }
 }
 function updateAutoRefreshUI() {
-  autoRefreshLabel.textContent = autoRefreshEnabled ? "⏸ Auto-Aktualisierung: AN" : "▶ Auto-Aktualisierung: AUS";
+  autoRefreshLabel.textContent = t(autoRefreshEnabled ? "autoRefresh.on" : "autoRefresh.off");
 }
 function applyAutoRefreshState() {
   updateAutoRefreshUI();
@@ -532,8 +536,8 @@ function mountTodoWidget(body) {
     body,
     `
     <form class="todo-add" id="todoAddForm">
-      <input type="text" id="todoAddInput" placeholder="Neue Aufgabe …" autocomplete="off">
-      <button type="submit">+</button>
+      <input type="text" id="todoAddInput" placeholder="${t("todo.placeholder")}" autocomplete="off">
+      <button type="submit" aria-label="${t("todo.add")}">+</button>
     </form>
     <div class="todo-list" id="todoList"></div>
   `,
@@ -555,14 +559,14 @@ function mountTodoWidget(body) {
     const list = panel.querySelector("#todoList");
     list.innerHTML = "";
     if (!todos.length) {
-      list.innerHTML = '<div class="todo-empty">Noch keine Aufgaben — leg oben los.</div>';
+      list.innerHTML = `<div class="todo-empty">${t("todo.empty")}</div>`;
       return;
     }
-    todos.forEach((t, i) => {
+    todos.forEach((todo, i) => {
       const row = document.createElement("div");
-      row.className = "todo-item" + (t.done ? " done" : "");
-      row.innerHTML = `<input type="checkbox" ${t.done ? "checked" : ""}><span></span><button type="button" aria-label="Löschen">×</button>`;
-      row.querySelector("span").textContent = t.text;
+      row.className = "todo-item" + (todo.done ? " done" : "");
+      row.innerHTML = `<input type="checkbox" ${todo.done ? "checked" : ""}><span></span><button type="button" aria-label="${t("common.delete")}">×</button>`;
+      row.querySelector("span").textContent = todo.text;
       row.querySelector("input").addEventListener("change", () => {
         todos[i].done = !todos[i].done;
         saveTodos(todos);
@@ -596,7 +600,7 @@ function mountNotesWidget(body) {
   const panel = renderInto(
     body,
     `
-    <textarea class="notes-area" id="notesArea" placeholder="Hier ist Platz für alles, was dir einfällt …"></textarea>
+    <textarea class="notes-area" id="notesArea" placeholder="${t("notes.placeholder")}"></textarea>
     <div class="notes-saved" id="notesSaved">&nbsp;</div>
   `,
   );
@@ -612,10 +616,10 @@ function mountNotesWidget(body) {
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
       if (!storageSet("dashboard-widget-notes", area.value)) {
-        saved.textContent = "Nicht gespeichert – Browser-Speicher nicht verfügbar";
+        saved.textContent = t("storage.notSaved");
         return;
       }
-      saved.textContent = "Gespeichert";
+      saved.textContent = t("storage.saved");
       setTimeout(() => {
         saved.textContent = "";
       }, 1500);
@@ -629,7 +633,7 @@ function mountClockWidget(body) {
     { city: "Berlin", tz: "Europe/Berlin" },
     { city: "London", tz: "Europe/London" },
     { city: "New York", tz: "America/New_York" },
-    { city: "Tokio", tz: "Asia/Tokyo" },
+    { city: t("clock.tokyo"), tz: "Asia/Tokyo" },
   ];
   const panel = renderInto(
     body,
@@ -651,7 +655,7 @@ function mountClockWidget(body) {
     const now = new Date();
     list.querySelectorAll(".clock-row").forEach((row) => {
       const tz = row.dataset.tz;
-      const timeStr = now.toLocaleTimeString("de-DE", { timeZone: tz, hour: "2-digit", minute: "2-digit" });
+      const timeStr = now.toLocaleTimeString(LOCALE, { timeZone: tz, hour: "2-digit", minute: "2-digit" });
       row.querySelector("[data-time]").textContent = timeStr;
       const parts = new Intl.DateTimeFormat("en-US", {
         timeZone: tz,
@@ -673,7 +677,7 @@ function mountClockWidget(body) {
       if (diffMin < -720) diffMin += 1440;
       const diffH = diffMin / 60;
       row.querySelector("[data-diff]").textContent =
-        diffMin === 0 ? "Ortszeit" : diffH > 0 ? `+${diffH}h` : `${diffH}h`;
+        diffMin === 0 ? t("clock.local") : diffH > 0 ? `+${diffH}h` : `${diffH}h`;
     });
   }
   tickClocks();
@@ -708,9 +712,9 @@ function mountCountdownWidget(body) {
     const body = panel.querySelector("#countdownBody");
     body.innerHTML = `
       <div class="countdown-setup">
-        <input type="text" id="cdTitle" placeholder="Wofür? z. B. Urlaub" autocomplete="off">
-        <input type="date" id="cdDate">
-        <button type="button" id="cdSave">Countdown starten</button>
+        <input type="text" id="cdTitle" placeholder="${t("countdown.titlePlaceholder")}" autocomplete="off">
+        <input type="date" id="cdDate" aria-label="${t("countdown.dateAria")}">
+        <button type="button" id="cdSave">${t("countdown.start")}</button>
       </div>
     `;
     body.querySelector("#cdSave").addEventListener("click", () => {
@@ -731,12 +735,13 @@ function mountCountdownWidget(body) {
     const body = panel.querySelector("#countdownBody");
     body.innerHTML = `
       <div class="countdown-display">
-        <div class="countdown-title">${data.title}</div>
+        <div class="countdown-title"></div>
         <div class="countdown-number" id="cdNumber">–</div>
-        <div class="countdown-label" id="cdLabel">Tage</div>
+        <div class="countdown-label" id="cdLabel">${t("countdown.days")}</div>
       </div>
-      <button type="button" class="countdown-edit" id="cdEdit">anderen Termin wählen</button>
+      <button type="button" class="countdown-edit" id="cdEdit">${t("countdown.change")}</button>
     `;
+    body.querySelector(".countdown-title").textContent = data.title;
     body.querySelector("#cdEdit").addEventListener("click", () => {
       try {
         localStorage.removeItem("dashboard-widget-countdown");
@@ -755,16 +760,16 @@ function mountCountdownWidget(body) {
         return;
       }
       if (diffMs <= 0 && diffMs > -86400000) {
-        numberEl.textContent = "Heute!";
+        numberEl.textContent = t("countdown.today");
         labelEl.textContent = data.title;
       } else if (diffMs <= -86400000) {
         const daysPast = Math.floor(-diffMs / 86400000);
-        numberEl.textContent = `vor ${daysPast}`;
-        labelEl.textContent = daysPast === 1 ? "Tag" : "Tagen";
+        numberEl.textContent = t("countdown.pastNumber", { n: daysPast });
+        labelEl.textContent = t(daysPast === 1 ? "countdown.dayPast" : "countdown.daysPast");
       } else {
         const days = Math.ceil(diffMs / 86400000);
         numberEl.textContent = days;
-        labelEl.textContent = days === 1 ? "Tag" : "Tage";
+        labelEl.textContent = t(days === 1 ? "countdown.day" : "countdown.days");
       }
     }
     tick();
@@ -781,17 +786,16 @@ function mountWarningsWidget(body) {
     body,
     `
     <form class="warn-search" id="warnSearchForm">
-      <input type="text" id="warnSearchInput" placeholder="Ort filtern, z. B. Berlin …" autocomplete="off">
-      <button type="submit">Filtern</button>
+      <input type="text" id="warnSearchInput" placeholder="${t("warn.filterPlaceholder")}" autocomplete="off">
+      <button type="submit">${t("warn.filter")}</button>
     </form>
-    <div class="warn-note" id="warnLoading">Warnungen werden geladen …</div>
+    <div class="warn-note" id="warnLoading">${t("warn.loading")}</div>
     <div class="warn-list" id="warnList"></div>
-    <div class="warn-note">Quelle: warnung.bund.de (BBK/NINA) · bundesweite Meldungen aus MoWaS, KATWARN, BIWAPP, DWD und Hochwasser</div>
+    <div class="warn-note">${t("warn.sourceLong")}</div>
   `,
   );
 
   const severityRank = { Extreme: 4, Severe: 3, Moderate: 2, Minor: 1, Unknown: 0 };
-  const typeLabel = { Alert: "Neu", Update: "Update", Cancel: "Aufgehoben", Test: "Test" };
 
   function sevClass(sev) {
     const s = (sev || "").toLowerCase();
@@ -805,7 +809,7 @@ function mountWarningsWidget(body) {
   async function loadWarnings(filterText) {
     const listEl = panel.querySelector("#warnList");
     const loadingEl = panel.querySelector("#warnLoading");
-    loadingEl.textContent = "Warnungen werden geladen …";
+    loadingEl.textContent = t("warn.loading");
     try {
       const { warnings, failed } = await fetchOfficialWarnings();
       let all = warnings;
@@ -813,7 +817,7 @@ function mountWarningsWidget(body) {
 
       if (filterText && filterText.trim()) {
         const q = filterText.trim().toLowerCase();
-        all = all.filter((w) => (w.i18nTitle?.de || "").toLowerCase().includes(q));
+        all = all.filter((w) => warningTitle(w).toLowerCase().includes(q));
       }
 
       all.sort(
@@ -827,7 +831,7 @@ function mountWarningsWidget(body) {
       if (!all.length) {
         const empty = document.createElement("div");
         empty.className = "warn-empty";
-        empty.textContent = `Keine Warnungen${filterText ? ` für "${filterText.trim()}"` : ""} gefunden.`;
+        empty.textContent = warningsEmptyText(filterText);
         listEl.appendChild(empty);
         return;
       }
@@ -835,19 +839,11 @@ function mountWarningsWidget(body) {
       all.forEach((w) => {
         const item = document.createElement("div");
         item.className = "warn-item " + sevClass(w.type === "Cancel" ? "cancel" : w.severity);
-        const date = w.startDate
-          ? new Date(w.startDate).toLocaleString("de-DE", {
-              day: "2-digit",
-              month: "2-digit",
-              hour: "2-digit",
-              minute: "2-digit",
-            })
-          : "";
         item.innerHTML = `
           <div class="warn-title"></div>
-          <div class="warn-meta"><span class="warn-badge">${typeLabel[w.type] || w.type || ""}</span><span>${date} Uhr</span></div>
+          <div class="warn-meta"><span class="warn-badge">${warningTypeLabel(w.type)}</span><span>${warningDate(w)}</span></div>
         `;
-        item.querySelector(".warn-title").textContent = w.i18nTitle?.de || "Meldung ohne Titel";
+        item.querySelector(".warn-title").textContent = warningTitle(w);
         listEl.appendChild(item);
       });
     } catch (err) {
@@ -890,7 +886,7 @@ function renderChecklist(list) {
     const row = document.createElement("div");
     row.className = "todo-item" + (checked.includes(i) ? " done" : "");
     row.innerHTML = `<input type="checkbox" ${checked.includes(i) ? "checked" : ""}><span></span>`;
-    row.querySelector("span").textContent = text;
+    row.querySelector("span").textContent = t(text);
     row.querySelector("input").addEventListener("change", () => toggleChecklistItem(i));
     list.appendChild(row);
   });
@@ -901,7 +897,7 @@ function mountChecklistWidget(body) {
     body,
     `
     <div class="todo-list scroll-list" data-checklist></div>
-    <div class="warn-note">Orientiert an den Empfehlungen des BBK für die private Notfallvorsorge.</div>
+    <div class="warn-note">${t("checklist.note")}</div>
   `,
   );
   const list = body.querySelector("[data-checklist]");
@@ -917,39 +913,40 @@ function mountEmergencyNumbersWidget(body) {
     body,
     `
     <div class="clock-list">
-      ${DISASTER_NUMBERS.map((n) => `<div class="emerg-row"><div class="emerg-num">${n.num}</div><div class="emerg-label">${n.label}</div></div>`).join("")}
+      ${DISASTER_NUMBERS.map((n) => `<div class="emerg-row"><div class="emerg-num">${n.num}</div><div class="emerg-label">${t(n.label)}</div></div>`).join("")}
     </div>
-    <div class="warn-note">Außerhalb von Berlin und Brandenburg gelten andere Giftnotruf-Nummern.</div>
+    <div class="warn-note">${t("numbers.note")}</div>
   `,
   );
 }
 
 // ---- Katastrophenschutz-Seite ----
 const DISASTER_NUMBERS = [
-  { num: "112", label: "Feuerwehr & Rettungsdienst — lebensbedrohliche Notfälle, Brand" },
-  { num: "110", label: "Polizei-Notruf" },
-  { num: "116 117", label: "Ärztlicher Bereitschaftsdienst — dringend, aber nicht lebensbedrohlich" },
-  { num: "030 19240", label: "Giftnotruf Berlin (Charité) — rund um die Uhr" },
+  { num: "112", label: "numbers.112" },
+  { num: "110", label: "numbers.110" },
+  { num: "116 117", label: "numbers.116117" },
+  { num: "030 19240", label: "numbers.poison" },
 ];
+// Gespeichert wird der Index, daher neue Punkte nur hinten anfügen
 const DISASTER_CHECKLIST_ITEMS = [
-  "Trinkwasser (mind. 2 Liter pro Person und Tag)",
-  "Haltbare Lebensmittel für mehrere Tage",
-  "Wichtige Dokumente griffbereit (Ausweis, Impfpass, Versicherung)",
-  "Erste-Hilfe-Set",
-  "Wichtige Medikamente",
-  "Taschenlampe & Ersatzbatterien",
-  "Batteriebetriebenes oder Kurbelradio",
-  "Powerbank bzw. Ersatzakku fürs Handy",
-  "Bargeld in kleinen Scheinen",
-  "Warme Kleidung & Decken",
-  "Hygieneartikel",
+  "checklist.water",
+  "checklist.food",
+  "checklist.documents",
+  "checklist.firstAid",
+  "checklist.medication",
+  "checklist.torch",
+  "checklist.radio",
+  "checklist.powerbank",
+  "checklist.cash",
+  "checklist.clothes",
+  "checklist.hygiene",
 ];
 
 function renderDisasterNumbers() {
   const el = document.getElementById("disasterNumbersList");
   if (!el) return;
   el.innerHTML = DISASTER_NUMBERS.map(
-    (n) => `<div class="emerg-row"><div class="emerg-num">${n.num}</div><div class="emerg-label">${n.label}</div></div>`,
+    (n) => `<div class="emerg-row"><div class="emerg-num">${n.num}</div><div class="emerg-label">${t(n.label)}</div></div>`,
   ).join("");
 }
 
@@ -960,7 +957,7 @@ function renderDisasterChecklist() {
 document.addEventListener("checklist-change", renderDisasterChecklist);
 
 // warnung.bund.de erlaubt keine Browser-Abrufe (kein CORS), daher über /api/warnings (api/warnings.js)
-const WARN_SOURCE_LABEL = { mowas: "MoWaS", katwarn: "KATWARN", biwapp: "BIWAPP", dwd: "DWD", lhp: "Hochwasser" };
+const WARN_SOURCE_LABEL = { mowas: "MoWaS", katwarn: "KATWARN", biwapp: "BIWAPP", dwd: "DWD", lhp: t("warn.sourceFlood") };
 async function fetchOfficialWarnings() {
   return fetchData("/api/warnings", {
     source: "Warnungen",
@@ -977,14 +974,28 @@ async function fetchOfficialWarnings() {
 }
 function warningsErrorText(err) {
   if (location.protocol === "file:" || (err instanceof FetchError && err.kind === "http" && err.status === 404))
-    return "Warnungen nicht verfügbar – die Warn-Schnittstelle fehlt. Dashboard mit „node dev-server.js“ starten.";
-  return `Warnungen nicht verfügbar – ${describeError(err)}. Alternativ direkt auf warnung.bund.de nachsehen.`;
+    return t("warn.noApi");
+  return t("warn.unavailable", { reason: describeError(err) });
 }
 function warningsPartialText(failed) {
-  return failed.length ? `Unvollständig: ${failed.join(", ")} gerade nicht erreichbar.` : "";
+  return failed.length ? t("warn.partial", { list: failed.join(", ") }) : "";
+}
+function warningsEmptyText(filterText) {
+  return filterText && filterText.trim() ? t("warn.emptyFor", { query: filterText.trim() }) : t("warn.empty");
+}
+// Die API liefert Titel teils auch in anderen Sprachen, sonst Deutsch
+function warningTitle(w) {
+  return w.i18nTitle?.[I18N.lang()] || w.i18nTitle?.de || t("warn.untitled");
+}
+function warningTypeLabel(type) {
+  return type && I18N.has(`warn.type.${type}`) ? t(`warn.type.${type}`) : type || "";
+}
+function warningDate(w) {
+  if (!w.startDate) return "";
+  const date = new Date(w.startDate).toLocaleString(LOCALE, { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+  return t("time.clock", { time: date });
 }
 const DISASTER_SEV_RANK = { Extreme: 4, Severe: 3, Moderate: 2, Minor: 1, Unknown: 0 };
-const DISASTER_TYPE_LABEL = { Alert: "Neu", Update: "Update", Cancel: "Aufgehoben", Test: "Test" };
 function disasterSevClass(sev) {
   const s = (sev || "").toLowerCase();
   if (s === "extreme") return "sev-extreme";
@@ -998,14 +1009,14 @@ async function loadDisasterWarnings(filterText) {
   const listEl = document.getElementById("disasterWarnList");
   const loadingEl = document.getElementById("disasterWarnLoading");
   if (!listEl || !loadingEl) return;
-  loadingEl.textContent = "Warnungen werden geladen …";
+  loadingEl.textContent = t("warn.loading");
   try {
     const { warnings, failed } = await fetchOfficialWarnings();
     let all = warnings;
     listEl.innerHTML = "";
     if (filterText && filterText.trim()) {
       const q = filterText.trim().toLowerCase();
-      all = all.filter((w) => (w.i18nTitle?.de || "").toLowerCase().includes(q));
+      all = all.filter((w) => warningTitle(w).toLowerCase().includes(q));
     }
     all.sort(
       (a, b) =>
@@ -1017,21 +1028,18 @@ async function loadDisasterWarnings(filterText) {
     if (!all.length) {
       const empty = document.createElement("div");
       empty.className = "warn-empty";
-      empty.textContent = `Keine Warnungen${filterText ? ` für "${filterText.trim()}"` : ""} gefunden.`;
+      empty.textContent = warningsEmptyText(filterText);
       listEl.appendChild(empty);
       return true;
     }
     all.forEach((w) => {
       const item = document.createElement("div");
       item.className = "warn-item " + disasterSevClass(w.type === "Cancel" ? "cancel" : w.severity);
-      const date = w.startDate
-        ? new Date(w.startDate).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
-        : "";
       item.innerHTML = `
         <div class="warn-title"></div>
-        <div class="warn-meta"><span class="warn-badge">${DISASTER_TYPE_LABEL[w.type] || w.type || ""}</span><span>${date} Uhr</span></div>
+        <div class="warn-meta"><span class="warn-badge">${warningTypeLabel(w.type)}</span><span>${warningDate(w)}</span></div>
       `;
-      item.querySelector(".warn-title").textContent = w.i18nTitle?.de || "Meldung ohne Titel";
+      item.querySelector(".warn-title").textContent = warningTitle(w);
       listEl.appendChild(item);
     });
     return true;
@@ -1055,10 +1063,10 @@ function bindMeetingPointInput(input, saved) {
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
       if (!storageSet("dashboard-meeting-point", input.value)) {
-        saved.textContent = "Nicht gespeichert – Browser-Speicher nicht verfügbar";
+        saved.textContent = t("storage.notSaved");
         return;
       }
-      saved.textContent = "Gespeichert";
+      saved.textContent = t("storage.saved");
       setTimeout(() => (saved.textContent = "\u00a0"), 1500);
       document.dispatchEvent(new Event("meeting-change"));
     }, 500);
@@ -1488,8 +1496,8 @@ function refreshLayoutHandles() {
         const handle = document.createElement("button");
         handle.type = "button";
         handle.className = "layout-handle";
-        handle.setAttribute("aria-label", "Zum Verschieben ziehen");
-        handle.title = "Zum Verschieben ziehen";
+        handle.setAttribute("aria-label", t("layout.dragHandle"));
+        handle.title = t("layout.dragHandle");
         handle.innerHTML = LAYOUT_HANDLE_SVG;
         handle.addEventListener("pointerdown", (e) => startLayoutDrag(e, item));
         item.prepend(handle);
@@ -1499,8 +1507,8 @@ function refreshLayoutHandles() {
         const resize = document.createElement("button");
         resize.type = "button";
         resize.className = "layout-resize";
-        resize.setAttribute("aria-label", "Zum Ändern der Größe ziehen");
-        resize.title = "Größe ändern";
+        resize.setAttribute("aria-label", t("layout.resizeAria"));
+        resize.title = t("layout.resize");
         resize.innerHTML = RESIZE_HANDLE_SVG;
         resize.addEventListener("pointerdown", (e) => startLayoutResize(e, item));
         item.appendChild(resize);
@@ -1514,12 +1522,13 @@ function setLayoutEditing(editing) {
   document.body.classList.toggle("layout-editing", editing);
   document.querySelectorAll('[data-widget-action="arrange"]').forEach((btn) => {
     btn.setAttribute("aria-pressed", String(editing));
-    btn.textContent = editing ? "✓ Fertig" : "✥ Anordnen";
+    btn.textContent = t(editing ? "layout.done" : "layout.arrange");
   });
   updateResizeHandles();
 }
 
 function initLayout() {
+  document.documentElement.style.setProperty("--i18n-drop-here", JSON.stringify(t("layout.dropHere")));
   const containers = document.querySelectorAll(LAYOUT_CONTAINER_SELECTOR);
   containers.forEach((container) => {
     const key = layoutContainerKey(container);
@@ -1604,18 +1613,19 @@ const radarDetailNote = document.getElementById("radarDetailNote");
 if (!OPENWEATHER_KEY) {
   const option = radarProvider.querySelector('option[value="openweather"]');
   option.disabled = true;
-  option.textContent += " (kein API-Key in js/config.js)";
+  option.textContent += t("radar.noKey");
   radarProvider.value = "rainviewer";
 }
 const playback = document.getElementById("radarPlayback");
 
 function formatFrameTime(unixSeconds) {
-  return new Date(unixSeconds * 1000).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+  return new Date(unixSeconds * 1000).toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" });
 }
 
 function stopPlayback() {
   playing = false;
   playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+  playBtn.setAttribute("aria-label", t("radar.play"));
   clearInterval(playTimer);
   playTimer = null;
 }
@@ -1628,7 +1638,7 @@ function showFrame(index) {
   });
   if (!map.hasLayer(radarLayers[currentFrame])) radarLayers[currentFrame].addTo(map);
   slider.value = String(currentFrame);
-  frameTimeEl.textContent = formatFrameTime(frames[currentFrame].time) + " Uhr";
+  frameTimeEl.textContent = t("time.clock", { time: formatFrameTime(frames[currentFrame].time) });
 }
 
 function clearRadar() {
@@ -1658,14 +1668,13 @@ function setRadarStatus(message, error = false, onRetry = null) {
 async function loadRainViewer() {
   const epoch = ++radarEpoch;
   playback.hidden = false;
-  radarDetailNote.textContent =
-    "RainViewer: kostenlos bis Radar-Zoom 7. Bei höherem Kartenzoom wird das Radar vergrößert, nicht detaillierter.";
+  radarDetailNote.textContent = t("radar.noteRainviewer");
   if (!LEAFLET_AVAILABLE) {
-    setRadarStatus("Karte nicht verfügbar – die Kartenbibliothek Leaflet konnte nicht geladen werden.", true);
+    setRadarStatus(t("map.unavailable"), true);
     return false;
   }
   const hadFrames = radarLayers.length > 0;
-  if (!hadFrames) setRadarStatus("Regendaten werden geladen …");
+  if (!hadFrames) setRadarStatus(t("radar.loading"));
   try {
     const data = await fetchData("https://api.rainviewer.com/public/weather-maps.json", { source: "RainViewer" });
     const next = data.radar?.past || [];
@@ -1692,9 +1701,9 @@ async function loadRainViewer() {
     reportError("Radar", err);
     if (epoch !== radarEpoch) return true;
     if (hadFrames) {
-      radarDetailNote.textContent = `Radar nicht aktualisiert – ${describeError(err)}. Angezeigt wird der letzte Stand.`;
+      radarDetailNote.textContent = t("radar.notUpdated", { reason: describeError(err) });
     } else {
-      setRadarStatus(`Regendaten nicht verfügbar – ${describeError(err)}.`, true, loadRadar);
+      setRadarStatus(t("radar.unavailable", { reason: describeError(err) }), true, loadRadar);
     }
     return false;
   }
@@ -1705,15 +1714,14 @@ function loadOpenWeather() {
   ++radarEpoch;
   clearRadar();
   playback.hidden = true;
-  radarDetailNote.textContent =
-    "OpenWeather: aktuelle Niederschlagskarte (keine Radar-Animation); Detailgrad hängt von Quelldaten und Tarif ab.";
-  setRadarStatus("Niederschlagskarte wird geladen …");
+  radarDetailNote.textContent = t("radar.noteOpenweather");
+  setRadarStatus(t("radar.owLoading"));
   let seen = false;
   openWeatherLayer = L.tileLayer(
     "https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=" +
       encodeURIComponent(OPENWEATHER_KEY),
     {
-      attribution: "Niederschlag © OpenWeather",
+      attribution: t("radar.owAttribution"),
       opacity: 0.7,
       zIndex: 400,
       maxNativeZoom: 12,
@@ -1730,9 +1738,8 @@ function loadOpenWeather() {
   });
   openWeatherLayer.on("tileerror", () => {
     if (radarProvider.value !== "openweather" || seen) return;
-    const reason =
-      navigator.onLine === false ? "keine Internetverbindung" : "Kacheln nicht erreichbar, API-Key und Tarif prüfen";
-    setRadarStatus(`Niederschlagskarte nicht verfügbar – ${reason}.`, true, loadRadar);
+    const reason = navigator.onLine === false ? t("err.offline") : t("radar.owTilesFailed");
+    setRadarStatus(t("radar.owUnavailable", { reason }), true, loadRadar);
   });
   openWeatherLayer.addTo(map);
   return true;
@@ -1753,6 +1760,7 @@ function startPlayback() {
   stopPlayback();
   playing = true;
   playIcon.innerHTML = '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>';
+  playBtn.setAttribute("aria-label", t("radar.pause"));
   playTimer = setInterval(() => showFrame(currentFrame + 1), 850);
 }
 
@@ -1761,36 +1769,38 @@ playBtn.addEventListener("click", () => (playing ? stopPlayback() : startPlaybac
 map.on("zoomend", () => {
   if (radarProvider.value === "rainviewer") {
     radarDetailNote.textContent =
-      map.getZoom() > 7
-        ? "Radarquelle nur bis Zoom 7: vergrößerte Darstellung, keine zusätzlichen Messdetails. Für eine aktuelle Niederschlagskarte OpenWeather wählen."
-        : "RainViewer: kostenlose Radardaten bis Zoom 7; Animation der letzten Messungen.";
+      map.getZoom() > 7 ? t("radar.noteZoomed") : t("radar.noteDefault");
   }
 });
 
 loadRadar();
 
-// Ortssuche über Open-Meteo Geocoding
+// Ortssuche über Open-Meteo Geocoding, Ortsnamen in der gewählten Sprache
 let searchMarker = null;
+function geocodeUrl(query) {
+  return `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query.trim())}&count=1&language=${I18N.lang()}&format=json`;
+}
 
 async function searchPlace(query) {
   if (!query.trim()) return;
-  showToast(`Suche "${query.trim()}" …`);
+  showToast(t("search.searching", { query: query.trim() }));
   try {
-    const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query.trim())}&count=1&language=de&format=json`;
-    const data = await fetchData(url, { source: "Ortssuche" });
+    const data = await fetchData(geocodeUrl(query), { source: "Ortssuche" });
     const hit = data.results?.[0];
     if (!hit) {
-      showToast(`Kein Ort namens "${query.trim()}" gefunden`);
+      showToast(t("search.notFound", { query: query.trim() }));
       return;
     }
     map.setView([hit.latitude, hit.longitude], 9);
     if (searchMarker) map.removeLayer(searchMarker);
     searchMarker = L.marker([hit.latitude, hit.longitude]).addTo(map);
     const label = [hit.name, hit.admin1, hit.country].filter(Boolean).join(", ");
-    searchMarker.bindPopup(label).openPopup();
+    const popup = document.createElement("div");
+    popup.textContent = label;
+    searchMarker.bindPopup(popup).openPopup();
   } catch (err) {
     reportError("Ortssuche", err);
-    showToast(`Ortssuche fehlgeschlagen – ${describeError(err)}`, "error");
+    showToast(t("search.failed", { reason: describeError(err) }), "error");
   }
 }
 
@@ -1802,8 +1812,8 @@ document.getElementById("radarForm").addEventListener("submit", (e) => {
 document.getElementById("radarQuick").addEventListener("click", (e) => {
   const btn = e.target.closest("button[data-city]");
   if (!btn) return;
-  document.getElementById("radarInput").value = btn.dataset.city;
-  searchPlace(btn.dataset.city);
+  document.getElementById("radarInput").value = btn.textContent;
+  searchPlace(btn.textContent);
 });
 
 // ---- Live-Wetter mit Ortssuche (Open-Meteo) ----
@@ -1821,19 +1831,22 @@ const weatherIcons = {
 };
 
 function weatherCodeInfo(code) {
-  if (code === 0) return { text: "Klar", icon: "clear" };
-  if (code === 1) return { text: "Überwiegend klar", icon: "sun_cloud" };
-  if (code === 2) return { text: "Teils bewölkt", icon: "sun_cloud" };
-  if (code === 3) return { text: "Bedeckt", icon: "cloud" };
-  if (code === 45 || code === 48) return { text: "Nebel", icon: "fog" };
-  if ([51, 53, 55, 56, 57].includes(code)) return { text: "Nieselregen", icon: "rain" };
-  if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return { text: "Regen", icon: "rain" };
-  if ([71, 73, 75, 77, 85, 86].includes(code)) return { text: "Schnee", icon: "snow" };
-  if ([95, 96, 99].includes(code)) return { text: "Gewitter", icon: "storm" };
-  return { text: "Wechselhaft", icon: "cloud" };
+  if (code === 0) return { text: t("wcode.clear"), icon: "clear" };
+  if (code === 1) return { text: t("wcode.mainlyClear"), icon: "sun_cloud" };
+  if (code === 2) return { text: t("wcode.partlyCloudy"), icon: "sun_cloud" };
+  if (code === 3) return { text: t("wcode.overcast"), icon: "cloud" };
+  if (code === 45 || code === 48) return { text: t("wcode.fog"), icon: "fog" };
+  if ([51, 53, 55, 56, 57].includes(code)) return { text: t("wcode.drizzle"), icon: "rain" };
+  if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return { text: t("wcode.rain"), icon: "rain" };
+  if ([71, 73, 75, 77, 85, 86].includes(code)) return { text: t("wcode.snow"), icon: "snow" };
+  if ([95, 96, 99].includes(code)) return { text: t("wcode.storm"), icon: "storm" };
+  return { text: t("wcode.changeable"), icon: "cloud" };
 }
 
-const weatherDayLabels = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+// Kurze Wochentage (So, Mo … bzw. Sun, Mon …) in der gewählten Sprache
+function weekdayShort(date) {
+  return date.toLocaleDateString(LOCALE, { weekday: "short" }).replace(/\.$/, "");
+}
 const weatherLoading = document.getElementById("weatherLoading");
 let weatherData = null;
 let selectedDayIndex = 0;
@@ -1854,7 +1867,7 @@ function statChip(icon, label, value) {
 }
 
 function formatHour(iso) {
-  return new Date(iso).toLocaleTimeString("de-DE", { hour: "2-digit" }).replace(" Uhr", "") + " Uhr";
+  return t("time.hour", { hour: iso.slice(11, 13) });
 }
 
 // ---- NEU: Balkendiagramm (Höchsttemperatur je Tag) ----
@@ -1870,7 +1883,7 @@ function renderForecastBars(data) {
       const d = new Date(dateStr + "T00:00:00");
       const high = Math.round(highs[i]);
       const heightPct = 22 + ((high - minVal) / span) * 78; // 22%–100%
-      const label = i === 0 ? "Heute" : weatherDayLabels[d.getDay()];
+      const label = i === 0 ? t("common.todayCap") : weekdayShort(d);
       return `<div class="bar-col${i === 0 ? " today" : ""}">
       <div class="bar-value">${high}°</div>
       <div class="bar-track"><div class="bar" style="height:${heightPct.toFixed(0)}%"></div></div>
@@ -1896,7 +1909,7 @@ function renderRainDonut(percent, captionText) {
     </svg>
     <div class="donut-center">
       <div class="donut-pct">${p}%</div>
-      <div class="donut-word">Regen</div>
+      <div class="donut-word">${t("weather.donutWord")}</div>
     </div>`;
   const caption = document.getElementById("donutCaption");
   if (caption) caption.textContent = captionText || "";
@@ -1943,12 +1956,12 @@ function renderTempWave(hourIdxForDay, hourly, nowIso) {
     if (i >= 0) {
       const x = points[i][0].toFixed(1);
       nowLine = `<line x1="${x}" y1="0" x2="${x}" y2="${h}" style="stroke:var(--orange)" stroke-width="1.5" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>`;
-      nowLabel = `<span class="wave-now-label" style="left:${xPct(points[i][0])}">jetzt</span>`;
+      nowLabel = `<span class="wave-now-label" style="left:${xPct(points[i][0])}">${t("weather.now")}</span>`;
     }
   }
 
   el.setAttribute("role", "img");
-  el.setAttribute("aria-label", `Temperaturverlauf zwischen ${Math.round(minT)}° und ${Math.round(maxT)}°`);
+  el.setAttribute("aria-label", t("weather.waveAria", { min: Math.round(minT), max: Math.round(maxT) }));
   el.innerHTML = `
     <div class="wave-plot">
       <div class="wave-y">${yLabels}</div>
@@ -1980,7 +1993,7 @@ function renderDayDetail(index) {
 
   const d = weatherData.daily;
   const dateStr = d.time[index];
-  const dateLabel = new Date(dateStr + "T00:00:00").toLocaleDateString("de-DE", {
+  const dateLabel = new Date(dateStr + "T00:00:00").toLocaleDateString(LOCALE, {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -1993,15 +2006,15 @@ function renderDayDetail(index) {
   const rainHours = hourIdxForDay.filter((i) => hourly.precipitation_probability[i] >= 30);
   let rainSummary;
   if (!rainHours.length) {
-    rainSummary = "Kein nennenswerter Regen erwartet.";
+    rainSummary = t("weather.noRain");
   } else {
     const first = formatHour(hourly.time[rainHours[0]]);
     const last = formatHour(hourly.time[rainHours[rainHours.length - 1]]);
     const maxPop = Math.max(...rainHours.map((i) => hourly.precipitation_probability[i]));
     rainSummary =
       rainHours.length === 1
-        ? `Regen wahrscheinlich um ${first} (bis zu ${maxPop} %).`
-        : `Regen wahrscheinlich zwischen ${first} und ${last} (bis zu ${maxPop} %).`;
+        ? t("weather.rainAt", { time: first, pop: maxPop })
+        : t("weather.rainBetween", { from: first, to: last, pop: maxPop });
   }
   document.getElementById("dayDetailRain").textContent = rainSummary;
 
@@ -2027,24 +2040,24 @@ function renderDayDetail(index) {
   document.getElementById("dayDetail").classList.add("show");
 
   const dayPop = d.precipitation_probability_max[index] ?? 0;
-  const shortLabel = index === 0 ? "heute" : dateLabel;
+  const shortLabel = index === 0 ? t("common.today") : dateLabel;
   renderRainDonut(dayPop, shortLabel);
   renderTempWave(hourIdxForDay, hourly, index === 0 ? weatherData.current.time : null);
   const waveLabelEl = document.getElementById("waveDayLabel");
-  if (waveLabelEl) waveLabelEl.textContent = shortLabel + ", stündlich" + (weatherTzShort ? ` · ${weatherTzShort}` : "");
+  if (waveLabelEl) waveLabelEl.textContent = t("weather.hourlyLabel", { day: shortLabel }) + (weatherTzShort ? ` · ${weatherTzShort}` : "");
 
   const statsEl = document.getElementById("weatherStats");
   if (index === 0) {
     const c = weatherData.current;
-    const sunrise = new Date(d.sunrise[0]).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
-    const sunset = new Date(d.sunset[0]).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+    const sunrise = new Date(d.sunrise[0]).toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" });
+    const sunset = new Date(d.sunset[0]).toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" });
     statsEl.innerHTML =
-      statChip(iconPressure, "Luftdruck", `${Math.round(c.surface_pressure)} hPa`) +
-      statChip(iconHumidity, "Luftfeuchtigkeit", `${c.relative_humidity_2m} %`) +
-      statChip(iconWind, "Wind", `${Math.round(c.wind_speed_10m)} km/h`) +
-      statChip(iconFeels, "Gefühlt", `${Math.round(c.apparent_temperature)}°`) +
-      statChip(iconUv, "UV-Index", `${Math.round(d.uv_index_max[0])}`) +
-      statChip(iconSun, "Sonne", `${sunrise} – ${sunset}`);
+      statChip(iconPressure, t("weather.chip.pressure"), `${Math.round(c.surface_pressure)} hPa`) +
+      statChip(iconHumidity, t("weather.chip.humidity"), `${c.relative_humidity_2m} %`) +
+      statChip(iconWind, t("weather.chip.wind"), `${Math.round(c.wind_speed_10m)} km/h`) +
+      statChip(iconFeels, t("weather.chip.feels"), `${Math.round(c.apparent_temperature)}°`) +
+      statChip(iconUv, t("weather.chip.uv"), `${Math.round(d.uv_index_max[0])}`) +
+      statChip(iconSun, t("weather.chip.sun"), `${sunrise} – ${sunset}`);
   } else {
     const avgPressure = Math.round(
       hourIdxForDay.reduce((s, i) => s + hourly.surface_pressure[i], 0) / hourIdxForDay.length,
@@ -2052,14 +2065,14 @@ function renderDayDetail(index) {
     const avgHumidity = Math.round(
       hourIdxForDay.reduce((s, i) => s + hourly.relative_humidity_2m[i], 0) / hourIdxForDay.length,
     );
-    const sunrise = new Date(d.sunrise[index]).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
-    const sunset = new Date(d.sunset[index]).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+    const sunrise = new Date(d.sunrise[index]).toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" });
+    const sunset = new Date(d.sunset[index]).toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" });
     statsEl.innerHTML =
-      statChip(iconPressure, "Luftdruck (Ø)", `${avgPressure} hPa`) +
-      statChip(iconHumidity, "Luftfeuchte (Ø)", `${avgHumidity} %`) +
-      statChip(iconWind, "Wind (max.)", `${Math.round(d.wind_speed_10m_max[index])} km/h`) +
-      statChip(iconUv, "UV-Index", `${Math.round(d.uv_index_max[index])}`) +
-      statChip(iconSun, "Sonne", `${sunrise} – ${sunset}`);
+      statChip(iconPressure, t("weather.chip.pressureAvg"), `${avgPressure} hPa`) +
+      statChip(iconHumidity, t("weather.chip.humidityAvg"), `${avgHumidity} %`) +
+      statChip(iconWind, t("weather.chip.windMax"), `${Math.round(d.wind_speed_10m_max[index])} km/h`) +
+      statChip(iconUv, t("weather.chip.uv"), `${Math.round(d.uv_index_max[index])}`) +
+      statChip(iconSun, t("weather.chip.sun"), `${sunrise} – ${sunset}`);
   }
 }
 
@@ -2106,9 +2119,9 @@ function formatDelta(now, before, unit, compareText, decimals = 0) {
   if (now == null || before == null) return null;
   const factor = 10 ** decimals;
   const diff = Math.round((now - before) * factor) / factor;
-  if (diff === 0) return { main: "→", suffix: `wie ${compareText}` };
-  const amount = Math.abs(diff).toLocaleString("de-DE", { maximumFractionDigits: decimals });
-  return { main: `${diff > 0 ? "↑" : "↓"} ${amount}${unit}`, suffix: `ggü. ${compareText}` };
+  if (diff === 0) return { main: "→", suffix: t("delta.same", { cmp: compareText }) };
+  const amount = Math.abs(diff).toLocaleString(LOCALE, { maximumFractionDigits: decimals });
+  return { main: `${diff > 0 ? "↑" : "↓"} ${amount}${unit}`, suffix: t("delta.vs", { cmp: compareText }) };
 }
 
 // Der Zusatztext wird auf schmalen Bildschirmen per CSS ausgeblendet
@@ -2144,26 +2157,26 @@ function updateTimezoneNote(data, label) {
     return;
   }
   const place = label.split(",")[0];
-  weatherTzShort = `Ortszeit ${place}`;
-  tzEl.textContent = `Alle Uhrzeiten in Ortszeit ${place} (${formatUtcOffset(data.utc_offset_seconds)})`;
+  weatherTzShort = t("weather.tzShort", { place });
+  tzEl.textContent = t("weather.tzNote", { place, offset: formatUtcOffset(data.utc_offset_seconds) });
   tzEl.hidden = false;
 }
 
 function renderWeatherNoData() {
-  const msg = '<div class="chart-empty">Keine Daten verfügbar</div>';
+  const msg = `<div class="chart-empty">${t("common.noData")}</div>`;
   ["barChart", "donutChart", "waveChart"].forEach((id) => {
     const el = document.getElementById(id);
     if (el) el.innerHTML = msg;
   });
   ["statTempDelta", "statWindDelta", "statHumidityDelta", "statRainDelta"].forEach((id) =>
-    setStatDelta(id, { main: "Keine Daten", suffix: "verfügbar" }),
+    setStatDelta(id, { main: t("common.noDataMain"), suffix: t("common.noDataSuffix") }),
   );
-  document.getElementById("weatherRange").textContent = "Keine Daten verfügbar";
+  document.getElementById("weatherRange").textContent = t("common.noData");
 }
 
 async function loadWeatherForPlace(lat, lon, label) {
   currentWeatherCoords = { lat, lon, label };
-  weatherLoading.textContent = `Lade Wetter für "${label}" …`;
+  weatherLoading.textContent = t("weather.loadingFor", { place: label });
   try {
     const url =
       `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
@@ -2190,7 +2203,7 @@ async function loadWeatherForPlace(lat, lon, label) {
     const lo = Math.round(data.daily.temperature_2m_min[0]);
     const pop = data.daily.precipitation_probability_max[0];
     document.getElementById("weatherRange").textContent =
-      `Heute ${lo}° – ${hi}° · ${pop ?? 0} % Regenwahrscheinlichkeit`;
+      t("weather.range", { lo, hi, pop: pop ?? 0 });
 
     // NEU: Kopfzeilen-Stat-Karten
     const statTempEl = document.getElementById("statTempNow");
@@ -2205,19 +2218,19 @@ async function loadWeatherForPlace(lat, lon, label) {
     const c = data.current;
     setStatDelta(
       "statTempDelta",
-      formatDelta(c.temperature_2m, sameHourYesterday(yesterday, c.time, "temperature_2m"), "°", "gestern"),
+      formatDelta(c.temperature_2m, sameHourYesterday(yesterday, c.time, "temperature_2m"), "°", t("delta.yesterday")),
     );
     setStatDelta(
       "statWindDelta",
-      formatDelta(c.wind_speed_10m, sameHourYesterday(yesterday, c.time, "wind_speed_10m"), " km/h", "gestern"),
+      formatDelta(c.wind_speed_10m, sameHourYesterday(yesterday, c.time, "wind_speed_10m"), " km/h", t("delta.yesterday")),
     );
     setStatDelta(
       "statHumidityDelta",
-      formatDelta(c.relative_humidity_2m, sameHourYesterday(yesterday, c.time, "relative_humidity_2m"), " %", "gestern"),
+      formatDelta(c.relative_humidity_2m, sameHourYesterday(yesterday, c.time, "relative_humidity_2m"), " %", t("delta.yesterday")),
     );
     setStatDelta(
       "statRainDelta",
-      formatDelta(pop, yesterday.daily.precipitation_probability_max, " %", "gestern"),
+      formatDelta(pop, yesterday.daily.precipitation_probability_max, " %", t("delta.yesterday")),
     );
 
     renderForecastBars(data);
@@ -2231,7 +2244,7 @@ async function loadWeatherForPlace(lat, lon, label) {
       const dayEl = document.createElement("div");
       dayEl.className = "day" + (isToday ? " today" : "");
       dayEl.innerHTML = `
-        <div class="day-label">${weatherDayLabels[d.getDay()]}</div>
+        <div class="day-label">${weekdayShort(d)}</div>
         <svg class="day-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:20px;height:20px;">${weatherIcons[info.icon]}</svg>
         <div class="day-high">${Math.round(data.daily.temperature_2m_max[i])}°</div>
         <div class="day-low">${Math.round(data.daily.temperature_2m_min[i])}°</div>
@@ -2243,14 +2256,14 @@ async function loadWeatherForPlace(lat, lon, label) {
     renderDayDetail(0);
 
     document.getElementById("weatherSourceNote").textContent =
-      "Live-Daten von Open-Meteo · Tag anklicken für Details · aktualisiert bei jeder Suche";
+      t("weather.source");
     weatherLoading.textContent = "";
     setLastUpdatedNow();
     return true;
   } catch (err) {
     reportError("Wetter", err);
-    const stale = weatherData ? " Angezeigt wird der letzte Stand." : "";
-    renderRetry(weatherLoading, `Wetter für "${label}" nicht verfügbar – ${describeError(err)}.${stale}`, () =>
+    const stale = weatherData ? " " + t("common.showingLast") : "";
+    renderRetry(weatherLoading, t("weather.unavailable", { place: label, reason: describeError(err) }) + stale, () =>
       loadWeatherForPlace(lat, lon, label),
     );
     if (!weatherData) renderWeatherNoData();
@@ -2260,20 +2273,19 @@ async function loadWeatherForPlace(lat, lon, label) {
 
 async function searchWeatherPlace(query) {
   if (!query.trim()) return;
-  weatherLoading.textContent = `Suche "${query.trim()}" …`;
+  weatherLoading.textContent = t("search.searching", { query: query.trim() });
   try {
-    const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query.trim())}&count=1&language=de&format=json`;
-    const data = await fetchData(url, { source: "Ortssuche" });
+    const data = await fetchData(geocodeUrl(query), { source: "Ortssuche" });
     const hit = data.results?.[0];
     if (!hit) {
-      weatherLoading.textContent = `Kein Ort namens "${query.trim()}" gefunden`;
+      weatherLoading.textContent = t("search.notFound", { query: query.trim() });
       return;
     }
     const label = [hit.name, hit.country].filter(Boolean).join(", ");
     loadWeatherForPlace(hit.latitude, hit.longitude, label);
   } catch (err) {
     reportError("Ortssuche", err);
-    renderRetry(weatherLoading, `Ortssuche fehlgeschlagen – ${describeError(err)}.`, () => searchWeatherPlace(query));
+    renderRetry(weatherLoading, t("search.failed", { reason: describeError(err) }) + ".", () => searchWeatherPlace(query));
   }
 }
 
@@ -2306,21 +2318,8 @@ function dateKey(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-const calMonthNames = [
-  "Januar",
-  "Februar",
-  "März",
-  "April",
-  "Mai",
-  "Juni",
-  "Juli",
-  "August",
-  "September",
-  "Oktober",
-  "November",
-  "Dezember",
-];
-const calWeekdayLabels = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+// Wochentage ab Montag; der 1. Januar 2024 war ein Montag
+const calWeekdayLabels = Array.from({ length: 7 }, (_, i) => weekdayShort(new Date(2024, 0, 1 + i)));
 
 const CAL_TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 
@@ -2332,23 +2331,23 @@ function mountCalendarWidget(body) {
       <div class="cal-header">
         <div class="cal-title"></div>
         <div class="cal-nav">
-          <button type="button" class="cal-prev" aria-label="Vorheriger Monat">
+          <button type="button" class="cal-prev" aria-label="${t("cal.prev")}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
-          <button type="button" class="cal-today-btn" aria-label="Heute">Heute</button>
-          <button type="button" class="cal-next" aria-label="Nächster Monat">
+          <button type="button" class="cal-today-btn">${t("common.todayCap")}</button>
+          <button type="button" class="cal-next" aria-label="${t("cal.next")}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
           </button>
         </div>
       </div>
       <div class="cal-grid"></div>
-      <div class="cal-selected-date">Termine für <span class="cal-selected-label">heute</span></div>
+      <div class="cal-selected-date">${t("cal.eventsFor", { day: `<span class="cal-selected-label">${t("common.today")}</span>` })}</div>
       <div class="cal-events"></div>
       <form class="cal-add">
-        <input type="text" class="cal-add-input" placeholder="Termin hinzufügen …" autocomplete="off" required aria-label="Terminname">
-        <input type="time" class="cal-add-time" aria-label="Uhrzeit" required>
-        <label class="cal-all-day"><input type="checkbox" class="cal-all-day-input">Ganztags</label>
-        <button type="submit" aria-label="Termin hinzufügen">+</button>
+        <input type="text" class="cal-add-input" placeholder="${t("cal.addPlaceholder")}" autocomplete="off" required aria-label="${t("cal.nameAria")}">
+        <input type="time" class="cal-add-time" aria-label="${t("cal.timeAria")}" required>
+        <label class="cal-all-day"><input type="checkbox" class="cal-all-day-input">${t("cal.allDay")}</label>
+        <button type="submit" aria-label="${t("cal.add")}">+</button>
       </form>
     </div>`,
   );
@@ -2358,7 +2357,10 @@ function mountCalendarWidget(body) {
   let selectedKey = dateKey(today);
 
   function renderGrid() {
-    $(".cal-title").textContent = `${calMonthNames[viewMonth]} ${viewYear}`;
+    $(".cal-title").textContent = new Date(viewYear, viewMonth, 1).toLocaleDateString(LOCALE, {
+      month: "long",
+      year: "numeric",
+    });
     const grid = $(".cal-grid");
     grid.innerHTML = "";
     calWeekdayLabels.forEach((wd) => {
@@ -2405,8 +2407,9 @@ function mountCalendarWidget(body) {
 
   function renderEvents() {
     const [y, m, d] = selectedKey.split("-").map(Number);
-    const label = new Date(y, m - 1, d).toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" });
-    $(".cal-selected-label").textContent = selectedKey === dateKey(today) ? `heute, ${label}` : label;
+    const label = new Date(y, m - 1, d).toLocaleDateString(LOCALE, { weekday: "long", day: "numeric", month: "long" });
+    $(".cal-selected-label").textContent =
+      selectedKey === dateKey(today) ? t("cal.todayWithDate", { date: label }) : label;
 
     const list = $(".cal-events");
     list.innerHTML = "";
@@ -2423,7 +2426,7 @@ function mountCalendarWidget(body) {
     if (!items.length) {
       const empty = document.createElement("div");
       empty.className = "cal-empty";
-      empty.textContent = "Keine Termine — trag unten etwas ein.";
+      empty.textContent = t("cal.empty");
       list.appendChild(empty);
       return;
     }
@@ -2434,14 +2437,14 @@ function mountCalendarWidget(body) {
       info.className = "event-info";
       const time = document.createElement("span");
       time.className = "event-time";
-      time.textContent = event.allDay || !event.time ? "Ganztags" : event.time + " Uhr";
+      time.textContent = event.allDay || !event.time ? t("cal.allDay") : t("time.clock", { time: event.time });
       const name = document.createElement("span");
       name.className = "event-name";
       name.textContent = event.text || "";
       info.append(time, name);
       const remove = document.createElement("button");
       remove.type = "button";
-      remove.setAttribute("aria-label", "Termin löschen");
+      remove.setAttribute("aria-label", t("cal.delete"));
       remove.textContent = "×";
       row.append(info, remove);
       remove.addEventListener("click", () => {
@@ -2546,10 +2549,10 @@ function formatMinSec(seconds) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")} min`;
 }
 function fireWeekday(iso) {
-  return weatherDayLabels[new Date(iso + "T00:00:00").getDay()];
+  return weekdayShort(new Date(iso + "T00:00:00"));
 }
 function fireShortDate(iso) {
-  return new Date(iso + "T00:00:00").toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
+  return new Date(iso + "T00:00:00").toLocaleDateString(LOCALE, { day: "2-digit", month: "2-digit" });
 }
 function fireDayLabel(iso) {
   return `${fireWeekday(iso)}, ${fireShortDate(iso)}`;
@@ -2562,15 +2565,15 @@ function renderFire(days) {
 
   const total = sumBy(week, "fire");
   const prevTotal = prev ? sumBy(prev, "fire") : null;
-  document.getElementById("fireTotal").textContent = total.toLocaleString("de-DE");
-  setStatDelta("fireTotalDelta", formatDelta(total, prevTotal, "", "Vorwoche"));
+  document.getElementById("fireTotal").textContent = total.toLocaleString(LOCALE);
+  setStatDelta("fireTotalDelta", formatDelta(total, prevTotal, "", t("delta.lastWeek")));
 
   const avg = total / week.length;
-  document.getElementById("fireAvg").textContent = avg.toLocaleString("de-DE", { maximumFractionDigits: 1 });
-  setStatDelta("fireAvgDelta", formatDelta(avg, prev ? prevTotal / prev.length : null, "", "Vorwoche", 1));
+  document.getElementById("fireAvg").textContent = avg.toLocaleString(LOCALE, { maximumFractionDigits: 1 });
+  setStatDelta("fireAvgDelta", formatDelta(avg, prev ? prevTotal / prev.length : null, "", t("delta.lastWeek"), 1));
 
   const peak = week.reduce((a, b) => (b.fire > a.fire ? b : a));
-  document.getElementById("firePeak").textContent = peak.fire.toLocaleString("de-DE");
+  document.getElementById("firePeak").textContent = peak.fire.toLocaleString(LOCALE);
   setStatDelta("firePeakDelta", { main: fireDayLabel(peak.date), suffix: "" });
 
   const response = meanBy(week, "pump");
@@ -2582,15 +2585,18 @@ function renderFire(days) {
     unit.textContent = " min";
     responseEl.appendChild(unit);
   }
-  setStatDelta("fireResponseDelta", formatDelta(response, prev ? meanBy(prev, "pump") : null, " s", "Vorwoche"));
+  setStatDelta("fireResponseDelta", formatDelta(response, prev ? meanBy(prev, "pump") : null, " s", t("delta.lastWeek")));
 
   const bar = document.getElementById("fireBarChart");
   const max = Math.max(...week.map((d) => d.fire), 1);
   bar.setAttribute("role", "img");
-  bar.setAttribute("aria-label", `Brandeinsätze pro Tag: ${week.map((d) => `${fireDayLabel(d.date)} ${d.fire}`).join(", ")}`);
+  bar.setAttribute(
+    "aria-label",
+    t("fire.barsAria", { list: week.map((d) => `${fireDayLabel(d.date)} ${d.fire}`).join(", ") }),
+  );
   bar.innerHTML = week
     .map(
-      (d) => `<div class="bar-col${d === peak ? " today" : ""}" title="${fireDayLabel(d.date)}: ${d.fire} Brandeinsätze">
+      (d) => `<div class="bar-col${d === peak ? " today" : ""}" title="${t("fire.barTitle", { day: fireDayLabel(d.date), count: d.fire })}">
       <div class="bar-value">${d.fire}</div>
       <div class="bar-track"><div class="bar" style="height:${Math.max(4, (d.fire / max) * 100).toFixed(0)}%"></div></div>
       <div class="bar-label">${fireWeekday(d.date)}<span class="bar-date">${fireShortDate(d.date)}</span></div>
@@ -2598,34 +2604,35 @@ function renderFire(days) {
     )
     .join("");
   document.getElementById("fireChartSub").textContent =
-    `${fireDayLabel(week[0].date)} – ${fireDayLabel(last.date)} · orange = Spitzentag`;
+    t("fire.chartRange", { from: fireDayLabel(week[0].date), to: fireDayLabel(last.date) });
 
   const all = sumBy(week, "all");
   const share = all ? (total / all) * 100 : 0;
   const r = 52;
   const circumference = 2 * Math.PI * r;
   const filled = (Math.min(share, 100) / 100) * circumference;
+  const shareText = share.toLocaleString(LOCALE, { maximumFractionDigits: 1 });
   document.getElementById("fireDonut").innerHTML = `
-    <svg viewBox="0 0 120 120" role="img" aria-label="${share.toLocaleString("de-DE", { maximumFractionDigits: 1 })} Prozent aller Einsätze waren Brände">
+    <svg viewBox="0 0 120 120" role="img" aria-label="${t("fire.donutAria", { share: shareText })}">
       <circle cx="60" cy="60" r="${r}" fill="none" style="stroke:var(--line)" stroke-width="14"/>
       <circle cx="60" cy="60" r="${r}" fill="none" style="stroke:var(--orange)" stroke-width="14" transform="rotate(-90 60 60)"
         stroke-linecap="round" stroke-dasharray="${filled.toFixed(1)} ${circumference.toFixed(1)}"/>
     </svg>
     <div class="donut-center">
-      <div class="donut-pct">${share.toLocaleString("de-DE", { maximumFractionDigits: 1 })}%</div>
-      <div class="donut-word">Brände</div>
+      <div class="donut-pct">${shareText}%</div>
+      <div class="donut-word">${t("fire.donutWord")}</div>
     </div>`;
   document.getElementById("fireDonutCaption").textContent =
-    `${total.toLocaleString("de-DE")} von ${all.toLocaleString("de-DE")} Einsätzen`;
+    t("fire.donutCaption", { part: total.toLocaleString(LOCALE), all: all.toLocaleString(LOCALE) });
 
   document.getElementById("fireTableBody").innerHTML = [...week]
     .reverse()
     .map(
       (d) => `<tr>
       <td>${fireDayLabel(d.date)}</td>
-      <td>${d.fire.toLocaleString("de-DE")}</td>
-      <td>${Number.isFinite(d.tech) ? d.tech.toLocaleString("de-DE") : "–"}</td>
-      <td>${Number.isFinite(d.all) ? d.all.toLocaleString("de-DE") : "–"}</td>
+      <td>${d.fire.toLocaleString(LOCALE)}</td>
+      <td>${Number.isFinite(d.tech) ? d.tech.toLocaleString(LOCALE) : "–"}</td>
+      <td>${Number.isFinite(d.all) ? d.all.toLocaleString(LOCALE) : "–"}</td>
       <td>${formatMinSec(d.pump)}</td>
     </tr>`,
     )
@@ -2633,9 +2640,9 @@ function renderFire(days) {
 
   const ageDays = Math.round((new Date().setHours(0, 0, 0, 0) - new Date(last.date + "T00:00:00")) / 86400000);
   document.getElementById("fireSourceNote").textContent =
-    `Quelle: Berliner Feuerwehr Open Data · Stand: ${fireDayLabel(last.date)}` +
-    (ageDays > 2 ? ` (Daten ${ageDays} Tage alt)` : "") +
-    " · Tage nach Berliner Ortszeit";
+    t("fire.source", { date: fireDayLabel(last.date) }) +
+    (ageDays > 2 ? " " + t("fire.dataAge", { days: ageDays }) : "") +
+    t("fire.sourceTz");
   document.getElementById("fireExportBtn").disabled = false;
 }
 
@@ -2644,14 +2651,14 @@ function renderFireNoData() {
     document.getElementById(id).textContent = "–";
   });
   ["fireTotalDelta", "fireAvgDelta", "firePeakDelta", "fireResponseDelta"].forEach((id) =>
-    setStatDelta(id, { main: "Keine Daten", suffix: "verfügbar" }),
+    setStatDelta(id, { main: t("common.noDataMain"), suffix: t("common.noDataSuffix") }),
   );
   ["fireBarChart", "fireDonut"].forEach((id) => {
-    document.getElementById(id).innerHTML = '<div class="chart-empty">Keine Daten verfügbar</div>';
+    document.getElementById(id).innerHTML = `<div class="chart-empty">${t("common.noData")}</div>`;
   });
   document.getElementById("fireDonutCaption").textContent = "";
   document.getElementById("fireTableBody").innerHTML =
-    '<tr><td colspan="5" class="fire-table-empty">Keine Daten verfügbar</td></tr>';
+    `<tr><td colspan="5" class="fire-table-empty">${t("common.noData")}</td></tr>`;
   document.getElementById("fireExportBtn").disabled = true;
 }
 
@@ -2666,10 +2673,10 @@ async function loadFireData() {
   } catch (err) {
     reportError("Feuerwehr", err);
     if (!fireDays.length) renderFireNoData();
-    const stale = fireDays.length ? " Angezeigt wird der letzte Stand." : "";
+    const stale = fireDays.length ? " " + t("common.showingLast") : "";
     renderRetry(
       document.getElementById("fireSourceNote"),
-      `Daten der Berliner Feuerwehr nicht verfügbar – ${describeError(err)}.${stale}`,
+      t("fire.unavailable", { reason: describeError(err) }) + stale,
       loadFireData,
     );
     return false;
@@ -2680,7 +2687,7 @@ document.getElementById("fireExportBtn").addEventListener("click", () => {
   const week = fireDays.slice(-7);
   if (!week.length) return;
   const rows = [
-    ["Datum", "Brandeinsätze", "Technische Hilfe", "Alle Einsätze", "Eintreffzeit 1. Löschfahrzeug Median (s)"],
+    ["fire.csv.date", "fire.csv.fire", "fire.csv.tech", "fire.csv.all", "fire.csv.pump"].map((key) => t(key)),
     ...week.map((d) => [d.date, d.fire, d.tech ?? "", d.all ?? "", Number.isFinite(d.pump) ? Math.round(d.pump) : ""]),
   ];
   // BOM und Semikolon, damit Excel mit deutscher Einstellung Umlaute und Spalten richtig liest
@@ -2688,7 +2695,7 @@ document.getElementById("fireExportBtn").addEventListener("click", () => {
   const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
   const link = document.createElement("a");
   link.href = url;
-  link.download = `feuerwehr-berlin-brandeinsaetze-${week[week.length - 1].date}.csv`;
+  link.download = `${t("fire.csvFile")}-${week[week.length - 1].date}.csv`;
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
@@ -2699,7 +2706,7 @@ loadFireData();
 const PEGEL_API = "https://www.pegelonline.wsv.de/webservices/rest-api/v2";
 const WATER_DEFAULT_STATION = "47d3e815-c556-4e1b-93de-9fe07329fb00"; // Berlin-Köpenick
 const WATER_STATION_KEY = "dashboard-water-station";
-const WATER_STATE_LABELS = { low: "Niedrig", normal: "Normal", high: "Hoch" };
+const WATER_STATE_LABELS = { low: t("water.state.low"), normal: t("water.state.normal"), high: t("water.state.high") };
 const WATER_REF_LINES = ["MNW", "MW", "MHW"];
 let waterStations = [];
 let waterStationId = WATER_DEFAULT_STATION;
@@ -2746,7 +2753,7 @@ async function loadWaterStations() {
   } catch (err) {
     reportError("Pegelliste", err);
     if (!waterStations.length) {
-      renderRetry(list, `Pegelliste nicht verfügbar – ${describeError(err)}.`, loadWaterStations, "chart-empty");
+      renderRetry(list, t("water.listUnavailable", { reason: describeError(err) }), loadWaterStations, "chart-empty");
     }
     return false;
   }
@@ -2756,7 +2763,7 @@ function renderBerlinStations() {
   const list = document.getElementById("waterBerlinList");
   const berlin = waterStations.filter((s) => s.longname.startsWith("BERLIN"));
   if (!berlin.length) {
-    list.innerHTML = '<div class="chart-empty">Keine Berliner Pegel gefunden.</div>';
+    list.innerHTML = `<div class="chart-empty">${t("water.noBerlin")}</div>`;
     return;
   }
   list.replaceChildren(
@@ -2806,14 +2813,16 @@ async function loadWaterStation(id) {
     const values = measurements.map((m) => m.value);
 
     document.getElementById("waterLevel").textContent = current ? `${Math.round(current.value)} cm` : "–";
-    document.getElementById("waterLevelLabel").textContent = `Wasserstand ${name}`;
+    document.getElementById("waterLevelLabel").textContent = t("water.levelAt", { name });
     const dayAgo = current && measurementNear(measurements, new Date(current.timestamp) - 24 * 3600 * 1000);
-    setStatDelta("waterLevelDelta", current && dayAgo ? formatDelta(current.value, dayAgo.value, " cm", "gestern") : null);
+    setStatDelta("waterLevelDelta", current && dayAgo ? formatDelta(current.value, dayAgo.value, " cm", t("delta.yesterday")) : null);
 
     document.getElementById("waterState").textContent = WATER_STATE_LABELS[current?.stateMnwMhw] || "–";
     setStatDelta(
       "waterStateDelta",
-      chars.MW != null ? { main: `MW ${Math.round(chars.MW)} cm`, suffix: "(Mittelwasser)" } : { main: "keine Kennwerte" },
+      chars.MW != null
+        ? { main: t("water.mw", { value: Math.round(chars.MW) }), suffix: t("water.mwSuffix") }
+        : { main: t("water.noChars") },
     );
 
     if (values.length) {
@@ -2827,15 +2836,15 @@ async function loadWaterStation(id) {
 
     const ts = current ? new Date(current.timestamp) : null;
     document.getElementById("waterTime").textContent = ts
-      ? ts.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) + " Uhr"
+      ? t("time.clock", { time: ts.toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" }) })
       : "–";
     setStatDelta(
       "waterTimeDelta",
-      ts ? { main: ts.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" }), suffix: `· ${pegelName(station.water?.longname)}` } : null,
+      ts ? { main: ts.toLocaleDateString(LOCALE, { day: "2-digit", month: "2-digit" }), suffix: `· ${pegelName(station.water?.longname)}` } : null,
     );
 
-    document.getElementById("waterChartTitle").textContent = `Pegelverlauf · ${name}`;
-    document.getElementById("waterChartSub").textContent = `${name} · letzte 7 Tage · Wasserstand in cm`;
+    document.getElementById("waterChartTitle").textContent = t("water.chartTitle", { name });
+    document.getElementById("waterChartSub").textContent = t("water.chartSub", { name });
     renderWaterChart(chartEl, measurements, chars);
     waterShownId = id;
     setLastUpdatedNow();
@@ -2844,9 +2853,9 @@ async function loadWaterStation(id) {
     reportError("Pegel", err);
     if (waterShownId === id) {
       document.getElementById("waterChartSub").textContent =
-        `Nicht aktualisiert – ${describeError(err)}. Angezeigt wird der letzte Stand.`;
+        t("water.notUpdated", { reason: describeError(err) }) + " " + t("common.showingLast");
     } else {
-      renderRetry(chartEl, `Pegeldaten nicht verfügbar – ${describeError(err)}.`, () => loadWaterStation(id), "chart-empty");
+      renderRetry(chartEl, t("water.unavailable", { reason: describeError(err) }), () => loadWaterStation(id), "chart-empty");
     }
     return false;
   }
@@ -2854,7 +2863,7 @@ async function loadWaterStation(id) {
 
 function renderWaterChart(el, measurements, chars) {
   if (!measurements.length) {
-    el.innerHTML = '<div class="chart-empty">Keine Messwerte der letzten 7 Tage.</div>';
+    el.innerHTML = `<div class="chart-empty">${t("water.noMeasurements")}</div>`;
     return;
   }
   const step = Math.max(1, Math.floor(measurements.length / 240));
@@ -2891,14 +2900,17 @@ function renderWaterChart(el, measurements, chars) {
   const day = new Date(t0);
   day.setHours(24, 0, 0, 0);
   for (; day.getTime() < t1; day.setDate(day.getDate() + 1)) {
-    const label = day.toLocaleDateString("de-DE", { weekday: "short", day: "numeric" }).replace(".,", ",");
+    const label = day.toLocaleDateString(LOCALE, { weekday: "short", day: "numeric" }).replace(".,", ",");
     xLabels.push(`<span style="left:${pct(xOf(day.getTime()), w)}">${label}</span>`);
   }
 
   el.setAttribute("role", "img");
   el.setAttribute(
     "aria-label",
-    `Wasserstand der letzten 7 Tage zwischen ${Math.round(Math.min(...points.map((m) => m.value)))} und ${Math.round(Math.max(...points.map((m) => m.value)))} cm`,
+    t("water.chartAria", {
+      min: Math.round(Math.min(...points.map((m) => m.value))),
+      max: Math.round(Math.max(...points.map((m) => m.value))),
+    }),
   );
   el.innerHTML = `
     <div class="wave-plot">
@@ -2943,7 +2955,7 @@ document.getElementById("waterSearchForm").addEventListener("submit", (e) => {
     waterStations.find((s) => s.longname.toLowerCase().includes(q)) ||
     waterStations.find((s) => pegelLabel(s).toLowerCase().includes(q));
   if (!match) {
-    showToast(waterStations.length ? "Kein Pegel mit diesem Namen gefunden" : "Pegelliste wird noch geladen …");
+    showToast(t(waterStations.length ? "water.notFound" : "water.listLoading"));
     return;
   }
   input.value = "";
@@ -2989,162 +3001,118 @@ const OVERVIEW_ICONS = {
 // "mirror" zeigt eine laufend aktualisierte Kopie eines Widgets von einer anderen Seite
 const OVERVIEW_WIDGETS = {
   "weather-now": {
-    group: "Wetter",
-    title: "Aktuelles Wetter",
-    desc: "Temperatur und Wetterlage am gewählten Ort",
+    group: "weather",
     icon: OVERVIEW_ICONS.cloud,
     mirror: ["#weatherPlace", "#weatherIcon", "#weatherPanel .temp-row"],
   },
   "weather-kpis": {
-    group: "Wetter",
-    title: "Wetter-Kennzahlen",
-    desc: "Temperatur, Wind, Luftfeuchte und Regen im Vergleich zu gestern",
+    group: "weather",
     icon: OVERVIEW_ICONS.kpi,
     mirror: ["#weatherKpiRow"],
     wide: true,
   },
   "forecast-bars": {
-    group: "Wetter",
-    title: "Vorhersage · Höchsttemperatur",
-    desc: "Höchstwerte der nächsten Tage als Balken",
+    group: "weather",
     icon: OVERVIEW_ICONS.bars,
     mirror: ["#barChart"],
   },
   "rain-donut": {
-    group: "Wetter",
-    title: "Regenwahrscheinlichkeit",
-    desc: "Regenchance für heute",
+    group: "weather",
     icon: OVERVIEW_ICONS.donut,
     mirror: ["#donutChart", "#donutCaption"],
   },
   "temp-wave": {
-    group: "Wetter",
-    title: "Temperaturverlauf",
-    desc: "Stündlicher Verlauf mit Achsen und „jetzt“-Markierung",
+    group: "weather",
     icon: OVERVIEW_ICONS.wave,
     mirror: ["#waveDayLabel", "#waveChart"],
     wide: true,
   },
   radar: {
-    group: "Wetter",
-    title: "Regenradar",
-    desc: "Kleine Karte mit dem letzten Radarbild",
+    group: "weather",
     icon: OVERVIEW_ICONS.radar,
     mount: mountRadarWidget,
   },
   calendar: {
-    group: "Kalender & Organisation",
-    title: "Kalender",
-    desc: "Monatsansicht mit Terminen zum Eintragen",
+    group: "calendar",
     icon: OVERVIEW_ICONS.calendar,
     mount: mountCalendarWidget,
     wide: true,
   },
   "calendar-today": {
-    group: "Kalender & Organisation",
-    title: "Termine heute",
-    desc: "Heutige Einträge aus dem Kalender",
+    group: "calendar",
     icon: OVERVIEW_ICONS.calendar,
     mount: mountCalendarTodayWidget,
   },
   notes: {
-    group: "Kalender & Organisation",
-    title: "Notizen",
-    desc: "Freier Notizzettel, speichert automatisch",
+    group: "calendar",
     icon: OVERVIEW_ICONS.notes,
     mount: mountNotesWidget,
   },
   todo: {
-    group: "Kalender & Organisation",
-    title: "Aufgaben",
-    desc: "To-do-Liste zum Abhaken",
+    group: "calendar",
     icon: OVERVIEW_ICONS.todo,
     mount: mountTodoWidget,
   },
   countdown: {
-    group: "Kalender & Organisation",
-    title: "Countdown",
-    desc: "Tage bis zu einem Termin deiner Wahl",
+    group: "calendar",
     icon: OVERVIEW_ICONS.calendar,
     mount: mountCountdownWidget,
   },
   clock: {
-    group: "Kalender & Organisation",
-    title: "Weltzeituhr",
-    desc: "Uhrzeit in mehreren Städten",
+    group: "calendar",
     icon: OVERVIEW_ICONS.clock,
     mount: mountClockWidget,
   },
   warnings: {
-    group: "Sicherheit",
-    title: "Warnungen",
-    desc: "Amtliche Warnungen (BBK/NINA), nach Ort filterbar",
+    group: "safety",
     icon: OVERVIEW_ICONS.warning,
     mount: mountWarningsWidget,
   },
   checklist: {
-    group: "Sicherheit",
-    title: "Notfall-Checkliste",
-    desc: "Vorrat & Ausrüstung zum Abhaken",
+    group: "safety",
     icon: OVERVIEW_ICONS.todo,
     mount: mountChecklistWidget,
   },
   emergencynumbers: {
-    group: "Sicherheit",
-    title: "Notrufnummern",
-    desc: "112, 110 und weitere wichtige Nummern",
+    group: "safety",
     icon: OVERVIEW_ICONS.phone,
     mount: mountEmergencyNumbersWidget,
   },
   meeting: {
-    group: "Sicherheit",
-    title: "Familien-Treffpunkt",
-    desc: "Vereinbarter Treffpunkt für den Notfall",
+    group: "safety",
     icon: OVERVIEW_ICONS.pin,
     mount: mountMeetingWidget,
   },
   "fire-kpis": {
-    group: "Feuerwehr",
-    title: "Feuerwehr-Kennzahlen",
-    desc: "Brandeinsätze Berlin, 7 Tage im Vergleich zur Vorwoche",
+    group: "fire",
     icon: OVERVIEW_ICONS.fire,
     mirror: ["#fireStats"],
     wide: true,
   },
   "fire-chart": {
-    group: "Feuerwehr",
-    title: "Brandeinsätze pro Tag",
-    desc: "Balkendiagramm der letzten 7 Tage",
+    group: "fire",
     icon: OVERVIEW_ICONS.bars,
     mirror: ["#fireChartSub", "#fireBarChart"],
   },
   "fire-share": {
-    group: "Feuerwehr",
-    title: "Anteil Brandeinsätze",
-    desc: "Anteil an allen Einsätzen der Woche",
+    group: "fire",
     icon: OVERVIEW_ICONS.donut,
     mirror: ["#fireDonut", "#fireDonutCaption"],
   },
   "fire-table": {
-    group: "Feuerwehr",
-    title: "Feuerwehr-Tagesübersicht",
-    desc: "Tabelle mit Bränden, Hilfeleistungen und Eintreffzeit",
+    group: "fire",
     icon: OVERVIEW_ICONS.table,
     mirror: ["#fireTablePanel .fire-table-wrap"],
     wide: true,
   },
   "water-kpis": {
-    group: "Wasserpegel",
-    title: "Pegel-Kennzahlen",
-    desc: "Aktueller Wasserstand, Einordnung und 7-Tage-Spanne",
+    group: "water",
     icon: OVERVIEW_ICONS.wave,
     mirror: ["#waterStats"],
     wide: true,
   },
   "water-chart": {
-    group: "Wasserpegel",
-    title: "Pegelverlauf",
-    desc: "Wasserstand der letzten 7 Tage mit Mittelwerten",
+    group: "water",
     icon: OVERVIEW_ICONS.wave,
     mirror: ["#waterChartSub", "#waterChart"],
   },
@@ -3205,12 +3173,12 @@ function mountMirrorWidget(body, selectors, suffix) {
 }
 
 function mountRadarWidget(body) {
-  renderInto(body, '<div class="ov-map"></div><div class="warn-note ov-map-note">Radar wird geladen …</div>');
+  renderInto(body, `<div class="ov-map"></div><div class="warn-note ov-map-note">${t("radar.widgetLoading")}</div>`);
   const mapEl = body.querySelector(".ov-map");
   const note = body.querySelector(".ov-map-note");
   if (!LEAFLET_AVAILABLE) {
     mapEl.remove();
-    note.textContent = "Karte nicht verfügbar – die Kartenbibliothek Leaflet konnte nicht geladen werden.";
+    note.textContent = t("map.unavailable");
     return () => {};
   }
   const miniMap = L.map(mapEl, { zoomControl: false, attributionControl: false }).setView(
@@ -3231,11 +3199,11 @@ function mountRadarWidget(body) {
         maxNativeZoom: 7,
         maxZoom: 16,
       }).addTo(miniMap);
-      note.textContent = `Radar ${formatFrameTime(frame.time)} Uhr · © RainViewer · Karte © Esri`;
+      note.textContent = t("radar.widgetNote", { time: t("time.clock", { time: formatFrameTime(frame.time) }) });
     } catch (err) {
       reportError("Radar-Widget", err);
-      const stale = layer ? " Angezeigt wird der letzte Stand." : "";
-      renderRetry(note, `Radar nicht verfügbar – ${describeError(err)}.${stale}`, load);
+      const stale = layer ? " " + t("common.showingLast") : "";
+      renderRetry(note, t("radar.widgetUnavailable", { reason: describeError(err) }) + stale, load);
     }
   }
   const resizeObserver = new ResizeObserver(() => miniMap.invalidateSize());
@@ -3257,19 +3225,19 @@ function mountCalendarTodayWidget(body) {
     );
     renderInto(
       body,
-      `<div class="ov-date">${now.toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</div>
+      `<div class="ov-date">${now.toLocaleDateString(LOCALE, { weekday: "long", day: "numeric", month: "long" })}</div>
       <div class="ov-events"></div>`,
     );
     const list = body.querySelector(".ov-events");
     if (!events.length) {
-      list.innerHTML = '<div class="todo-empty">Heute keine Termine — im Kalender-Widget eintragen.</div>';
+      list.innerHTML = `<div class="todo-empty">${t("cal.todayEmpty")}</div>`;
       return;
     }
     events.forEach((ev) => {
       const row = document.createElement("div");
       row.className = "ov-event";
       row.innerHTML = '<span class="ov-event-time"></span><span class="ov-event-text"></span>';
-      row.querySelector(".ov-event-time").textContent = ev.allDay ? "ganztags" : `${ev.time} Uhr`;
+      row.querySelector(".ov-event-time").textContent = ev.allDay ? t("cal.allDayLower") : t("time.clock", { time: ev.time });
       row.querySelector(".ov-event-text").textContent = ev.text;
       list.appendChild(row);
     });
@@ -3286,8 +3254,8 @@ function mountCalendarTodayWidget(body) {
 function mountMeetingWidget(body) {
   renderInto(
     body,
-    `<div class="panel-sub">Falls Netz oder Strom ausfallen</div>
-    <input type="text" class="meeting-input" placeholder="z. B. bei Oma, Nachbarschaftstreff …" autocomplete="off" aria-label="Familien-Treffpunkt">
+    `<div class="panel-sub">${t("meeting.sub")}</div>
+    <input type="text" class="meeting-input" placeholder="${t("meeting.placeholder")}" autocomplete="off" aria-label="${t("widget.meeting.title")}">
     <div class="notes-saved">&nbsp;</div>`,
   );
   return bindMeetingPointInput(body.querySelector(".meeting-input"), body.querySelector(".notes-saved"));
@@ -3323,18 +3291,19 @@ function boardOffersWidget(board, def) {
 
 function mountBoardWidget(board, type) {
   const def = OVERVIEW_WIDGETS[type];
+  const title = t(`widget.${type}.title`);
   const panel = document.createElement("section");
   panel.className = "panel ov-widget" + (def.wide ? " ov-wide" : "");
   panel.id = `${board.prefix}-${type}`;
-  panel.setAttribute("aria-label", def.title);
+  panel.setAttribute("aria-label", title);
   panel.innerHTML = `
-    <div class="panel-title">${def.title}</div>
-    <button type="button" class="ov-remove" aria-label="${def.title} entfernen" title="Entfernen">×</button>
+    <div class="panel-title">${title}</div>
+    <button type="button" class="ov-remove" aria-label="${t("widget.removeAria", { title })}" title="${t("widget.remove")}">×</button>
     <div class="ov-body ov-body-${type}"></div>`;
   const toggle = document.createElement("button");
   toggle.type = "button";
   toggle.className = "panel-toggle auto-toggle";
-  toggle.setAttribute("aria-label", `${def.title} ein-/ausklappen`);
+  toggle.setAttribute("aria-label", t("widget.toggleAria", { title }));
   toggle.innerHTML = CHEVRON_SVG;
   panel.appendChild(toggle);
   setupToggle(panel, toggle);
@@ -3350,7 +3319,7 @@ function mountBoardWidget(board, type) {
     cleanup = def.mirror ? mountMirrorWidget(body, def.mirror, board.prefix) : def.mount(body);
   } catch (err) {
     console.error(`[Dashboard] Widget "${type}" konnte nicht gestartet werden:`, err);
-    renderRetry(body, "Dieses Widget konnte nicht geladen werden. Widget entfernen und neu hinzufügen oder Seite neu laden.", null, "chart-empty");
+    renderRetry(body, t("widget.failed"), null, "chart-empty");
   }
   board.cleanups.set(type, typeof cleanup === "function" ? cleanup : null);
 }
@@ -3489,7 +3458,7 @@ function renderWidgetPicker() {
   pickerBody.innerHTML = groups
     .map(
       (group) => `<div class="widget-picker-group">
-      <div class="widget-picker-group-title">${group}</div>
+      <div class="widget-picker-group-title">${t(`groups.${group}`)}</div>
       <div class="widget-picker-grid">
         ${offered
           .filter(([, d]) => d.group === group)
@@ -3498,8 +3467,8 @@ function renderWidgetPicker() {
             return `<button type="button" class="widget-option${added ? " added" : ""}" data-widget="${type}" aria-pressed="${added}">
               <span class="widget-option-icon">${d.icon}</span>
               <span class="widget-option-text">
-                <span class="widget-option-title">${d.title}</span>
-                <span class="widget-option-desc">${d.desc}</span>
+                <span class="widget-option-title">${t(`widget.${type}.title`)}</span>
+                <span class="widget-option-desc">${t(`widget.${type}.desc`)}</span>
               </span>
               <span class="widget-option-state" aria-hidden="true">${added ? "✓" : "+"}</span>
             </button>`;
@@ -3613,12 +3582,11 @@ let resetReturnFocus = null;
 function openResetConfirm(page, trigger) {
   resetTargetPage = page;
   resetReturnFocus = trigger;
-  const title = page.querySelector(".overview-title")?.textContent.trim() || "diese Seite";
-  document.getElementById("resetConfirmText").textContent =
-    page === overviewBoard.page
-      ? `Soll „${title}“ wirklich zurückgesetzt werden? Dabei werden alle Widgets entfernt.`
-      : `Soll das Layout der Seite „${title}“ wirklich auf den Standard zurückgesetzt werden? ` +
-        "Reihenfolge, Größen und eingeklappte Widgets werden zurückgesetzt, hinzugefügte Widgets entfernt.";
+  const title = page.querySelector(".overview-title")?.textContent.trim() || t("reset.thisPage");
+  document.getElementById("resetConfirmText").textContent = t(
+    page === overviewBoard.page ? "reset.textOverview" : "reset.textPage",
+    { title },
+  );
   resetOverlay.classList.add("show");
   document.getElementById("resetConfirmCancel").focus();
 }
@@ -3636,7 +3604,7 @@ document.getElementById("resetConfirmOk").addEventListener("click", () => {
   closeResetConfirm();
   if (!page) return;
   resetPageLayout(page);
-  showToast(page === overviewBoard.page ? "Übersicht zurückgesetzt – alle Widgets entfernt" : "Layout auf Standard zurückgesetzt");
+  showToast(t(page === overviewBoard.page ? "reset.doneOverview" : "reset.donePage"));
 });
 document.getElementById("resetConfirmCancel").addEventListener("click", closeResetConfirm);
 document.getElementById("resetConfirmClose").addEventListener("click", closeResetConfirm);

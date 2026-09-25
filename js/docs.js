@@ -1,4 +1,11 @@
 // Dokumentation: Farbmodus wie im Dashboard, Menü auf dem Smartphone, aktiver Abschnitt im Inhaltsverzeichnis
+
+// Deutsch steht direkt in docs.html; für andere Sprachen wird der Inhalt aus js/lang/docs.<code>.js eingesetzt
+const translatedDocs = I18N.lang() !== "de" && I18N.docs(I18N.lang());
+if (translatedDocs) document.getElementById("docsMain").innerHTML = translatedDocs;
+I18N.apply();
+I18N.mountSwitcher(document.getElementById("langSelect"));
+
 const THEME_KEY = "dashboard-theme";
 const themeBtn = document.getElementById("themeToggle");
 const SUN_SVG =
@@ -14,16 +21,16 @@ function storedTheme() {
   }
 }
 function effectiveTheme() {
-  const t = storedTheme();
-  if (t === "light" || t === "dark") return t;
+  const stored = storedTheme();
+  if (stored === "light" || stored === "dark") return stored;
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 function applyTheme() {
-  const t = storedTheme();
-  if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+  const stored = storedTheme();
+  if (stored === "light" || stored === "dark") document.documentElement.setAttribute("data-theme", stored);
   else document.documentElement.removeAttribute("data-theme");
   const dark = effectiveTheme() === "dark";
-  themeBtn.innerHTML = dark ? `${MOON_SVG}<span>Modus: Dunkel</span>` : `${SUN_SVG}<span>Modus: Hell</span>`;
+  themeBtn.innerHTML = dark ? `${MOON_SVG}<span>${t("theme.dark")}</span>` : `${SUN_SVG}<span>${t("theme.light")}</span>`;
 }
 themeBtn.addEventListener("click", () => {
   try {
@@ -51,7 +58,7 @@ const menuBtn = document.getElementById("menuToggle");
 function setMenuOpen(open) {
   sidebar.classList.toggle("menu-open", open);
   menuBtn.setAttribute("aria-expanded", String(open));
-  menuBtn.setAttribute("aria-label", open ? "Menü schließen" : "Menü öffnen");
+  menuBtn.setAttribute("aria-label", t(open ? "menu.close" : "menu.open"));
 }
 menuBtn.addEventListener("click", () => setMenuOpen(!sidebar.classList.contains("menu-open")));
 

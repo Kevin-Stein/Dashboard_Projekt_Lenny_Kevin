@@ -58,6 +58,17 @@ node dev-server.js
 
 Dann http://localhost:3000 öffnen. Die amtlichen Warnungen laufen über `api/warnings.js` (auf Vercel als Serverless-Funktion), weil `warnung.bund.de` keine direkten Browser-Abrufe erlaubt. Beim reinen Öffnen der `index.html` oder mit Live Server bleiben die Warnungen deshalb leer.
 
+### Tests
+
+Die Playwright-Suite prüft Navigation, Sprachen, Formulare, Code-Injection und Belastung. Start und der genaue Umfang stehen in der Dokumentation unter „Tests“.
+
+```bash
+npm install
+npm test
+```
+
+`npm install` lädt Chromium mit. Playwright startet selbst `dev-server.js` auf Port 3125. Nach jedem Lauf liegen die Ergebnisse als Markdown unter [`testresults/`](testresults/README.md). Mit `npm run test:headed` läuft der Browser sichtbar.
+
 ### API-Key für OpenWeather
 
 `js/config.example.js` nach `js/config.js` kopieren und den eigenen OpenWeather-Key eintragen.
@@ -66,6 +77,10 @@ Dann http://localhost:3000 öffnen. Die amtlichen Warnungen laufen über `api/wa
 ### Fehlerbehandlung
 
 Alle Datenabrufe laufen über `fetchData()` in `js/app.js`: 12 s Timeout, eine automatische Wiederholung bei Netzfehlern, HTTP 429 und 5xx sowie verständliche Meldungen (offline, Timeout, Dienst gestört, fehlerhafte Daten). Fällt eine Quelle aus, zeigt das Widget den Grund und „Erneut versuchen“; vorhandene Daten bleiben sichtbar. Nach „Aktualisieren“ steht in der Seitenleiste, welche Bereiche fehlgeschlagen sind. Offline/Online wird erkannt, ohne Leaflet laufen alle anderen Bereiche weiter. `api/warnings.js` bricht einzelne Warnquellen nach 8 s ab und meldet Teilausfälle im Header `X-Warnings-Failed`. Details stehen in der Dokumentation unter „Fehlerbehandlung“.
+
+### Mehrsprachigkeit
+
+Dashboard und Dokumentation gibt es auf Deutsch und Englisch; umgeschaltet wird über das Sprach-Menü neben dem Farbmodus. Ohne gespeicherte Wahl gilt die Browsersprache, sonst Deutsch. Alle Texte stehen in `js/lang/de.js` und `js/lang/en.js` (`I18N.register(...)`), die englische Dokumentation in `js/lang/docs.en.js`. Fehlt ein Text, wird der deutsche genommen. Neue Sprache: `js/lang/en.js` z. B. nach `js/lang/fr.js` kopieren, Code, Name und Locale anpassen, übersetzen und per `<script>` in `index.html` und `docs.html` einbinden; sie erscheint dann automatisch im Menü. Details stehen in der Dokumentation unter „Mehrsprachigkeit“.
 
 ### Cursor-Skills
 

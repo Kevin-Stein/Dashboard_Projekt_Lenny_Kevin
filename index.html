@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Katastrophenschutz – Wir helfen Berlin</title>
+<title data-i18n="app.title">Katastrophenschutz – Wir helfen Berlin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -20,12 +20,12 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 2.8l7.5 3v5.6c0 4.6-3.1 8.4-7.5 9.8-4.4-1.4-7.5-5.2-7.5-9.8V5.8z"/><path d="M12 8.5v6M9 11.5h6" stroke-linecap="round"/></svg>
       </div>
       <div class="sidebar-brand-text">
-        <div class="sidebar-title">Katastrophenschutz</div>
-        <div class="sidebar-slogan">„Wir helfen Berlin“</div>
+        <div class="sidebar-title" data-i18n="brand.title">Katastrophenschutz</div>
+        <div class="sidebar-slogan" data-i18n="brand.slogan">„Wir helfen Berlin“</div>
       </div>
     </div>
 
-    <button type="button" class="menu-toggle" id="menuToggle" aria-label="Menü öffnen" aria-expanded="false" aria-controls="sidebarNav">
+    <button type="button" class="menu-toggle" id="menuToggle" aria-label="Menü öffnen" data-i18n-attr="aria-label=menu.open" aria-expanded="false" aria-controls="sidebarNav">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
         <path class="menu-line-top" d="M4 7h16"/><path class="menu-line-mid" d="M4 12h16"/><path class="menu-line-bot" d="M4 17h16"/>
       </svg>
@@ -35,17 +35,20 @@
 
     <a class="nav-item nav-docs" id="docsLink" href="docs.html" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4.5 4.5A1.5 1.5 0 0 1 6 3h12.5v15.5H6a1.5 1.5 0 0 0-1.5 1.5z"/><path d="M4.5 20A1.5 1.5 0 0 0 6 21h12.5v-2.5M8.5 7.5h6M8.5 11h6" stroke-linecap="round"/></svg>
-      <span>Dokumentation</span>
+      <span data-i18n="nav.docs">Dokumentation</span>
     </a>
 
     <div class="sidebar-footer">
-      <button type="button" id="themeToggle" class="sidebar-btn" aria-label="Farbmodus wechseln" title="Light/Dark Mode"></button>
-      <button type="button" id="refreshBtn" class="sidebar-btn" aria-label="Dashboard aktualisieren">
+      <div class="sidebar-row">
+        <button type="button" id="themeToggle" class="sidebar-btn" aria-label="Farbmodus wechseln" data-i18n-attr="aria-label=theme.toggle;title=theme.toggle"></button>
+        <select id="langSelect" class="sidebar-btn lang-select" aria-label="Sprache" data-i18n-attr="aria-label=lang.label;title=lang.label"></select>
+      </div>
+      <button type="button" id="refreshBtn" class="sidebar-btn" aria-label="Dashboard aktualisieren" data-i18n-attr="aria-label=refresh.aria">
         <svg id="refreshIcon" class="refresh-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 11A8 8 0 0 0 5.5 7.5M4 5v4h4"/><path d="M4 13a8 8 0 0 0 14.5 3.5M20 19v-4h-4"/></svg>
-        <span>Aktualisieren</span>
+        <span data-i18n="refresh.button">Aktualisieren</span>
       </button>
-      <button type="button" id="autoRefreshToggle" class="sidebar-btn" aria-label="Automatische Aktualisierung umschalten">
-        <span id="autoRefreshLabel">⏸ Auto-Aktualisierung: AN</span>
+      <button type="button" id="autoRefreshToggle" class="sidebar-btn" aria-label="Automatische Aktualisierung umschalten" data-i18n-attr="aria-label=autoRefresh.aria">
+        <span id="autoRefreshLabel"></span>
       </button>
       <div class="sidebar-location">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>
@@ -54,7 +57,7 @@
           <div class="sidebar-sub" id="headerDate">–</div>
         </div>
       </div>
-      <div class="sidebar-status" id="headerStatus"><span id="lastUpdated">Zuletzt aktualisiert: –</span></div>
+      <div class="sidebar-status" id="headerStatus"><span id="lastUpdated" data-i18n="refresh.lastUpdatedNever">Zuletzt aktualisiert: –</span></div>
       <div class="sidebar-status sidebar-errors" id="refreshErrors" role="status" hidden></div>
     </div>
   </aside>
@@ -66,19 +69,19 @@
     <div id="overviewPage" class="page active">
       <div class="overview-bar" data-layout-fixed>
         <div>
-          <h1 class="overview-title">Meine Übersicht</h1>
-          <div class="panel-sub">Widgets hinzufügen, entfernen und mit „Anordnen“ verschieben</div>
+          <h1 class="overview-title" data-i18n="overview.title">Meine Übersicht</h1>
+          <div class="panel-sub" data-i18n="page.sub">Widgets hinzufügen, entfernen und mit „Anordnen“ verschieben</div>
         </div>
         <div class="overview-actions">
-          <button type="button" class="overview-btn layout-reset-btn" data-widget-action="reset">↺ Zurücksetzen</button>
-          <button type="button" class="overview-btn" data-widget-action="arrange" aria-pressed="false">✥ Anordnen</button>
-          <button type="button" class="overview-btn primary" data-widget-action="add">+ Widget</button>
+          <button type="button" class="overview-btn layout-reset-btn" data-widget-action="reset" data-i18n="layout.reset">↺ Zurücksetzen</button>
+          <button type="button" class="overview-btn" data-widget-action="arrange" aria-pressed="false" data-i18n="layout.arrange">✥ Anordnen</button>
+          <button type="button" class="overview-btn primary" data-widget-action="add" data-i18n="layout.add">+ Widget</button>
         </div>
       </div>
       <div class="overview-grid" id="overviewGrid"></div>
       <button type="button" class="placeholder overview-empty" id="overviewEmpty" data-layout-fixed hidden>
         <span class="plus">+</span>
-        <span class="label">Deine Übersicht ist leer — füge Widgets hinzu</span>
+        <span class="label" data-i18n="overview.empty">Deine Übersicht ist leer — füge Widgets hinzu</span>
       </button>
     </div> <!-- Ende Übersicht Page -->
 
@@ -86,13 +89,13 @@
     <div id="weatherPage" class="page">
       <div class="overview-bar" data-layout-fixed>
         <div>
-          <h1 class="overview-title">Wetter</h1>
-          <div class="panel-sub">Widgets hinzufügen, entfernen und mit „Anordnen“ verschieben</div>
+          <h1 class="overview-title" data-i18n="nav.weather">Wetter</h1>
+          <div class="panel-sub" data-i18n="page.sub">Widgets hinzufügen, entfernen und mit „Anordnen“ verschieben</div>
         </div>
         <div class="overview-actions">
-          <button type="button" class="overview-btn layout-reset-btn" data-widget-action="reset">↺ Zurücksetzen</button>
-          <button type="button" class="overview-btn" data-widget-action="arrange" aria-pressed="false">✥ Anordnen</button>
-          <button type="button" class="overview-btn primary" data-widget-action="add">+ Widget</button>
+          <button type="button" class="overview-btn layout-reset-btn" data-widget-action="reset" data-i18n="layout.reset">↺ Zurücksetzen</button>
+          <button type="button" class="overview-btn" data-widget-action="arrange" aria-pressed="false" data-i18n="layout.arrange">✥ Anordnen</button>
+          <button type="button" class="overview-btn primary" data-widget-action="add" data-i18n="layout.add">+ Widget</button>
         </div>
       </div>
       <div class="stat-row" id="weatherKpiRow">
@@ -102,7 +105,7 @@
         </div>
         <div class="stat-body">
           <div class="stat-value" id="statTempNow">–</div>
-          <div class="stat-label">Temperatur</div>
+          <div class="stat-label" data-i18n="weather.stat.temp">Temperatur</div>
           <div class="stat-delta" id="statTempDelta"></div>
         </div>
       </div>
@@ -112,7 +115,7 @@
         </div>
         <div class="stat-body">
           <div class="stat-value" id="statWind">–</div>
-          <div class="stat-label">Wind</div>
+          <div class="stat-label" data-i18n="weather.stat.wind">Wind</div>
           <div class="stat-delta" id="statWindDelta"></div>
         </div>
       </div>
@@ -122,7 +125,7 @@
         </div>
         <div class="stat-body">
           <div class="stat-value" id="statHumidity">–</div>
-          <div class="stat-label">Luftfeuchte</div>
+          <div class="stat-label" data-i18n="weather.stat.humidity">Luftfeuchte</div>
           <div class="stat-delta" id="statHumidityDelta"></div>
         </div>
       </div>
@@ -132,7 +135,7 @@
         </div>
         <div class="stat-body">
           <div class="stat-value" id="statRain">–</div>
-          <div class="stat-label">Regenchance heute</div>
+          <div class="stat-label" data-i18n="weather.stat.rain">Regenchance heute</div>
           <div class="stat-delta" id="statRainDelta"></div>
         </div>
       </div>
@@ -140,7 +143,7 @@
 
       <div class="detail-row">
         <!-- Weather detail panel (full data, forecast strip, search) -->
-        <section class="panel weather" id="weatherPanel" aria-label="Wetter">
+        <section class="panel weather" id="weatherPanel" aria-label="Wetter" data-i18n-attr="aria-label=nav.weather">
         <div class="weather-top">
           <div>
             <div class="place" id="weatherPlace">
@@ -155,15 +158,15 @@
               <path d="M9 2v1.4M9 14.6V16M2 10h1.4M14.6 10H16M4 5l1 1M13 5l-1 1" opacity="0.55"/>
               <path d="M9.5 15.5h6a3.5 3.5 0 0 0 .4-6.98A5 5 0 0 0 6.6 9.9a3 3 0 0 0 .4 5.9h2.5z" fill="currentColor" fill-opacity="0.12"/>
             </svg>
-            <button type="button" class="panel-toggle" id="weatherToggle" aria-label="Wetter-Widget ein-/ausklappen">
+            <button type="button" class="panel-toggle" id="weatherToggle" aria-label="Wetter-Widget ein-/ausklappen" data-i18n-attr="aria-label=weather.toggle">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
             </button>
           </div>
         </div>
 
         <form class="weather-search" id="weatherSearchForm">
-          <input type="text" id="weatherSearchInput" placeholder="Anderen Ort suchen, z. B. Lissabon" autocomplete="off">
-          <button type="submit">Suchen</button>
+          <input type="text" id="weatherSearchInput" placeholder="Anderen Ort suchen, z. B. Lissabon" data-i18n-attr="placeholder=weather.searchPlaceholder" autocomplete="off">
+          <button type="submit" data-i18n="common.search">Suchen</button>
         </form>
         <div class="weather-loading" id="weatherLoading"></div>
 
@@ -171,7 +174,7 @@
           <div class="temp-now" id="weatherTempNow">–</div>
           <div class="temp-meta">
             <div class="condition-text" id="weatherConditionText">–</div>
-            <div class="range" id="weatherRange">Wetterdaten werden geladen …</div>
+            <div class="range" id="weatherRange" data-i18n="weather.loadingData">Wetterdaten werden geladen …</div>
           </div>
         </div>
 
@@ -180,38 +183,38 @@
         <div class="forecast" id="weatherForecast"></div>
 
         <div class="day-detail" id="dayDetail">
-          <div class="day-detail-title" id="dayDetailTitle">Details</div>
+          <div class="day-detail-title" id="dayDetailTitle" data-i18n="weather.details">Details</div>
           <div class="day-detail-rain" id="dayDetailRain"></div>
-          <div class="hour-strip-label">Stundenverlauf · alle 2 Stunden: Uhrzeit, Temperatur, Regenwahrscheinlichkeit</div>
+          <div class="hour-strip-label" data-i18n="weather.hourStrip">Stundenverlauf · alle 2 Stunden: Uhrzeit, Temperatur, Regenwahrscheinlichkeit</div>
           <div class="hour-strip-wrap">
-            <button type="button" class="hour-scroll" id="hourScrollPrev" aria-label="Frühere Stunden">
+            <button type="button" class="hour-scroll" id="hourScrollPrev" aria-label="Frühere Stunden" data-i18n-attr="aria-label=weather.hoursPrev">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
             <div class="hour-strip" id="dayDetailHours"></div>
-            <button type="button" class="hour-scroll" id="hourScrollNext" aria-label="Spätere Stunden">
+            <button type="button" class="hour-scroll" id="hourScrollNext" aria-label="Spätere Stunden" data-i18n-attr="aria-label=weather.hoursNext">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
             </button>
           </div>
         </div>
 
-        <div class="source-note" id="weatherSourceNote">Wetterdaten werden geladen … · Quelle: Open-Meteo</div>
+        <div class="source-note" id="weatherSourceNote" data-i18n="weather.sourceLoading">Wetterdaten werden geladen … · Quelle: Open-Meteo</div>
       </section>
 
         <div class="weather-side">
-          <section class="panel chart-card" aria-label="Temperaturvorhersage">
-            <div class="panel-title">Vorhersage · Höchsttemperatur</div>
-            <div class="panel-sub">Nächste Tage</div>
-            <div id="barChart" class="bar-chart"><div class="chart-empty">Daten werden geladen …</div></div>
+          <section class="panel chart-card" aria-label="Temperaturvorhersage" data-i18n-attr="aria-label=weather.forecastAria">
+            <div class="panel-title" data-i18n="widget.forecast-bars.title">Vorhersage · Höchsttemperatur</div>
+            <div class="panel-sub" data-i18n="weather.nextDays">Nächste Tage</div>
+            <div id="barChart" class="bar-chart"><div class="chart-empty" data-i18n="common.loadingData">Daten werden geladen …</div></div>
           </section>
-          <section class="panel donut-card" aria-label="Regenwahrscheinlichkeit">
-            <div class="panel-title">Regenwahrscheinlichkeit</div>
-            <div id="donutChart" class="donut-chart"><div class="chart-empty">Daten werden geladen …</div></div>
-            <div class="donut-caption" id="donutCaption">heute</div>
+          <section class="panel donut-card" aria-label="Regenwahrscheinlichkeit" data-i18n-attr="aria-label=widget.rain-donut.title">
+            <div class="panel-title" data-i18n="widget.rain-donut.title">Regenwahrscheinlichkeit</div>
+            <div id="donutChart" class="donut-chart"><div class="chart-empty" data-i18n="common.loadingData">Daten werden geladen …</div></div>
+            <div class="donut-caption" id="donutCaption" data-i18n="common.today">heute</div>
           </section>
-          <section class="panel wave-card" aria-label="Temperaturverlauf">
-            <div class="panel-title">Temperaturverlauf</div>
-            <div class="panel-sub" id="waveDayLabel">heute, stündlich</div>
-            <div id="waveChart" class="wave-chart"><div class="chart-empty">Daten werden geladen …</div></div>
+          <section class="panel wave-card" aria-label="Temperaturverlauf" data-i18n-attr="aria-label=widget.temp-wave.title">
+            <div class="panel-title" data-i18n="widget.temp-wave.title">Temperaturverlauf</div>
+            <div class="panel-sub" id="waveDayLabel" data-i18n="weather.waveToday">heute, stündlich</div>
+            <div id="waveChart" class="wave-chart"><div class="chart-empty" data-i18n="common.loadingData">Daten werden geladen …</div></div>
           </section>
         </div>
       </div>
@@ -222,65 +225,65 @@
     <div id="radarPage" class="page">
       <div class="overview-bar" data-layout-fixed>
         <div>
-          <h1 class="overview-title">Regenradar</h1>
-          <div class="panel-sub">Widgets hinzufügen, entfernen und mit „Anordnen“ verschieben</div>
+          <h1 class="overview-title" data-i18n="nav.radar">Regenradar</h1>
+          <div class="panel-sub" data-i18n="page.sub">Widgets hinzufügen, entfernen und mit „Anordnen“ verschieben</div>
         </div>
         <div class="overview-actions">
-          <button type="button" class="overview-btn layout-reset-btn" data-widget-action="reset">↺ Zurücksetzen</button>
-          <button type="button" class="overview-btn" data-widget-action="arrange" aria-pressed="false">✥ Anordnen</button>
-          <button type="button" class="overview-btn primary" data-widget-action="add">+ Widget</button>
+          <button type="button" class="overview-btn layout-reset-btn" data-widget-action="reset" data-i18n="layout.reset">↺ Zurücksetzen</button>
+          <button type="button" class="overview-btn" data-widget-action="arrange" aria-pressed="false" data-i18n="layout.arrange">✥ Anordnen</button>
+          <button type="button" class="overview-btn primary" data-widget-action="add" data-i18n="layout.add">+ Widget</button>
         </div>
       </div>
       <!-- Live rain radar -->
-      <section class="panel radar" id="radarPanel" aria-label="Regenradar">
+      <section class="panel radar" id="radarPanel" aria-label="Regenradar" data-i18n-attr="aria-label=nav.radar">
       <div class="radar-header">
         <div class="radar-icon-wrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 15.5a3.8 3.8 0 0 1 .3-7.6 5.4 5.4 0 0 1 10.4-1.7A4.3 4.3 0 0 1 17 15z"/><path d="M8 18.5l-1 2M12 18.5l-1 2M16 18.5l-1 2"/></svg>
         </div>
         <div class="radar-header-text">
-          <div class="panel-title">Regenradar</div>
-          <div class="panel-sub">Ort suchen, um dorthin zu springen — der Niederschlag läuft live mit</div>
+          <div class="panel-title" data-i18n="nav.radar">Regenradar</div>
+          <div class="panel-sub" data-i18n="radar.sub">Ort suchen, um dorthin zu springen — der Niederschlag läuft live mit</div>
         </div>
-        <button type="button" class="panel-toggle" id="radarToggle" aria-label="Regenradar-Widget ein-/ausklappen">
+        <button type="button" class="panel-toggle" id="radarToggle" aria-label="Regenradar-Widget ein-/ausklappen" data-i18n-attr="aria-label=radar.toggle">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
         </button>
       </div>
 
       <form class="radar-form" id="radarForm">
-        <input type="text" id="radarInput" placeholder="Ort eingeben, z. B. Hamburg" autocomplete="off">
-        <button type="submit">Suchen</button>
+        <input type="text" id="radarInput" placeholder="Ort eingeben, z. B. Hamburg" data-i18n-attr="placeholder=radar.searchPlaceholder" autocomplete="off">
+        <button type="submit" data-i18n="common.search">Suchen</button>
       </form>
 
       <div class="radar-quick" id="radarQuick">
         <button type="button" data-city="Berlin">Berlin</button>
         <button type="button" data-city="Potsdam">Potsdam</button>
-        <button type="button" data-city="München">München</button>
+        <button type="button" data-city="München" data-i18n="radar.cityMunich">München</button>
         <button type="button" data-city="Hamburg">Hamburg</button>
       </div>
 
       <div class="radar-provider">
-        <label for="radarProvider">Niederschlag:</label>
-        <select id="radarProvider" aria-label="Niederschlagsquelle">
-          <option value="rainviewer">RainViewer · Verlauf</option>
-          <option value="openweather">OpenWeather · aktuelle Karte</option>
+        <label for="radarProvider" data-i18n="radar.providerLabel">Niederschlag:</label>
+        <select id="radarProvider" aria-label="Niederschlagsquelle" data-i18n-attr="aria-label=radar.providerAria">
+          <option value="rainviewer" data-i18n="radar.providerRainviewer">RainViewer · Verlauf</option>
+          <option value="openweather" data-i18n="radar.providerOpenweather">OpenWeather · aktuelle Karte</option>
         </select>
       </div>
       <div class="map-wrap">
         <div id="map"></div>
-        <div class="map-loading" id="mapLoading">Regendaten werden geladen …</div>
+        <div class="map-loading" id="mapLoading" data-i18n="radar.loading">Regendaten werden geladen …</div>
       </div>
-      <div class="radar-legend"><span>Wenig Niederschlag</span><span class="radar-gradient" aria-hidden="true"></span><span>Viel Niederschlag</span></div>
-      <div class="radar-detail-note" id="radarDetailNote" role="status">RainViewer: kostenlos bis Zoom 7; bei größerem Zoom werden Kacheln vergrößert.</div>
+      <div class="radar-legend"><span data-i18n="radar.legendLow">Wenig Niederschlag</span><span class="radar-gradient" aria-hidden="true"></span><span data-i18n="radar.legendHigh">Viel Niederschlag</span></div>
+      <div class="radar-detail-note" id="radarDetailNote" role="status" data-i18n="radar.noteInitial">RainViewer: kostenlos bis Zoom 7; bei größerem Zoom werden Kacheln vergrößert.</div>
 
       <div class="playback" id="radarPlayback">
-        <button type="button" class="play-btn" id="playBtn" aria-label="Abspielen">
+        <button type="button" class="play-btn" id="playBtn" aria-label="Abspielen" data-i18n-attr="aria-label=radar.play">
           <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
         </button>
-        <input type="range" id="frameSlider" min="0" max="0" value="0" step="1">
+        <input type="range" id="frameSlider" min="0" max="0" value="0" step="1" aria-label="Radarzeitpunkt" data-i18n-attr="aria-label=radar.frameAria">
         <div class="frame-time" id="frameTime">–</div>
       </div>
 
-      <div class="radar-note">Kartenbasis © Esri · Radar © RainViewer · Niederschlagskarte © OpenWeather · Ortssuche: Open-Meteo. Der API-Key aus js/config.js ist in Netzwerkanfragen sichtbar.</div>
+      <div class="radar-note" data-i18n="radar.credits">Kartenbasis © Esri · Radar © RainViewer · Niederschlagskarte © OpenWeather · Ortssuche: Open-Meteo. Der API-Key aus js/config.js ist in Netzwerkanfragen sichtbar.</div>
     </section>
       <div class="overview-grid" id="radarPageWidgets" hidden></div>
     </div> <!-- Ende Regenradar Page -->
@@ -289,47 +292,47 @@
     <div id="disasterPage" class="page">
       <div class="overview-bar" data-layout-fixed>
         <div>
-          <h1 class="overview-title">Katastrophenschutz</h1>
-          <div class="panel-sub">Widgets hinzufügen, entfernen und mit „Anordnen“ verschieben</div>
+          <h1 class="overview-title" data-i18n="nav.disaster">Katastrophenschutz</h1>
+          <div class="panel-sub" data-i18n="page.sub">Widgets hinzufügen, entfernen und mit „Anordnen“ verschieben</div>
         </div>
         <div class="overview-actions">
-          <button type="button" class="overview-btn layout-reset-btn" data-widget-action="reset">↺ Zurücksetzen</button>
-          <button type="button" class="overview-btn" data-widget-action="arrange" aria-pressed="false">✥ Anordnen</button>
-          <button type="button" class="overview-btn primary" data-widget-action="add">+ Widget</button>
+          <button type="button" class="overview-btn layout-reset-btn" data-widget-action="reset" data-i18n="layout.reset">↺ Zurücksetzen</button>
+          <button type="button" class="overview-btn" data-widget-action="arrange" aria-pressed="false" data-i18n="layout.arrange">✥ Anordnen</button>
+          <button type="button" class="overview-btn primary" data-widget-action="add" data-i18n="layout.add">+ Widget</button>
         </div>
       </div>
       <div class="disaster-row">
-        <section class="panel disaster-warn" id="disasterWarnPanel" aria-label="Amtliche Warnungen">
-          <div class="panel-title">Amtliche Warnungen</div>
-          <div class="panel-sub">MoWaS, KATWARN, BIWAPP, DWD &amp; Hochwasser — bundesweit</div>
+        <section class="panel disaster-warn" id="disasterWarnPanel" aria-label="Amtliche Warnungen" data-i18n-attr="aria-label=disaster.warnTitle">
+          <div class="panel-title" data-i18n="disaster.warnTitle">Amtliche Warnungen</div>
+          <div class="panel-sub" data-i18n="disaster.warnSub">MoWaS, KATWARN, BIWAPP, DWD &amp; Hochwasser — bundesweit</div>
           <form class="warn-search" id="disasterWarnSearchForm">
-            <input type="text" id="disasterWarnSearchInput" placeholder="Ort filtern, z. B. Berlin …" autocomplete="off">
-            <button type="submit">Filtern</button>
+            <input type="text" id="disasterWarnSearchInput" placeholder="Ort filtern, z. B. Berlin …" data-i18n-attr="placeholder=warn.filterPlaceholder" autocomplete="off">
+            <button type="submit" data-i18n="warn.filter">Filtern</button>
           </form>
-          <div class="warn-note" id="disasterWarnLoading">Warnungen werden geladen …</div>
+          <div class="warn-note" id="disasterWarnLoading" data-i18n="warn.loading">Warnungen werden geladen …</div>
           <div class="warn-list scroll-list" id="disasterWarnList"></div>
-          <div class="warn-note">Quelle: warnung.bund.de (BBK/NINA)</div>
+          <div class="warn-note" data-i18n="warn.source">Quelle: warnung.bund.de (BBK/NINA)</div>
         </section>
 
         <div class="disaster-side">
-          <section class="panel" id="disasterNumbersPanel" aria-label="Notrufnummern">
-            <div class="panel-title">Notrufnummern</div>
+          <section class="panel" id="disasterNumbersPanel" aria-label="Notrufnummern" data-i18n-attr="aria-label=widget.emergencynumbers.title">
+            <div class="panel-title" data-i18n="widget.emergencynumbers.title">Notrufnummern</div>
             <div class="clock-list" id="disasterNumbersList"></div>
-            <div class="warn-note">Außerhalb von Berlin und Brandenburg gelten andere Giftnotruf-Nummern.</div>
+            <div class="warn-note" data-i18n="numbers.note">Außerhalb von Berlin und Brandenburg gelten andere Giftnotruf-Nummern.</div>
           </section>
 
-          <section class="panel" id="disasterMeetingPanel" aria-label="Familien-Treffpunkt">
-            <div class="panel-title">Familien-Treffpunkt</div>
-            <div class="panel-sub">Falls Netz oder Strom ausfallen</div>
-            <input type="text" id="meetingPointInput" class="meeting-input" placeholder="z. B. bei Oma, Nachbarschaftstreff …" autocomplete="off">
+          <section class="panel" id="disasterMeetingPanel" aria-label="Familien-Treffpunkt" data-i18n-attr="aria-label=widget.meeting.title">
+            <div class="panel-title" data-i18n="widget.meeting.title">Familien-Treffpunkt</div>
+            <div class="panel-sub" data-i18n="meeting.sub">Falls Netz oder Strom ausfallen</div>
+            <input type="text" id="meetingPointInput" class="meeting-input" placeholder="z. B. bei Oma, Nachbarschaftstreff …" data-i18n-attr="placeholder=meeting.placeholder" autocomplete="off">
             <div class="notes-saved" id="meetingSaved">&nbsp;</div>
           </section>
         </div>
       </div>
 
-      <section class="panel disaster-checklist" id="disasterChecklistPanel" aria-label="Notfall-Checkliste">
-        <div class="panel-title">Notfall-Checkliste</div>
-        <div class="panel-sub">Vorrat &amp; Ausrüstung — orientiert an den Empfehlungen des BBK</div>
+      <section class="panel disaster-checklist" id="disasterChecklistPanel" aria-label="Notfall-Checkliste" data-i18n-attr="aria-label=widget.checklist.title">
+        <div class="panel-title" data-i18n="widget.checklist.title">Notfall-Checkliste</div>
+        <div class="panel-sub" data-i18n="checklist.sub">Vorrat &amp; Ausrüstung — orientiert an den Empfehlungen des BBK</div>
         <div class="todo-list scroll-list" id="disasterChecklistList"></div>
       </section>
       <div class="overview-grid" id="disasterPageWidgets" hidden></div>
@@ -339,13 +342,13 @@
     <div id="firePage" class="page">
       <div class="overview-bar" data-layout-fixed>
         <div>
-          <h1 class="overview-title">Feuerwehr</h1>
-          <div class="panel-sub">Widgets hinzufügen, entfernen und mit „Anordnen“ verschieben</div>
+          <h1 class="overview-title" data-i18n="nav.fire">Feuerwehr</h1>
+          <div class="panel-sub" data-i18n="page.sub">Widgets hinzufügen, entfernen und mit „Anordnen“ verschieben</div>
         </div>
         <div class="overview-actions">
-          <button type="button" class="overview-btn layout-reset-btn" data-widget-action="reset">↺ Zurücksetzen</button>
-          <button type="button" class="overview-btn" data-widget-action="arrange" aria-pressed="false">✥ Anordnen</button>
-          <button type="button" class="overview-btn primary" data-widget-action="add">+ Widget</button>
+          <button type="button" class="overview-btn layout-reset-btn" data-widget-action="reset" data-i18n="layout.reset">↺ Zurücksetzen</button>
+          <button type="button" class="overview-btn" data-widget-action="arrange" aria-pressed="false" data-i18n="layout.arrange">✥ Anordnen</button>
+          <button type="button" class="overview-btn primary" data-widget-action="add" data-i18n="layout.add">+ Widget</button>
         </div>
       </div>
       <div class="stat-row" id="fireStats">
@@ -355,7 +358,7 @@
           </div>
           <div class="stat-body">
             <div class="stat-value" id="fireTotal">–</div>
-            <div class="stat-label">Brandeinsätze (7 Tage)</div>
+            <div class="stat-label" data-i18n="fire.stat.total">Brandeinsätze (7 Tage)</div>
             <div class="stat-delta" id="fireTotalDelta"></div>
           </div>
         </div>
@@ -365,7 +368,7 @@
           </div>
           <div class="stat-body">
             <div class="stat-value" id="fireAvg">–</div>
-            <div class="stat-label">Ø pro Tag</div>
+            <div class="stat-label" data-i18n="fire.stat.avg">Ø pro Tag</div>
             <div class="stat-delta" id="fireAvgDelta"></div>
           </div>
         </div>
@@ -375,7 +378,7 @@
           </div>
           <div class="stat-body">
             <div class="stat-value" id="firePeak">–</div>
-            <div class="stat-label">Spitzentag</div>
+            <div class="stat-label" data-i18n="fire.stat.peak">Spitzentag</div>
             <div class="stat-delta" id="firePeakDelta"></div>
           </div>
         </div>
@@ -385,38 +388,38 @@
           </div>
           <div class="stat-body">
             <div class="stat-value" id="fireResponse">–</div>
-            <div class="stat-label">Eintreffzeit 1. Löschfahrzeug</div>
+            <div class="stat-label" data-i18n="fire.stat.response">Eintreffzeit 1. Löschfahrzeug</div>
             <div class="stat-delta" id="fireResponseDelta"></div>
           </div>
         </div>
       </div>
 
       <div class="charts-row">
-        <section class="panel chart-card" aria-label="Brandeinsätze pro Tag">
-          <div class="panel-title">Brandeinsätze pro Tag</div>
-          <div class="panel-sub" id="fireChartSub">Berliner Feuerwehr · orange = Spitzentag</div>
-          <div id="fireBarChart" class="bar-chart"><div class="chart-empty">Daten werden geladen …</div></div>
+        <section class="panel chart-card" aria-label="Brandeinsätze pro Tag" data-i18n-attr="aria-label=widget.fire-chart.title">
+          <div class="panel-title" data-i18n="widget.fire-chart.title">Brandeinsätze pro Tag</div>
+          <div class="panel-sub" id="fireChartSub" data-i18n="fire.chartSub">Berliner Feuerwehr · orange = Spitzentag</div>
+          <div id="fireBarChart" class="bar-chart"><div class="chart-empty" data-i18n="common.loadingData">Daten werden geladen …</div></div>
         </section>
-        <section class="panel donut-card" aria-label="Anteil an allen Einsätzen">
-          <div class="panel-title">Anteil an allen Einsätzen</div>
-          <div id="fireDonut" class="donut-chart"><div class="chart-empty">Daten werden geladen …</div></div>
+        <section class="panel donut-card" aria-label="Anteil an allen Einsätzen" data-i18n-attr="aria-label=fire.shareTitle">
+          <div class="panel-title" data-i18n="fire.shareTitle">Anteil an allen Einsätzen</div>
+          <div id="fireDonut" class="donut-chart"><div class="chart-empty" data-i18n="common.loadingData">Daten werden geladen …</div></div>
           <div class="donut-caption" id="fireDonutCaption"></div>
         </section>
       </div>
 
       <div class="lower-row">
-        <section class="panel fire-table-card" id="fireTablePanel" aria-label="Tagesübersicht Feuerwehr">
-          <div class="panel-title">Tagesübersicht</div>
-          <button type="button" class="fire-export" id="fireExportBtn" disabled>CSV exportieren</button>
+        <section class="panel fire-table-card" id="fireTablePanel" aria-label="Tagesübersicht Feuerwehr" data-i18n-attr="aria-label=fire.tableAria">
+          <div class="panel-title" data-i18n="fire.tableTitle">Tagesübersicht</div>
+          <button type="button" class="fire-export" id="fireExportBtn" disabled data-i18n="fire.export">CSV exportieren</button>
           <div class="fire-table-wrap">
             <table class="fire-table">
               <thead>
-                <tr><th>Tag</th><th>Brände</th><th>Techn. Hilfe</th><th>Alle Einsätze</th><th>Eintreffzeit 1. LF</th></tr>
+                <tr><th data-i18n="fire.col.day">Tag</th><th data-i18n="fire.col.fires">Brände</th><th data-i18n="fire.col.tech">Techn. Hilfe</th><th data-i18n="fire.col.all">Alle Einsätze</th><th data-i18n="fire.col.response">Eintreffzeit 1. LF</th></tr>
               </thead>
-              <tbody id="fireTableBody"><tr><td colspan="5" class="fire-table-empty">Daten werden geladen …</td></tr></tbody>
+              <tbody id="fireTableBody"><tr><td colspan="5" class="fire-table-empty" data-i18n="common.loadingData">Daten werden geladen …</td></tr></tbody>
             </table>
           </div>
-          <div class="warn-note" id="fireSourceNote">Quelle: Berliner Feuerwehr Open Data · Tage nach Berliner Ortszeit</div>
+          <div class="warn-note" id="fireSourceNote" data-i18n="fire.sourceInitial">Quelle: Berliner Feuerwehr Open Data · Tage nach Berliner Ortszeit</div>
         </section>
       </div>
       <div class="overview-grid" id="firePageWidgets" hidden></div>
@@ -426,13 +429,13 @@
     <div id="waterPage" class="page">
       <div class="overview-bar" data-layout-fixed>
         <div>
-          <h1 class="overview-title">Wasserpegel</h1>
-          <div class="panel-sub">Widgets hinzufügen, entfernen und mit „Anordnen“ verschieben</div>
+          <h1 class="overview-title" data-i18n="nav.water">Wasserpegel</h1>
+          <div class="panel-sub" data-i18n="page.sub">Widgets hinzufügen, entfernen und mit „Anordnen“ verschieben</div>
         </div>
         <div class="overview-actions">
-          <button type="button" class="overview-btn layout-reset-btn" data-widget-action="reset">↺ Zurücksetzen</button>
-          <button type="button" class="overview-btn" data-widget-action="arrange" aria-pressed="false">✥ Anordnen</button>
-          <button type="button" class="overview-btn primary" data-widget-action="add">+ Widget</button>
+          <button type="button" class="overview-btn layout-reset-btn" data-widget-action="reset" data-i18n="layout.reset">↺ Zurücksetzen</button>
+          <button type="button" class="overview-btn" data-widget-action="arrange" aria-pressed="false" data-i18n="layout.arrange">✥ Anordnen</button>
+          <button type="button" class="overview-btn primary" data-widget-action="add" data-i18n="layout.add">+ Widget</button>
         </div>
       </div>
       <div class="stat-row" id="waterStats">
@@ -442,7 +445,7 @@
           </div>
           <div class="stat-body">
             <div class="stat-value" id="waterLevel">–</div>
-            <div class="stat-label" id="waterLevelLabel">Wasserstand</div>
+            <div class="stat-label" id="waterLevelLabel" data-i18n="water.stat.level">Wasserstand</div>
             <div class="stat-delta" id="waterLevelDelta"></div>
           </div>
         </div>
@@ -452,7 +455,7 @@
           </div>
           <div class="stat-body">
             <div class="stat-value" id="waterState">–</div>
-            <div class="stat-label">Einordnung</div>
+            <div class="stat-label" data-i18n="water.stat.state">Einordnung</div>
             <div class="stat-delta" id="waterStateDelta"></div>
           </div>
         </div>
@@ -462,7 +465,7 @@
           </div>
           <div class="stat-body">
             <div class="stat-value" id="waterRange">–</div>
-            <div class="stat-label">Spanne 7 Tage</div>
+            <div class="stat-label" data-i18n="water.stat.range">Spanne 7 Tage</div>
             <div class="stat-delta" id="waterRangeDelta"></div>
           </div>
         </div>
@@ -472,28 +475,28 @@
           </div>
           <div class="stat-body">
             <div class="stat-value" id="waterTime">–</div>
-            <div class="stat-label">Letzte Messung</div>
+            <div class="stat-label" data-i18n="water.stat.time">Letzte Messung</div>
             <div class="stat-delta" id="waterTimeDelta"></div>
           </div>
         </div>
       </div>
 
       <div class="charts-row">
-        <section class="panel chart-card" id="waterChartPanel" aria-label="Pegelverlauf">
-          <div class="panel-title" id="waterChartTitle">Pegelverlauf</div>
-          <div class="panel-sub" id="waterChartSub">Letzte 7 Tage · Wasserstand in cm</div>
+        <section class="panel chart-card" id="waterChartPanel" aria-label="Pegelverlauf" data-i18n-attr="aria-label=widget.water-chart.title">
+          <div class="panel-title" id="waterChartTitle" data-i18n="widget.water-chart.title">Pegelverlauf</div>
+          <div class="panel-sub" id="waterChartSub" data-i18n="water.chartSubInitial">Letzte 7 Tage · Wasserstand in cm</div>
           <form class="warn-search water-search" id="waterSearchForm">
-            <input type="text" id="waterSearchInput" list="waterStationList" placeholder="Pegel suchen, z. B. Dresden …" autocomplete="off" aria-label="Pegel suchen">
+            <input type="text" id="waterSearchInput" list="waterStationList" placeholder="Pegel suchen, z. B. Dresden …" autocomplete="off" aria-label="Pegel suchen" data-i18n-attr="placeholder=water.searchPlaceholder;aria-label=water.searchAria">
             <datalist id="waterStationList"></datalist>
-            <button type="submit">Anzeigen</button>
+            <button type="submit" data-i18n="water.show">Anzeigen</button>
           </form>
-          <div id="waterChart" class="wave-chart water-chart"><div class="chart-empty">Daten werden geladen …</div></div>
-          <div class="warn-note" id="waterSourceNote">Quelle: PEGELONLINE (WSV) · ungeprüfte Rohdaten</div>
+          <div id="waterChart" class="wave-chart water-chart"><div class="chart-empty" data-i18n="common.loadingData">Daten werden geladen …</div></div>
+          <div class="warn-note" id="waterSourceNote" data-i18n="water.source">Quelle: PEGELONLINE (WSV) · ungeprüfte Rohdaten</div>
         </section>
-        <section class="panel" id="waterBerlinPanel" aria-label="Pegel in Berlin">
-          <div class="panel-title">Pegel in Berlin</div>
-          <div class="panel-sub">Aktuelle Wasserstände · anklicken zum Anzeigen</div>
-          <div class="water-list" id="waterBerlinList"><div class="chart-empty">Daten werden geladen …</div></div>
+        <section class="panel" id="waterBerlinPanel" aria-label="Pegel in Berlin" data-i18n-attr="aria-label=water.berlinTitle">
+          <div class="panel-title" data-i18n="water.berlinTitle">Pegel in Berlin</div>
+          <div class="panel-sub" data-i18n="water.berlinSub">Aktuelle Wasserstände · anklicken zum Anzeigen</div>
+          <div class="water-list" id="waterBerlinList"><div class="chart-empty" data-i18n="common.loadingData">Daten werden geladen …</div></div>
         </section>
       </div>
       <div class="overview-grid" id="waterPageWidgets" hidden></div>
@@ -503,10 +506,10 @@
 </div>
 
 <div class="widget-picker-overlay" id="widgetPickerOverlay">
-  <div class="widget-picker" role="dialog" aria-modal="true" aria-label="Widget hinzufügen">
+  <div class="widget-picker" role="dialog" aria-modal="true" aria-label="Widget hinzufügen" data-i18n-attr="aria-label=picker.title">
     <div class="widget-picker-header">
-      <div class="panel-title">Widget hinzufügen</div>
-      <button type="button" class="widget-picker-close" id="widgetPickerClose" aria-label="Schließen">×</button>
+      <div class="panel-title" data-i18n="picker.title">Widget hinzufügen</div>
+      <button type="button" class="widget-picker-close" id="widgetPickerClose" aria-label="Schließen" data-i18n-attr="aria-label=common.close">×</button>
     </div>
     <div class="widget-picker-body" id="widgetPickerBody"></div>
   </div>
@@ -515,21 +518,24 @@
 <div class="widget-picker-overlay" id="resetConfirmOverlay">
   <div class="widget-picker confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="resetConfirmTitle" aria-describedby="resetConfirmText">
     <div class="widget-picker-header">
-      <div class="panel-title" id="resetConfirmTitle">Layout zurücksetzen?</div>
-      <button type="button" class="widget-picker-close" id="resetConfirmClose" aria-label="Schließen">×</button>
+      <div class="panel-title" id="resetConfirmTitle" data-i18n="reset.title">Layout zurücksetzen?</div>
+      <button type="button" class="widget-picker-close" id="resetConfirmClose" aria-label="Schließen" data-i18n-attr="aria-label=common.close">×</button>
     </div>
     <p class="confirm-text" id="resetConfirmText"></p>
     <div class="confirm-actions">
-      <button type="button" class="overview-btn" id="resetConfirmCancel">Abbrechen</button>
-      <button type="button" class="overview-btn primary" id="resetConfirmOk">Zurücksetzen</button>
+      <button type="button" class="overview-btn" id="resetConfirmCancel" data-i18n="common.cancel">Abbrechen</button>
+      <button type="button" class="overview-btn primary" id="resetConfirmOk" data-i18n="reset.confirm">Zurücksetzen</button>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast" role="status" aria-live="polite">Hier entsteht bald ein neues Widget</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="js/config.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/lang/de.js"></script>
+<script src="js/lang/en.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

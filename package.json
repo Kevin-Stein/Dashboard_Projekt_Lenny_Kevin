@@ -1,0 +1,14 @@
+{
+  "name": "dashboard-projekt-lenny-kevin",
+  "private": true,
+  "description": "Katastrophenschutz-Dashboard „Wir helfen Berlin“",
+  "scripts": {
+    "start": "node dev-server.js",
+    "postinstall": "playwright install chromium",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0"
+  }
+}
