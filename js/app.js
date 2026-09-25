@@ -52,6 +52,16 @@ const NAV_CATEGORIES = {
     </svg><span>Regenradar</span>`,
     target: "radarPage",
   },
+  disaster: {
+    id: "disaster",
+    label: "Katastrophenschutz",
+    alwaysShow: true,
+    html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+      <path d="M12 3.5l7.5 3v5.2c0 4.6-3.1 8.2-7.5 9.8-4.4-1.6-7.5-5.2-7.5-9.8V6.5l7.5-3z" />
+      <path d="M12 8v5" /><circle cx="12" cy="15.8" r="0.6" fill="currentColor" stroke="none" />
+    </svg><span>Katastrophenschutz</span>`,
+    target: "disasterPage",
+  },
 };
 
 // Widget-Kategorien Zuordnung
@@ -228,6 +238,7 @@ async function refreshDashboardData() {
     await Promise.all([
       loadWeatherForPlace(currentWeatherCoords.lat, currentWeatherCoords.lon, currentWeatherCoords.label),
       loadRadar(),
+      loadDisasterWarnings(document.getElementById("disasterWarnSearchInput")?.value || ""),
     ]);
   } finally {
     refreshIcon.classList.remove("spinning");
@@ -827,6 +838,165 @@ function mountEmergencyNumbersWidget() {
   `,
   );
 }
+
+// ---- Katastrophenschutz-Seite ----
+const DISASTER_NUMBERS = [
+  { num: "112", label: "Feuerwehr & Rettungsdienst — lebensbedrohliche Notfälle, Brand" },
+  { num: "110", label: "Polizei-Notruf" },
+  { num: "116 117", label: "Ärztlicher Bereitschaftsdienst — dringend, aber nicht lebensbedrohlich" },
+  { num: "19222", label: "Feuerwehr-Leitstelle Wiesbaden (Festnetz-Ausweichnummer)" },
+];
+const DISASTER_CHECKLIST_ITEMS = [
+  "Trinkwasser (mind. 2 Liter pro Person und Tag)",
+  "Haltbare Lebensmittel für mehrere Tage",
+  "Wichtige Dokumente griffbereit (Ausweis, Impfpass, Versicherung)",
+  "Erste-Hilfe-Set",
+  "Wichtige Medikamente",
+  "Taschenlampe & Ersatzbatterien",
+  "Batteriebetriebenes oder Kurbelradio",
+  "Powerbank bzw. Ersatzakku fürs Handy",
+  "Bargeld in kleinen Scheinen",
+  "Warme Kleidung & Decken",
+  "Hygieneartikel",
+];
+
+function renderDisasterNumbers() {
+  const el = document.getElementById("disasterNumbersList");
+  if (!el) return;
+  el.innerHTML = DISASTER_NUMBERS.map(
+    (n) => `<div class="emerg-row"><div class="emerg-num">${n.num}</div><div class="emerg-label">${n.label}</div></div>`,
+  ).join("");
+}
+
+function renderDisasterChecklist() {
+  const list = document.getElementById("disasterChecklistList");
+  if (!list) return;
+  let checked = [];
+  try {
+    checked = JSON.parse(localStorage.getItem("dashboard-widget-checklist") || "[]");
+  } catch (err) {}
+  function save(arr) {
+    try {
+      localStorage.setItem("dashboard-widget-checklist", JSON.stringify(arr));
+    } catch (err) {}
+  }
+  list.innerHTML = "";
+  DISASTER_CHECKLIST_ITEMS.forEach((text, i) => {
+    const row = document.createElement("div");
+    row.className = "todo-item" + (checked.includes(i) ? " done" : "");
+    row.innerHTML = `<input type="checkbox" ${checked.includes(i) ? "checked" : ""}><span></span>`;
+    row.querySelector("span").textContent = text;
+    row.querySelector("input").addEventListener("change", () => {
+      let cur = [];
+      try {
+        cur = JSON.parse(localStorage.getItem("dashboard-widget-checklist") || "[]");
+      } catch (err) {}
+      if (cur.includes(i)) cur = cur.filter((x) => x !== i);
+      else cur.push(i);
+      save(cur);
+      row.classList.toggle("done");
+    });
+    list.appendChild(row);
+  });
+}
+
+const DISASTER_SOURCES = ["mowas", "katwarn", "biwapp", "dwd", "lhp"];
+const DISASTER_SEV_RANK = { Extreme: 4, Severe: 3, Moderate: 2, Minor: 1, Unknown: 0 };
+const DISASTER_TYPE_LABEL = { Alert: "Neu", Update: "Update", Cancel: "Aufgehoben", Test: "Test" };
+function disasterSevClass(sev) {
+  const s = (sev || "").toLowerCase();
+  if (s === "extreme") return "sev-extreme";
+  if (s === "severe") return "sev-severe";
+  if (s === "moderate") return "sev-moderate";
+  if (s === "minor") return "sev-minor";
+  return "sev-cancel";
+}
+
+async function loadDisasterWarnings(filterText) {
+  const listEl = document.getElementById("disasterWarnList");
+  const loadingEl = document.getElementById("disasterWarnLoading");
+  if (!listEl || !loadingEl) return;
+  loadingEl.textContent = "Warnungen werden geladen …";
+  listEl.innerHTML = "";
+  try {
+    const results = await Promise.allSettled(
+      DISASTER_SOURCES.map((s) => fetch(`https://warnung.bund.de/api31/${s}/mapData.json`).then((r) => r.json())),
+    );
+    let all = [];
+    results.forEach((r) => {
+      if (r.status === "fulfilled" && Array.isArray(r.value)) all = all.concat(r.value);
+    });
+    if (!all.length) {
+      loadingEl.textContent = "Warnungen aktuell nicht abrufbar — direkt auf warnung.bund.de nachsehen.";
+      return;
+    }
+    if (filterText && filterText.trim()) {
+      const q = filterText.trim().toLowerCase();
+      all = all.filter((w) => (w.i18nTitle?.de || "").toLowerCase().includes(q));
+    }
+    all.sort(
+      (a, b) =>
+        (DISASTER_SEV_RANK[b.severity] || 0) - (DISASTER_SEV_RANK[a.severity] || 0) ||
+        new Date(b.startDate) - new Date(a.startDate),
+    );
+    all = all.slice(0, filterText ? 30 : 15);
+    loadingEl.textContent = "";
+    if (!all.length) {
+      listEl.innerHTML = `<div class="warn-empty">Keine Warnungen${filterText ? ' für "' + filterText.trim() + '"' : ""} gefunden.</div>`;
+      return;
+    }
+    all.forEach((w) => {
+      const item = document.createElement("div");
+      item.className = "warn-item " + disasterSevClass(w.type === "Cancel" ? "cancel" : w.severity);
+      const date = w.startDate
+        ? new Date(w.startDate).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
+        : "";
+      item.innerHTML = `
+        <div class="warn-title"></div>
+        <div class="warn-meta"><span class="warn-badge">${DISASTER_TYPE_LABEL[w.type] || w.type || ""}</span><span>${date} Uhr</span></div>
+      `;
+      item.querySelector(".warn-title").textContent = w.i18nTitle?.de || "Meldung ohne Titel";
+      listEl.appendChild(item);
+    });
+  } catch (err) {
+    loadingEl.textContent = "Warnungen aktuell nicht abrufbar — direkt auf warnung.bund.de nachsehen.";
+  }
+}
+
+function setupDisasterMeetingPoint() {
+  const input = document.getElementById("meetingPointInput");
+  const saved = document.getElementById("meetingSaved");
+  if (!input) return;
+  try {
+    input.value = localStorage.getItem("dashboard-meeting-point") || "";
+  } catch (err) {}
+  let saveTimer;
+  input.addEventListener("input", () => {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      try {
+        localStorage.setItem("dashboard-meeting-point", input.value);
+        saved.textContent = "Gespeichert";
+        setTimeout(() => (saved.textContent = ""), 1500);
+      } catch (err) {}
+    }, 500);
+  });
+}
+
+function initDisasterPage() {
+  renderDisasterNumbers();
+  renderDisasterChecklist();
+  setupDisasterMeetingPoint();
+  const form = document.getElementById("disasterWarnSearchForm");
+  if (form) {
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      loadDisasterWarnings(document.getElementById("disasterWarnSearchInput").value);
+    });
+  }
+  loadDisasterWarnings("");
+}
+initDisasterPage();
 
 // Beim Laden: gespeichertes Widget wiederherstellen
 (function restoreWidget() {

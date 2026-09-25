@@ -40,6 +40,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v6M12 3a9 9 0 1 0 9 9M12 3a5 5 0 0 1 5 5"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg>
         <span>Regenradar</span>
       </button>
+      <button type="button" class="nav-item" data-target="disasterPage">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3.5l7.5 3v5.2c0 4.6-3.1 8.2-7.5 9.8-4.4-1.6-7.5-5.2-7.5-9.8V6.5l7.5-3z"/><path d="M12 8v5"/><circle cx="12" cy="15.8" r="0.6" fill="currentColor" stroke="none"/></svg>
+        <span>Katastrophenschutz</span>
+      </button>
       <button type="button" class="nav-item" data-target="widgetSlot">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="3.5" width="7.5" height="7.5" rx="1.6"/><rect x="13" y="3.5" width="7.5" height="7.5" rx="1.6"/><rect x="3.5" y="13" width="7.5" height="7.5" rx="1.6"/><rect x="13" y="13" width="7.5" height="7.5" rx="1.6"/></svg>
         <span>Widget</span>
@@ -130,65 +134,6 @@
       <div class="detail-row">
         <!-- Weather detail panel (full data, forecast strip, search) -->
         <section class="panel weather" id="weatherPanel" aria-label="Wetter">
-        <div class="cal-header">
-          <div class="cal-title" id="calTitle">Monat Jahr</div>
-          <div class="cal-header-right">
-            <div class="cal-nav">
-              <button type="button" id="calPrev" aria-label="Vorheriger Monat">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-              </button>
-              <button type="button" id="calToday" aria-label="Heute" style="width:auto; padding:0 8px; font-size:11px;">Heute</button>
-              <button type="button" id="calNext" aria-label="Nächster Monat">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
-              </button>
-            </div>
-            <button type="button" class="panel-toggle" id="calToggle" aria-label="Kalender-Widget ein-/ausklappen">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-            </button>
-          </div>
-        </div>
-        <div class="cal-grid" id="calGrid"></div>
-        <div class="cal-selected-date" id="calSelectedDate">Termine für <span id="calSelectedLabel">heute</span></div>
-        <div class="cal-events" id="calEvents"></div>
-        <form class="cal-add" id="calAddForm">
-          <input type="text" id="calAddInput" placeholder="Termin hinzufügen …" autocomplete="off" required aria-label="Terminname">
-          <input type="time" id="calAddTime" aria-label="Uhrzeit" required>
-          <label class="cal-all-day"><input type="checkbox" id="calAllDay">Ganztags</label>
-          <button type="submit" aria-label="Termin hinzufügen">+</button>
-        </form>
-      </section>
-    </div>
-    </div> <!-- Ende Wetter Page -->
-
-    <!-- KALENDER SEITE -->
-    <div id="calendarPage" class="page">
-      <section class="panel calendar" id="calendarPanel" aria-label="Kalender">
-        <div class="cal-header">
-          <div class="cal-title" id="calTitle">Monat Jahr</div>
-          <div class="cal-header-right">
-            <div class="cal-nav">
-              <button type="button" id="calPrev" aria-label="Vorheriger Monat">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-              </button>
-              <button type="button" id="calToday" aria-label="Heute" style="width:auto; padding:0 8px; font-size:11px;">Heute</button>
-              <button type="button" id="calNext" aria-label="Nächster Monat">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
-              </button>
-            </div>
-            <button type="button" class="panel-toggle" id="calToggle" aria-label="Kalender-Widget ein-/ausklappen">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-            </button>
-          </div>
-        </div>
-        <div class="cal-grid" id="calGrid"></div>
-        <div class="cal-selected-date" id="calSelectedDate">Termine für <span id="calSelectedLabel">heute</span></div>
-        <div class="cal-events" id="calEvents"></div>
-        <form class="cal-add" id="calAddForm">
-          <input type="text" id="calAddInput" placeholder="Termin hinzufügen …" autocomplete="off" required aria-label="Terminname">
-          <input type="time" id="calAddTime" aria-label="Uhrzeit" required>
-          <label class="cal-all-day"><input type="checkbox" id="calAllDay">Ganztags</label>
-          <button type="submit" aria-label="Termin hinzufügen">+</button>
-        </form>
         <div class="weather-top">
           <div>
             <div class="place" id="weatherPlace">
@@ -234,12 +179,44 @@
 
         <div class="source-note" id="weatherSourceNote">Wetterdaten werden geladen … · Quelle: Open-Meteo</div>
       </section>
+    </div>
+    </div> <!-- Ende Wetter Page -->
+
+    <!-- KALENDER SEITE -->
+    <div id="calendarPage" class="page">
+      <section class="panel calendar" id="calendarPanel" aria-label="Kalender">
+        <div class="cal-header">
+          <div class="cal-title" id="calTitle">Monat Jahr</div>
+          <div class="cal-header-right">
+            <div class="cal-nav">
+              <button type="button" id="calPrev" aria-label="Vorheriger Monat">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
+              <button type="button" id="calToday" aria-label="Heute" style="width:auto; padding:0 8px; font-size:11px;">Heute</button>
+              <button type="button" id="calNext" aria-label="Nächster Monat">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+              </button>
+            </div>
+            <button type="button" class="panel-toggle" id="calToggle" aria-label="Kalender-Widget ein-/ausklappen">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+        <div class="cal-selected-date" id="calSelectedDate">Termine für <span id="calSelectedLabel">heute</span></div>
+        <div class="cal-events" id="calEvents"></div>
+        <form class="cal-add" id="calAddForm">
+          <input type="text" id="calAddInput" placeholder="Termin hinzufügen …" autocomplete="off" required aria-label="Terminname">
+          <input type="time" id="calAddTime" aria-label="Uhrzeit" required>
+          <label class="cal-all-day"><input type="checkbox" id="calAllDay">Ganztags</label>
+          <button type="submit" aria-label="Termin hinzufügen">+</button>
+        </form>
+      </section>
 
       <button class="placeholder" id="widgetSlot" data-name="Weiteres">
         <span class="plus">+</span>
         <span class="label">Noch ein Platz frei für dein nächstes Widget</span>
       </button>
-    </div>
     </div> <!-- Ende Kalender Page -->
 
     <!-- REGENRADAR SEITE -->
@@ -296,6 +273,44 @@
       <div class="radar-note">Kartenbasis © Esri · Radar © RainViewer · Niederschlagskarte © OpenWeather · Ortssuche: Open-Meteo. Testschlüssel ist im HTML und in Netzwerkanfragen sichtbar.</div>
     </section>
     </div> <!-- Ende Regenradar Page -->
+
+    <!-- KATASTROPHENSCHUTZ SEITE -->
+    <div id="disasterPage" class="page">
+      <div class="disaster-row">
+        <section class="panel disaster-warn" id="disasterWarnPanel" aria-label="Amtliche Warnungen">
+          <div class="panel-title">Amtliche Warnungen</div>
+          <div class="panel-sub">MoWaS, KATWARN, BIWAPP, DWD &amp; Hochwasser — bundesweit</div>
+          <form class="warn-search" id="disasterWarnSearchForm">
+            <input type="text" id="disasterWarnSearchInput" placeholder="Ort filtern, z. B. Wiesbaden …" autocomplete="off">
+            <button type="submit">Filtern</button>
+          </form>
+          <div class="warn-note" id="disasterWarnLoading">Warnungen werden geladen …</div>
+          <div class="warn-list scroll-list" id="disasterWarnList"></div>
+          <div class="warn-note">Quelle: warnung.bund.de (BBK/NINA)</div>
+        </section>
+
+        <div class="disaster-side">
+          <section class="panel" id="disasterNumbersPanel" aria-label="Notrufnummern">
+            <div class="panel-title">Notrufnummern</div>
+            <div class="clock-list" id="disasterNumbersList"></div>
+            <div class="warn-note">Giftnotruf ist je nach Bundesland unterschiedlich — regional nachschlagen.</div>
+          </section>
+
+          <section class="panel" id="disasterMeetingPanel" aria-label="Familien-Treffpunkt">
+            <div class="panel-title">Familien-Treffpunkt</div>
+            <div class="panel-sub">Falls Netz oder Strom ausfallen</div>
+            <input type="text" id="meetingPointInput" class="meeting-input" placeholder="z. B. bei Oma, Nachbarschaftstreff …" autocomplete="off">
+            <div class="notes-saved" id="meetingSaved">&nbsp;</div>
+          </section>
+        </div>
+      </div>
+
+      <section class="panel disaster-checklist" id="disasterChecklistPanel" aria-label="Notfall-Checkliste">
+        <div class="panel-title">Notfall-Checkliste</div>
+        <div class="panel-sub">Vorrat &amp; Ausrüstung — orientiert an den Empfehlungen des BBK</div>
+        <div class="todo-list scroll-list" id="disasterChecklistList"></div>
+      </section>
+    </div> <!-- Ende Katastrophenschutz Page -->
 
   </main>
 </div>
