@@ -1,3 +1,155 @@
+// ---- Fehlerbehandlung ----
+const FETCH_TIMEOUT_MS = 12000;
+
+class FetchError extends Error {
+  constructor(kind, message, { source = "", status = 0, retryAfter = 0, cause } = {}) {
+    super(message, { cause });
+    this.name = "FetchError";
+    this.kind = kind; // offline | timeout | network | http | data
+    this.source = source;
+    this.status = status;
+    this.retryAfter = retryAfter;
+  }
+}
+
+function dataError(source, message) {
+  return new FetchError("data", `${source}: ${message}`, { source });
+}
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function isRetryable(err) {
+  if (!(err instanceof FetchError)) return false;
+  if (err.kind === "timeout" || err.kind === "network") return true;
+  return err.kind === "http" && (err.status === 429 || err.status >= 500);
+}
+
+async function fetchOnce(url, { source, parse, timeout, init }) {
+  if (navigator.onLine === false) throw new FetchError("offline", `${source}: offline`, { source });
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeout);
+  try {
+    let res;
+    try {
+      res = await fetch(url, { ...init, signal: ctrl.signal });
+    } catch (err) {
+      const kind = ctrl.signal.aborted ? "timeout" : navigator.onLine === false ? "offline" : "network";
+      throw new FetchError(kind, `${source}: ${err.message}`, { source, cause: err });
+    }
+    if (!res.ok) {
+      throw new FetchError("http", `${source}: HTTP ${res.status}`, {
+        source,
+        status: res.status,
+        retryAfter: Number(res.headers.get("Retry-After")) || 0,
+      });
+    }
+    try {
+      if (typeof parse === "function") return await parse(res);
+      return parse === "text" ? await res.text() : await res.json();
+    } catch (err) {
+      if (err instanceof FetchError) throw err;
+      const kind = ctrl.signal.aborted ? "timeout" : "data";
+      throw new FetchError(kind, `${source}: ${err.message}`, { source, cause: err });
+    }
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Einheitlicher Abruf: Timeout, eine Wiederholung bei Netzfehlern/Überlastung, klassifizierte Fehler
+async function fetchData(url, { source = "Anfrage", parse = "json", timeout = FETCH_TIMEOUT_MS, retries = 1, ...init } = {}) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await fetchOnce(url, { source, parse, timeout, init });
+    } catch (err) {
+      if (attempt >= retries || !isRetryable(err)) throw err;
+      const delay = err.retryAfter ? Math.min(err.retryAfter * 1000, 5000) : 800 * (attempt + 1);
+      await sleep(delay + Math.random() * 300);
+    }
+  }
+}
+
+function describeError(err) {
+  if (!(err instanceof FetchError)) return "unerwarteter Fehler";
+  if (err.kind === "offline") return "keine Internetverbindung";
+  if (err.kind === "timeout") return "der Dienst antwortet nicht";
+  if (err.kind === "network") return "Dienst nicht erreichbar";
+  if (err.kind === "data") return "Antwort unvollständig oder fehlerhaft";
+  if (err.status === 429) return "zu viele Anfragen, bitte in einer Minute erneut versuchen";
+  if (err.status === 401 || err.status === 403) return "Zugriff verweigert (API-Key prüfen)";
+  if (err.status === 404) return "Daten nicht gefunden";
+  if (err.status >= 500) return "Dienst gerade gestört";
+  return `Fehler HTTP ${err.status}`;
+}
+
+function reportError(source, err) {
+  if (err instanceof FetchError && err.kind === "offline") return;
+  console.warn(`[Dashboard] ${source}:`, err);
+}
+
+// Fehlermeldung mit „Erneut versuchen“-Knopf in ein vorhandenes Element schreiben
+function renderRetry(el, message, onRetry, className = "") {
+  if (!el) return;
+  el.innerHTML = "";
+  const wrap = document.createElement("div");
+  wrap.className = "load-error" + (className ? " " + className : "");
+  wrap.setAttribute("role", "alert");
+  const text = document.createElement("span");
+  text.textContent = message;
+  wrap.appendChild(text);
+  if (onRetry) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "retry-btn";
+    btn.textContent = "Erneut versuchen";
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      onRetry();
+    });
+    wrap.appendChild(btn);
+  }
+  el.appendChild(wrap);
+}
+
+let storageWarned = false;
+function storageSet(key, value) {
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch (err) {
+    if (!storageWarned) {
+      storageWarned = true;
+      console.warn("[Dashboard] localStorage:", err);
+      showToast("Speichern im Browser nicht möglich – Änderungen gehen beim Schließen verloren", "error");
+    }
+    return false;
+  }
+}
+
+let lastGlobalErrorToast = 0;
+function handleUnexpectedError(err) {
+  console.error("[Dashboard] Unerwarteter Fehler:", err);
+  if (Date.now() - lastGlobalErrorToast < 15000) return;
+  lastGlobalErrorToast = Date.now();
+  try {
+    showToast("Unerwarteter Fehler – Details in der Browser-Konsole", "error");
+  } catch (e) {}
+}
+window.addEventListener("error", (e) => handleUnexpectedError(e.error || e.message));
+window.addEventListener("unhandledrejection", (e) => handleUnexpectedError(e.reason));
+
+// Ohne Leaflet (CDN blockiert/offline) soll der Rest des Dashboards trotzdem laufen
+const LEAFLET_AVAILABLE = typeof window.L !== "undefined";
+if (!LEAFLET_AVAILABLE) {
+  const noop = new Proxy(function () {}, {
+    get: (target, prop) => (prop === Symbol.toPrimitive ? () => 0 : noop),
+    apply: () => noop,
+    construct: () => noop,
+  });
+  window.L = noop;
+  console.warn("[Dashboard] Leaflet nicht geladen – Karten sind deaktiviert.");
+}
+
 // ---- Uhrzeit aktualisieren ----
 function updateClock() {
   const now = new Date();
@@ -31,17 +183,6 @@ const NAV_CATEGORIES = {
     </svg><span>Wetter</span>`,
     target: "weatherPage",
   },
-  calendar: {
-    id: "calendar",
-    label: "Kalender",
-    alwaysShow: true,
-    html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-      <rect x="3.5" y="5" width="17" height="15.5" rx="3" />
-      <path d="M3.5 9.5h17M8 3v3.5M16 3v3.5" />
-    </svg><span>Kalender</span>`,
-    target: "calendarPage",
-    widgets: ["notes"],
-  },
   radar: {
     id: "radar",
     label: "Regenradar",
@@ -70,6 +211,15 @@ const NAV_CATEGORIES = {
       <path d="M12 21c-3.9 0-6.5-2.6-6.5-6.2 0-3.3 2.3-5.4 3.6-7.6.3 1.6 1.1 2.8 2.2 3.4.2-2.9 1.4-5.6 3.7-7.6.3 2.7 1.3 4.6 2.6 6.4 1 1.4.9 2.9.9 5.4 0 3.6-2.6 6.2-6.5 6.2z" />
     </svg><span>Feuerwehr</span>`,
     target: "firePage",
+  },
+  water: {
+    id: "water",
+    label: "Wasserpegel",
+    alwaysShow: true,
+    html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+      <path d="M3 9c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0M3 15c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0" />
+    </svg><span>Wasserpegel</span>`,
+    target: "waterPage",
   },
 };
 
@@ -106,6 +256,7 @@ function updateNavigation() {
       // Navigation aktualisieren
       document.querySelectorAll(".nav-item").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
+      updateResizeHandles();
     });
 
     navContainer.appendChild(btn);
@@ -115,11 +266,12 @@ function updateNavigation() {
 // ---- Toast-Nachrichten ----
 const toast = document.getElementById("toast");
 let toastTimer;
-function showToast(msg) {
+function showToast(msg, type = "info") {
   toast.textContent = msg;
+  toast.classList.toggle("error", type === "error");
   toast.classList.add("show");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
+  toastTimer = setTimeout(() => toast.classList.remove("show"), type === "error" ? 5000 : 2200);
 }
 
 const COLLAPSED_STORAGE_KEY = "dashboard-collapsed";
@@ -134,9 +286,7 @@ function loadCollapsedIds() {
 function storeCollapsed(id, collapsed) {
   const ids = loadCollapsedIds().filter((x) => x !== id);
   if (collapsed) ids.push(id);
-  try {
-    localStorage.setItem(COLLAPSED_STORAGE_KEY, JSON.stringify(ids));
-  } catch (err) {}
+  storageSet(COLLAPSED_STORAGE_KEY, JSON.stringify(ids));
 }
 
 function setCollapsed(panelEl, btnEl, collapsed) {
@@ -193,8 +343,24 @@ document.getElementById("sidebarNav").addEventListener("click", (e) => {
   if (e.target.closest(".nav-item")) setMenuOpen(false);
 });
 
+// Dokumentation als eigenes Fenster; bei blockiertem Popup öffnet der Link normal im neuen Tab
+document.getElementById("docsLink").addEventListener("click", (e) => {
+  setMenuOpen(false);
+  if (MOBILE_SCROLL_QUERY.matches) return;
+  const w = Math.min(1280, screen.availWidth - 80);
+  const h = Math.min(920, screen.availHeight - 80);
+  const docsWindow = window.open(
+    "docs.html",
+    "dashboard-docs",
+    `popup,width=${w},height=${h},left=${Math.round((screen.availWidth - w) / 2)},top=${Math.round((screen.availHeight - h) / 2)}`,
+  );
+  if (docsWindow) {
+    e.preventDefault();
+    docsWindow.focus();
+  }
+});
+
 setupToggle(document.querySelector("section.panel.weather"), document.getElementById("weatherToggle"));
-setupToggle(document.querySelector("section.panel.calendar"), document.getElementById("calToggle"));
 setupToggle(document.querySelector("section.panel.radar"), document.getElementById("radarToggle"));
 
 // ---- Light Mode / Dark Mode ----
@@ -212,9 +378,7 @@ function getStoredTheme() {
   }
 }
 function setStoredTheme(v) {
-  try {
-    localStorage.setItem("dashboard-theme", v);
-  } catch (err) {}
+  storageSet("dashboard-theme", v);
 }
 function systemPrefersDark() {
   return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -258,24 +422,54 @@ function setLastUpdatedNow() {
 const refreshBtn = document.getElementById("refreshBtn");
 const refreshIcon = document.getElementById("refreshIcon");
 
-async function refreshDashboardData() {
+const refreshErrorsEl = document.getElementById("refreshErrors");
+let refreshInFlight = null;
+
+// Jede Quelle liefert true/false; eine fehlerhafte Quelle hält die anderen nicht auf
+async function runRefresh(manual) {
+  const sources = [
+    ["Wetter", () => loadWeatherForPlace(currentWeatherCoords.lat, currentWeatherCoords.lon, currentWeatherCoords.label)],
+    ["Radar", () => loadRadar()],
+    ["Warnungen", () => loadDisasterWarnings(document.getElementById("disasterWarnSearchInput")?.value || "")],
+    ["Feuerwehr", () => loadFireData()],
+    ["Pegel", () => loadWaterData()],
+  ];
   refreshBtn.disabled = true;
   refreshIcon.classList.add("spinning");
   try {
-    await Promise.all([
-      loadWeatherForPlace(currentWeatherCoords.lat, currentWeatherCoords.lon, currentWeatherCoords.label),
-      loadRadar(),
-      loadDisasterWarnings(document.getElementById("disasterWarnSearchInput")?.value || ""),
-      loadFireData(),
-    ]);
+    const results = await Promise.allSettled(sources.map(([, load]) => load()));
+    const failed = sources
+      .filter((_, i) => results[i].status === "rejected" || results[i].value === false)
+      .map(([name]) => name);
+    results.forEach((r, i) => r.status === "rejected" && reportError(sources[i][0], r.reason));
     document.dispatchEvent(new Event("dashboard-refresh"));
+
+    refreshErrorsEl.hidden = !failed.length;
+    refreshErrorsEl.textContent = failed.length ? `Nicht aktualisiert: ${failed.join(", ")}` : "";
+    if (failed.length && manual) {
+      const hint = navigator.onLine === false ? "keine Internetverbindung" : "ältere Daten bleiben sichtbar";
+      showToast(`${failed.join(", ")} nicht aktualisiert – ${hint}`, "error");
+    }
   } finally {
     refreshIcon.classList.remove("spinning");
     refreshBtn.disabled = false;
   }
 }
 
+function refreshDashboardData({ manual = false } = {}) {
+  if (!refreshInFlight) refreshInFlight = runRefresh(manual).finally(() => (refreshInFlight = null));
+  return refreshInFlight;
+}
+
 refreshBtn.addEventListener("click", () => {
+  refreshDashboardData({ manual: true });
+});
+
+window.addEventListener("offline", () => {
+  showToast("Keine Internetverbindung – angezeigte Daten können veraltet sein", "error");
+});
+window.addEventListener("online", () => {
+  showToast("Wieder online – Daten werden aktualisiert");
   refreshDashboardData();
 });
 
@@ -294,9 +488,7 @@ function getStoredAutoRefresh() {
   }
 }
 function setStoredAutoRefresh(v) {
-  try {
-    localStorage.setItem("dashboard-auto-refresh", String(v));
-  } catch (err) {}
+  storageSet("dashboard-auto-refresh", String(v));
 }
 
 let autoRefreshEnabled = getStoredAutoRefresh();
@@ -355,9 +547,7 @@ function mountTodoWidget(body) {
     }
   }
   function saveTodos(items) {
-    try {
-      localStorage.setItem("dashboard-widget-todo", JSON.stringify(items));
-    } catch (err) {}
+    storageSet("dashboard-widget-todo", JSON.stringify(items));
   }
   let todos = loadTodos();
 
@@ -421,13 +611,14 @@ function mountNotesWidget(body) {
   area.addEventListener("input", () => {
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
-      try {
-        localStorage.setItem("dashboard-widget-notes", area.value);
-        saved.textContent = "Gespeichert";
-        setTimeout(() => {
-          saved.textContent = "";
-        }, 1500);
-      } catch (err) {}
+      if (!storageSet("dashboard-widget-notes", area.value)) {
+        saved.textContent = "Nicht gespeichert – Browser-Speicher nicht verfügbar";
+        return;
+      }
+      saved.textContent = "Gespeichert";
+      setTimeout(() => {
+        saved.textContent = "";
+      }, 1500);
     }, 500);
   });
 }
@@ -507,9 +698,7 @@ function mountCountdownWidget(body) {
     }
   }
   function saveCountdown(data) {
-    try {
-      localStorage.setItem("dashboard-widget-countdown", JSON.stringify(data));
-    } catch (err) {}
+    storageSet("dashboard-widget-countdown", JSON.stringify(data));
   }
 
   let countdownTimer;
@@ -601,7 +790,6 @@ function mountWarningsWidget(body) {
   `,
   );
 
-  const sources = ["mowas", "katwarn", "biwapp", "dwd", "lhp"];
   const severityRank = { Extreme: 4, Severe: 3, Moderate: 2, Minor: 1, Unknown: 0 };
   const typeLabel = { Alert: "Neu", Update: "Update", Cancel: "Aufgehoben", Test: "Test" };
 
@@ -618,20 +806,10 @@ function mountWarningsWidget(body) {
     const listEl = panel.querySelector("#warnList");
     const loadingEl = panel.querySelector("#warnLoading");
     loadingEl.textContent = "Warnungen werden geladen …";
-    listEl.innerHTML = "";
     try {
-      const results = await Promise.allSettled(
-        sources.map((s) => fetch(`https://warnung.bund.de/api31/${s}/mapData.json`).then((r) => r.json())),
-      );
-      let all = [];
-      results.forEach((r) => {
-        if (r.status === "fulfilled" && Array.isArray(r.value)) all = all.concat(r.value);
-      });
-
-      if (!all.length) {
-        loadingEl.textContent = "Warnungen aktuell nicht abrufbar — direkt auf warnung.bund.de nachsehen.";
-        return;
-      }
+      const { warnings, failed } = await fetchOfficialWarnings();
+      let all = warnings;
+      listEl.innerHTML = "";
 
       if (filterText && filterText.trim()) {
         const q = filterText.trim().toLowerCase();
@@ -645,9 +823,12 @@ function mountWarningsWidget(body) {
       );
       all = all.slice(0, filterText ? 20 : 10);
 
-      loadingEl.textContent = "";
+      loadingEl.textContent = warningsPartialText(failed);
       if (!all.length) {
-        listEl.innerHTML = `<div class="warn-empty">Keine Warnungen${filterText ? ' für "' + filterText.trim() + '"' : ""} gefunden.</div>`;
+        const empty = document.createElement("div");
+        empty.className = "warn-empty";
+        empty.textContent = `Keine Warnungen${filterText ? ` für "${filterText.trim()}"` : ""} gefunden.`;
+        listEl.appendChild(empty);
         return;
       }
 
@@ -670,7 +851,8 @@ function mountWarningsWidget(body) {
         listEl.appendChild(item);
       });
     } catch (err) {
-      loadingEl.textContent = "Warnungen aktuell nicht abrufbar — direkt auf warnung.bund.de nachsehen.";
+      reportError("Warnungen-Widget", err);
+      renderRetry(loadingEl, warningsErrorText(err), () => loadWarnings(filterText));
     }
   }
 
@@ -698,9 +880,7 @@ function loadChecklistState() {
 function toggleChecklistItem(i) {
   let checked = loadChecklistState();
   checked = checked.includes(i) ? checked.filter((x) => x !== i) : [...checked, i];
-  try {
-    localStorage.setItem(CHECKLIST_STORAGE_KEY, JSON.stringify(checked));
-  } catch (err) {}
+  storageSet(CHECKLIST_STORAGE_KEY, JSON.stringify(checked));
   document.dispatchEvent(new Event("checklist-change"));
 }
 function renderChecklist(list) {
@@ -779,7 +959,30 @@ function renderDisasterChecklist() {
 }
 document.addEventListener("checklist-change", renderDisasterChecklist);
 
-const DISASTER_SOURCES = ["mowas", "katwarn", "biwapp", "dwd", "lhp"];
+// warnung.bund.de erlaubt keine Browser-Abrufe (kein CORS), daher über /api/warnings (api/warnings.js)
+const WARN_SOURCE_LABEL = { mowas: "MoWaS", katwarn: "KATWARN", biwapp: "BIWAPP", dwd: "DWD", lhp: "Hochwasser" };
+async function fetchOfficialWarnings() {
+  return fetchData("/api/warnings", {
+    source: "Warnungen",
+    parse: async (res) => {
+      const warnings = await res.json();
+      if (!Array.isArray(warnings)) throw dataError("Warnungen", "kein Array");
+      const failed = (res.headers.get("X-Warnings-Failed") || "")
+        .split(",")
+        .filter(Boolean)
+        .map((s) => WARN_SOURCE_LABEL[s] || s);
+      return { warnings, failed };
+    },
+  });
+}
+function warningsErrorText(err) {
+  if (location.protocol === "file:" || (err instanceof FetchError && err.kind === "http" && err.status === 404))
+    return "Warnungen nicht verfügbar – die Warn-Schnittstelle fehlt. Dashboard mit „node dev-server.js“ starten.";
+  return `Warnungen nicht verfügbar – ${describeError(err)}. Alternativ direkt auf warnung.bund.de nachsehen.`;
+}
+function warningsPartialText(failed) {
+  return failed.length ? `Unvollständig: ${failed.join(", ")} gerade nicht erreichbar.` : "";
+}
 const DISASTER_SEV_RANK = { Extreme: 4, Severe: 3, Moderate: 2, Minor: 1, Unknown: 0 };
 const DISASTER_TYPE_LABEL = { Alert: "Neu", Update: "Update", Cancel: "Aufgehoben", Test: "Test" };
 function disasterSevClass(sev) {
@@ -796,19 +999,10 @@ async function loadDisasterWarnings(filterText) {
   const loadingEl = document.getElementById("disasterWarnLoading");
   if (!listEl || !loadingEl) return;
   loadingEl.textContent = "Warnungen werden geladen …";
-  listEl.innerHTML = "";
   try {
-    const results = await Promise.allSettled(
-      DISASTER_SOURCES.map((s) => fetch(`https://warnung.bund.de/api31/${s}/mapData.json`).then((r) => r.json())),
-    );
-    let all = [];
-    results.forEach((r) => {
-      if (r.status === "fulfilled" && Array.isArray(r.value)) all = all.concat(r.value);
-    });
-    if (!all.length) {
-      loadingEl.textContent = "Warnungen aktuell nicht abrufbar — direkt auf warnung.bund.de nachsehen.";
-      return;
-    }
+    const { warnings, failed } = await fetchOfficialWarnings();
+    let all = warnings;
+    listEl.innerHTML = "";
     if (filterText && filterText.trim()) {
       const q = filterText.trim().toLowerCase();
       all = all.filter((w) => (w.i18nTitle?.de || "").toLowerCase().includes(q));
@@ -819,10 +1013,13 @@ async function loadDisasterWarnings(filterText) {
         new Date(b.startDate) - new Date(a.startDate),
     );
     all = all.slice(0, filterText ? 30 : 15);
-    loadingEl.textContent = "";
+    loadingEl.textContent = warningsPartialText(failed);
     if (!all.length) {
-      listEl.innerHTML = `<div class="warn-empty">Keine Warnungen${filterText ? ' für "' + filterText.trim() + '"' : ""} gefunden.</div>`;
-      return;
+      const empty = document.createElement("div");
+      empty.className = "warn-empty";
+      empty.textContent = `Keine Warnungen${filterText ? ` für "${filterText.trim()}"` : ""} gefunden.`;
+      listEl.appendChild(empty);
+      return true;
     }
     all.forEach((w) => {
       const item = document.createElement("div");
@@ -837,8 +1034,11 @@ async function loadDisasterWarnings(filterText) {
       item.querySelector(".warn-title").textContent = w.i18nTitle?.de || "Meldung ohne Titel";
       listEl.appendChild(item);
     });
+    return true;
   } catch (err) {
-    loadingEl.textContent = "Warnungen aktuell nicht abrufbar — direkt auf warnung.bund.de nachsehen.";
+    reportError("Warnungen", err);
+    renderRetry(loadingEl, warningsErrorText(err), () => loadDisasterWarnings(filterText));
+    return false;
   }
 }
 
@@ -854,12 +1054,13 @@ function bindMeetingPointInput(input, saved) {
   input.addEventListener("input", () => {
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
-      try {
-        localStorage.setItem("dashboard-meeting-point", input.value);
-        saved.textContent = "Gespeichert";
-        setTimeout(() => (saved.textContent = "\u00a0"), 1500);
-        document.dispatchEvent(new Event("meeting-change"));
-      } catch (err) {}
+      if (!storageSet("dashboard-meeting-point", input.value)) {
+        saved.textContent = "Nicht gespeichert – Browser-Speicher nicht verfügbar";
+        return;
+      }
+      saved.textContent = "Gespeichert";
+      setTimeout(() => (saved.textContent = "\u00a0"), 1500);
+      document.dispatchEvent(new Event("meeting-change"));
     }, 500);
   });
   document.addEventListener("meeting-change", load);
@@ -911,15 +1112,19 @@ function layoutContainerKey(container) {
 function layoutItemId(item) {
   return item.id || item.dataset.layoutId;
 }
-function layoutItems(container) {
-  return [...container.children].filter((c) => !c.classList.contains("layout-handle") && !c.hasAttribute("data-layout-fixed"));
+function layoutItems(container, includeHidden = false) {
+  return [...container.children].filter(
+    (c) =>
+      !c.classList.contains("layout-handle") &&
+      !c.classList.contains("layout-resize") &&
+      !c.hasAttribute("data-layout-fixed") &&
+      (includeHidden || !c.hidden),
+  );
 }
 
 function saveLayoutOrder(container) {
   const order = layoutItems(container).map(layoutItemId).filter(Boolean);
-  try {
-    localStorage.setItem(LAYOUT_STORAGE_PREFIX + layoutContainerKey(container), JSON.stringify(order));
-  } catch (err) {}
+  storageSet(LAYOUT_STORAGE_PREFIX + layoutContainerKey(container), JSON.stringify(order));
 }
 function applySavedLayoutOrder(container) {
   let saved = null;
@@ -927,15 +1132,140 @@ function applySavedLayoutOrder(container) {
     saved = JSON.parse(localStorage.getItem(LAYOUT_STORAGE_PREFIX + layoutContainerKey(container)) || "null");
   } catch (err) {}
   if (!Array.isArray(saved)) return;
-  const items = layoutItems(container);
+  const items = layoutItems(container, true);
   const known = saved.map((id) => items.find((el) => layoutItemId(el) === id)).filter(Boolean);
   const rest = items.filter((el) => !known.includes(el));
   [...known, ...rest].forEach((el) => container.appendChild(el));
 }
 
+// Auf den Unterseiten dürfen Panels, Kennzahlen und hinzugefügte Widgets in jede Zeile oder Spalte wandern;
+// nur die Zeilen und Spalten selbst bleiben in ihrem Container
+const WIDGET_PLACES_KEY = "dashboard-widget-places";
+
+function isLayoutGroup(el) {
+  return LAYOUT_GROUP_CLASSES.some((c) => el.classList.contains(c));
+}
+function canRoam(item) {
+  const page = item.closest(".page");
+  return Boolean(page) && page.id !== "overviewPage" && !isLayoutGroup(item);
+}
+// Kennzahlen-Karten dürfen zurück in eine Kennzahlen-Reihe, das Widget-Raster nimmt nur Widgets auf
+function roamContainers(page, item) {
+  const isStat = item.classList.contains("stat-card");
+  const isWidget = item.classList.contains("ov-widget");
+  return [page, ...page.querySelectorAll(LAYOUT_CONTAINER_SELECTOR)].filter(
+    (c) =>
+      !c.hidden &&
+      (!c.classList.contains("stat-row") || isStat) &&
+      (!c.classList.contains("overview-grid") || isWidget),
+  );
+}
+function findLayoutItem(id) {
+  return document.getElementById(id) || document.querySelector(`[data-layout-id="${CSS.escape(id)}"]`);
+}
+// Leere Zeilen und Spalten verschwinden, im Anordnen-Modus bleiben sie als Ablagefläche sichtbar
+function updateEmptyGroups() {
+  document.querySelectorAll(LAYOUT_CONTAINER_SELECTOR).forEach((c) => {
+    if (c.classList.contains("page") || c.classList.contains("overview-grid")) return;
+    const count = layoutItems(c, true).length;
+    c.classList.add("layout-drop");
+    c.classList.toggle("layout-empty", count === 0);
+    if (c.classList.contains("stat-row")) c.style.setProperty("--stat-cols", String(Math.max(1, count)));
+  });
+}
+function applySavedPlaces() {
+  const containers = [...document.querySelectorAll(LAYOUT_CONTAINER_SELECTOR)];
+  Object.entries(loadWidgetPlaces()).forEach(([id, key]) => {
+    const el = findLayoutItem(id);
+    const container = containers.find((c) => layoutContainerKey(c) === key);
+    if (el && container && el.closest(".page") === container.closest(".page")) container.appendChild(el);
+  });
+}
+function loadWidgetPlaces() {
+  try {
+    return JSON.parse(localStorage.getItem(WIDGET_PLACES_KEY) || "{}") || {};
+  } catch (err) {
+    return {};
+  }
+}
+function saveWidgetPlace(id, containerKey) {
+  const places = loadWidgetPlaces();
+  if (containerKey) places[id] = containerKey;
+  else delete places[id];
+  storageSet(WIDGET_PLACES_KEY, JSON.stringify(places));
+}
+
+// Tiefstes verschiebbares Element unter dem Zeiger, samt Container, in den eingefügt wird
+function roamTargetAt(x, y, item, containers) {
+  const hits = document.elementsFromPoint(x, y);
+  // Über dem gezogenen Widget selbst lägen darunter nur seine eigenen Container
+  if (!hits.length || item.contains(hits[0])) return null;
+  for (const hit of hits) {
+    let el = hit;
+    while (el && el.parentElement) {
+      if (containers.includes(el) && layoutItems(el).length === 0) return { target: null, container: el };
+      if (containers.includes(el.parentElement) && layoutItems(el.parentElement).includes(el)) {
+        return { target: el, container: el.parentElement };
+      }
+      el = el.parentElement;
+    }
+  }
+  return null;
+}
+
+function startRoamDrag(e, item) {
+  const page = item.closest(".page");
+  const board = widgetBoards.get(page.id);
+  const containers = roamContainers(page, item);
+  const source = item.parentElement;
+  let last = null;
+  item.classList.add("layout-dragging");
+  document.body.classList.add("layout-drag-active");
+
+  function onMove(ev) {
+    const hit = roamTargetAt(ev.clientX, ev.clientY, item, containers);
+    if (!hit) return;
+    const { target, container } = hit;
+    if (!target) {
+      container.appendChild(item);
+      last = null;
+      return;
+    }
+    const r = target.getBoundingClientRect();
+    const cs = getComputedStyle(container);
+    const horizontal = cs.display === "grid" || (cs.display === "flex" && cs.flexDirection === "row");
+    const before = horizontal ? ev.clientX < r.left + r.width / 2 : ev.clientY < r.top + r.height / 2;
+    if (target === last?.target && before === last?.before) return;
+    last = { target, before };
+    if (before) target.before(item);
+    else target.after(item);
+    item.style.gridColumn = "";
+  }
+  function onUp() {
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("pointerup", onUp);
+    window.removeEventListener("pointercancel", onUp);
+    item.classList.remove("layout-dragging");
+    document.body.classList.remove("layout-drag-active");
+    const container = item.parentElement;
+    saveLayoutOrder(source);
+    if (container !== source) saveLayoutOrder(container);
+    const home = item.classList.contains("ov-widget") ? board.grid : item._layoutHome;
+    saveWidgetPlace(layoutItemId(item), container === home ? null : layoutContainerKey(container));
+    updateEmptyGroups();
+    afterBoardChange(board);
+    document.dispatchEvent(new Event("widget-collapse"));
+    window.dispatchEvent(new Event("resize"));
+  }
+  window.addEventListener("pointermove", onMove);
+  window.addEventListener("pointerup", onUp);
+  window.addEventListener("pointercancel", onUp);
+}
+
 function startLayoutDrag(e, item) {
   if (e.button !== 0) return;
   e.preventDefault();
+  if (canRoam(item)) return startRoamDrag(e, item);
   const container = item.parentElement;
   let lastTarget = null;
   item.classList.add("layout-dragging");
@@ -971,60 +1301,268 @@ function startLayoutDrag(e, item) {
   window.addEventListener("pointercancel", onUp);
 }
 
+// ---- Größe ändern: Widget-Raster rasten in Spalten ein, sonst werden die Flex-Anteile verschoben ----
+const LAYOUT_SIZES_KEY = LAYOUT_STORAGE_PREFIX + "sizes";
+// Darunter passen Diagramme und Wetterdaten nicht mehr sinnvoll in ein Panel
+const LAYOUT_MIN_WIDTH = 260;
+const LAYOUT_MIN_HEIGHT = 170;
+const RESIZE_HANDLE_SVG =
+  '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M10.5 4.5l-6 6M10.5 8.5l-2 2"/></svg>';
+
+function loadLayoutSizes() {
+  try {
+    return JSON.parse(localStorage.getItem(LAYOUT_SIZES_KEY) || "{}") || {};
+  } catch (err) {
+    return {};
+  }
+}
+function saveLayoutSize(id, patch) {
+  if (!id) return;
+  const sizes = loadLayoutSizes();
+  if (patch) sizes[id] = { ...sizes[id], ...patch };
+  else delete sizes[id];
+  storageSet(LAYOUT_SIZES_KEY, JSON.stringify(sizes));
+}
+
+function applyFlexGrow(el, grow) {
+  el.style.setProperty("--layout-grow", String(grow));
+  el.dataset.layoutGrow = "";
+}
+
+function isWidgetGrid(el) {
+  return Boolean(el && el.classList.contains("overview-grid"));
+}
+
+// Wachsende, offene Geschwister entlang der Hauptachse eines Flex-Containers
+function flexGrowItems(parent) {
+  return layoutItems(parent).filter(
+    (el) => !el.classList.contains("collapsed") && parseFloat(getComputedStyle(el).flexGrow) > 0,
+  );
+}
+
+// Sucht für jede Achse das Element, dessen Flex-Anteil die Größe bestimmt (das Widget selbst oder seine Zeile/Spalte)
+function flexResizeTargets(item) {
+  const targets = {};
+  ["row", "column"].forEach((axis) => {
+    let el = item;
+    while (el && el.parentElement) {
+      const parent = el.parentElement;
+      const cs = getComputedStyle(parent);
+      if (cs.display === "flex" && cs.flexDirection === axis) {
+        const growing = flexGrowItems(parent);
+        if (growing.length > 1 && growing.includes(el)) targets[axis] = el;
+        break;
+      }
+      if (parent.classList.contains("page") || !parent.matches(LAYOUT_CONTAINER_SELECTOR)) break;
+      el = parent;
+    }
+  });
+  return targets;
+}
+
+function resizeMode(item) {
+  if (item.classList.contains("collapsed")) return null;
+  if (isWidgetGrid(item.parentElement)) return { grid: true, x: true, y: !MOBILE_SCROLL_QUERY.matches };
+  if (MOBILE_SCROLL_QUERY.matches) return null;
+  const t = flexResizeTargets(item);
+  if (!t.row && !t.column) return null;
+  return { grid: false, x: Boolean(t.row), y: Boolean(t.column), targets: t };
+}
+
+function updateResizeHandles() {
+  if (!document.body.classList.contains("layout-editing")) return;
+  document.querySelectorAll(".page.active .layout-resize").forEach((handle) => {
+    const mode = resizeMode(handle.parentElement);
+    handle.hidden = !mode;
+    if (mode) handle.style.cursor = mode.x && mode.y ? "nwse-resize" : mode.x ? "ew-resize" : "ns-resize";
+  });
+}
+
+function startFlexResize(e, item, targets) {
+  const axes = Object.entries(targets).map(([axis, el]) => {
+    const horizontal = axis === "row";
+    const siblings = flexGrowItems(el.parentElement);
+    const sizes = siblings.map((s) => (horizontal ? s.getBoundingClientRect().width : s.getBoundingClientRect().height));
+    const total = sizes.reduce((a, b) => a + b, 0);
+    return { el, horizontal, siblings, sizes, total, start: sizes[siblings.indexOf(el)] };
+  });
+  return (ev) => {
+    axes.forEach(({ el, horizontal, siblings, sizes, total, start }) => {
+      const delta = horizontal ? ev.clientX - e.clientX : ev.clientY - e.clientY;
+      const min = Math.min(horizontal ? LAYOUT_MIN_WIDTH : LAYOUT_MIN_HEIGHT, total / siblings.length);
+      const size = Math.min(Math.max(start + delta, min), total - min * (siblings.length - 1));
+      const scale = (total - size) / (total - start || 1);
+      siblings.forEach((s, i) => {
+        const px = s === el ? size : sizes[i] * scale;
+        const grow = +((px * siblings.length) / total).toFixed(3);
+        applyFlexGrow(s, grow);
+        saveLayoutSize(layoutItemId(s), { grow });
+      });
+    });
+  };
+}
+
+function startGridResize(e, item) {
+  const grid = item.parentElement;
+  const cs = getComputedStyle(grid);
+  const gap = parseFloat(cs.columnGap) || 0;
+  const cols = cs.gridTemplateColumns.split(" ").length;
+  const colWidth = (grid.clientWidth - gap * (cols - 1)) / cols;
+  const startRect = item.getBoundingClientRect();
+
+  return (ev) => {
+    const width = startRect.width + ev.clientX - e.clientX;
+    const span = Math.min(cols, Math.max(1, Math.round((width + gap) / (colWidth + gap))));
+    const frac = +(span / cols).toFixed(3);
+    item.dataset.colFrac = String(frac);
+    saveLayoutSize(layoutItemId(item), { frac, span: undefined });
+    // Neue Breite kann die Reihen umsortieren, daher die Höhe erst danach auf die aktuelle Reihe anwenden
+    fitWidgetGrid(grid);
+    if (MOBILE_SCROLL_QUERY.matches) return;
+
+    const rows = grid._layoutRows || [];
+    const rowIndex = rows.findIndex((row) => row.some(({ el }) => el === item));
+    const rowPx = getComputedStyle(grid).gridTemplateRows.split(" ").map(parseFloat);
+    const openRows = rows.map((_, i) => i).filter((i) => isOpenRow(rows[i]));
+    const otherRows = openRows.filter((i) => i !== rowIndex);
+    if (rowIndex < 0 || !otherRows.length) return;
+    const totalOpen = openRows.reduce((sum, i) => sum + (rowPx[i] || 0), 0);
+    const otherWeight = otherRows.reduce((sum, i) => sum + rowWeight(rows[i]), 0);
+    const min = OVERVIEW_MIN_TILE;
+    const h = Math.min(Math.max(startRect.height + ev.clientY - e.clientY, min), totalOpen - min * otherRows.length);
+    const weight = +((h * otherWeight) / (totalOpen - h)).toFixed(3);
+    item.dataset.rowWeight = String(weight);
+    saveLayoutSize(layoutItemId(item), { weight });
+    fitWidgetGrid(grid);
+  };
+}
+
+function startLayoutResize(e, item) {
+  if (e.button !== 0) return;
+  const mode = resizeMode(item);
+  if (!mode) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const onMove = mode.grid ? startGridResize(e, item) : startFlexResize(e, item, mode.targets);
+  document.body.classList.add("layout-resize-active");
+  item.classList.add("layout-resizing");
+  function onUp() {
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("pointerup", onUp);
+    window.removeEventListener("pointercancel", onUp);
+    document.body.classList.remove("layout-resize-active");
+    item.classList.remove("layout-resizing");
+    if (mode.grid) fitWidgetGrid(item.parentElement);
+    window.dispatchEvent(new Event("resize"));
+  }
+  window.addEventListener("pointermove", onMove);
+  window.addEventListener("pointerup", onUp);
+  window.addEventListener("pointercancel", onUp);
+}
+
+function applySavedFlexSizes() {
+  const sizes = loadLayoutSizes();
+  document.querySelectorAll(LAYOUT_CONTAINER_SELECTOR).forEach((container) => {
+    layoutItems(container, true).forEach((el) => {
+      const grow = sizes[layoutItemId(el)]?.grow;
+      if (grow > 0) applyFlexGrow(el, grow);
+    });
+  });
+}
+
 function refreshLayoutHandles() {
   document.querySelectorAll(LAYOUT_CONTAINER_SELECTOR).forEach((container) => {
     const items = layoutItems(container);
     items.forEach((item) => {
       const existing = [...item.children].find((c) => c.classList.contains("layout-handle"));
-      if (items.length < 2) {
+      const existingResize = [...item.children].find((c) => c.classList.contains("layout-resize"));
+      if (items.length < 2 && !canRoam(item)) {
         if (existing) existing.remove();
+        if (existingResize) existingResize.remove();
         delete item.dataset.layoutItem;
         return;
       }
       item.dataset.layoutItem = "";
       if (LAYOUT_GROUP_CLASSES.some((c) => item.classList.contains(c))) item.classList.add("layout-group");
-      if (existing) return;
-      const handle = document.createElement("button");
-      handle.type = "button";
-      handle.className = "layout-handle";
-      handle.setAttribute("aria-label", "Zum Verschieben ziehen");
-      handle.title = "Zum Verschieben ziehen";
-      handle.innerHTML = LAYOUT_HANDLE_SVG;
-      handle.addEventListener("pointerdown", (e) => startLayoutDrag(e, item));
-      item.prepend(handle);
+      if (!existing) {
+        const handle = document.createElement("button");
+        handle.type = "button";
+        handle.className = "layout-handle";
+        handle.setAttribute("aria-label", "Zum Verschieben ziehen");
+        handle.title = "Zum Verschieben ziehen";
+        handle.innerHTML = LAYOUT_HANDLE_SVG;
+        handle.addEventListener("pointerdown", (e) => startLayoutDrag(e, item));
+        item.prepend(handle);
+      }
+      // Kennzahlen-Karten liegen in einem festen Raster und behalten ihre Größe
+      if (!existingResize && !container.classList.contains("stat-row")) {
+        const resize = document.createElement("button");
+        resize.type = "button";
+        resize.className = "layout-resize";
+        resize.setAttribute("aria-label", "Zum Ändern der Größe ziehen");
+        resize.title = "Größe ändern";
+        resize.innerHTML = RESIZE_HANDLE_SVG;
+        resize.addEventListener("pointerdown", (e) => startLayoutResize(e, item));
+        item.appendChild(resize);
+      }
     });
   });
+  updateResizeHandles();
 }
 
 function setLayoutEditing(editing) {
   document.body.classList.toggle("layout-editing", editing);
-  document.getElementById("layoutEditToggle").setAttribute("aria-pressed", String(editing));
-  document.getElementById("layoutEditLabel").textContent = editing ? "✓ Layout fertig" : "✥ Layout anpassen";
-  const arrangeBtn = document.getElementById("overviewArrangeBtn");
-  arrangeBtn.setAttribute("aria-pressed", String(editing));
-  arrangeBtn.textContent = editing ? "✓ Fertig" : "✥ Anordnen";
+  document.querySelectorAll('[data-widget-action="arrange"]').forEach((btn) => {
+    btn.setAttribute("aria-pressed", String(editing));
+    btn.textContent = editing ? "✓ Fertig" : "✥ Anordnen";
+  });
+  updateResizeHandles();
 }
 
 function initLayout() {
-  document.querySelectorAll(LAYOUT_CONTAINER_SELECTOR).forEach((container) => {
+  const containers = document.querySelectorAll(LAYOUT_CONTAINER_SELECTOR);
+  containers.forEach((container) => {
     const key = layoutContainerKey(container);
     layoutItems(container).forEach((child, i) => {
       if (!child.id && !child.dataset.layoutId) child.dataset.layoutId = `${key}#${i}`;
     });
-    applySavedLayoutOrder(container);
+    container._defaultOrder = layoutItems(container, true);
+    container._defaultOrder.forEach((el) => (el._layoutHome = container));
   });
+  applySavedPlaces();
+  containers.forEach(applySavedLayoutOrder);
+  updateEmptyGroups();
+  applySavedFlexSizes();
   refreshLayoutHandles();
 
-  document.getElementById("layoutEditToggle").addEventListener("click", () => {
-    setLayoutEditing(!document.body.classList.contains("layout-editing"));
-  });
-  document.getElementById("layoutResetBtn").addEventListener("click", () => {
+  document.querySelectorAll('[data-widget-action="arrange"]').forEach((btn) =>
+    btn.addEventListener("click", () => setLayoutEditing(!document.body.classList.contains("layout-editing"))),
+  );
+}
+
+// Stellt Reihenfolge, Größen und Einklapp-Zustand einer Seite wie im HTML vorgegeben wieder her
+function resetLayoutOrderAndSizes(page) {
+  const containers = [page, ...page.querySelectorAll(LAYOUT_CONTAINER_SELECTOR)];
+  containers.forEach((container) => {
+    (container._defaultOrder || []).forEach((el) => {
+      container.appendChild(el);
+      saveWidgetPlace(layoutItemId(el), null);
+    });
     try {
-      Object.keys(localStorage)
-        .filter((k) => k.startsWith(LAYOUT_STORAGE_PREFIX))
-        .forEach((k) => localStorage.removeItem(k));
+      localStorage.removeItem(LAYOUT_STORAGE_PREFIX + layoutContainerKey(container));
     } catch (err) {}
-    location.reload();
+    layoutItems(container, true).forEach((el) => {
+      el.style.removeProperty("--layout-grow");
+      delete el.dataset.layoutGrow;
+      saveLayoutSize(layoutItemId(el), null);
+    });
+  });
+  page.querySelectorAll(".collapsed").forEach((el) => {
+    const btn = [...el.querySelectorAll(".panel-toggle")].find((b) => b.closest(".panel, .stat-card") === el);
+    if (btn) setCollapsed(el, btn, false);
+    else el.classList.remove("collapsed");
+    const id = el.id || el.dataset.layoutId;
+    if (id) storeCollapsed(id, false);
   });
 }
 
@@ -1109,9 +1647,11 @@ function clearRadar() {
   }
 }
 
-function setRadarStatus(message, error = false) {
-  mapLoading.textContent = message;
+function setRadarStatus(message, error = false, onRetry = null) {
+  if (error) renderRetry(mapLoading, message, onRetry);
+  else mapLoading.textContent = message;
   mapLoading.classList.toggle("hidden", !message);
+  mapLoading.classList.toggle("has-retry", Boolean(error && onRetry));
   mapLoading.setAttribute("role", error ? "alert" : "status");
 }
 
@@ -1120,14 +1660,17 @@ async function loadRainViewer() {
   playback.hidden = false;
   radarDetailNote.textContent =
     "RainViewer: kostenlos bis Radar-Zoom 7. Bei höherem Kartenzoom wird das Radar vergrößert, nicht detaillierter.";
-  setRadarStatus("Regendaten werden geladen …");
+  if (!LEAFLET_AVAILABLE) {
+    setRadarStatus("Karte nicht verfügbar – die Kartenbibliothek Leaflet konnte nicht geladen werden.", true);
+    return false;
+  }
+  const hadFrames = radarLayers.length > 0;
+  if (!hadFrames) setRadarStatus("Regendaten werden geladen …");
   try {
-    const res = await fetch("https://api.rainviewer.com/public/weather-maps.json");
-    if (!res.ok) throw new Error("RainViewer HTTP " + res.status);
-    const data = await res.json();
+    const data = await fetchData("https://api.rainviewer.com/public/weather-maps.json", { source: "RainViewer" });
     const next = data.radar?.past || [];
-    if (!next.length || !data.host?.startsWith("https://")) throw new Error("Keine Radarframes verfügbar");
-    if (epoch !== radarEpoch || radarProvider.value !== "rainviewer") return;
+    if (!next.length || !data.host?.startsWith("https://")) throw dataError("RainViewer", "keine Radarframes");
+    if (epoch !== radarEpoch || radarProvider.value !== "rainviewer") return true;
     clearRadar();
     frames = next;
     radarLayers = frames.map((frame) =>
@@ -1144,12 +1687,21 @@ async function loadRainViewer() {
     showFrame(frames.length - 1);
     setRadarStatus("");
     setLastUpdatedNow();
+    return true;
   } catch (err) {
-    if (epoch === radarEpoch) setRadarStatus("Regendaten konnten nicht geladen werden.", true);
+    reportError("Radar", err);
+    if (epoch !== radarEpoch) return true;
+    if (hadFrames) {
+      radarDetailNote.textContent = `Radar nicht aktualisiert – ${describeError(err)}. Angezeigt wird der letzte Stand.`;
+    } else {
+      setRadarStatus(`Regendaten nicht verfügbar – ${describeError(err)}.`, true, loadRadar);
+    }
+    return false;
   }
 }
 
 function loadOpenWeather() {
+  if (!LEAFLET_AVAILABLE) return loadRainViewer();
   ++radarEpoch;
   clearRadar();
   playback.hidden = true;
@@ -1177,10 +1729,13 @@ function loadOpenWeather() {
     }
   });
   openWeatherLayer.on("tileerror", () => {
-    if (radarProvider.value === "openweather" && !seen)
-      setRadarStatus("OpenWeather-Kacheln nicht erreichbar. API-Key und Tarif prüfen.", true);
+    if (radarProvider.value !== "openweather" || seen) return;
+    const reason =
+      navigator.onLine === false ? "keine Internetverbindung" : "Kacheln nicht erreichbar, API-Key und Tarif prüfen";
+    setRadarStatus(`Niederschlagskarte nicht verfügbar – ${reason}.`, true, loadRadar);
   });
   openWeatherLayer.addTo(map);
+  return true;
 }
 
 function loadRadar() {
@@ -1222,9 +1777,7 @@ async function searchPlace(query) {
   showToast(`Suche "${query.trim()}" …`);
   try {
     const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query.trim())}&count=1&language=de&format=json`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("Geocoding HTTP " + res.status);
-    const data = await res.json();
+    const data = await fetchData(url, { source: "Ortssuche" });
     const hit = data.results?.[0];
     if (!hit) {
       showToast(`Kein Ort namens "${query.trim()}" gefunden`);
@@ -1236,7 +1789,8 @@ async function searchPlace(query) {
     const label = [hit.name, hit.admin1, hit.country].filter(Boolean).join(", ");
     searchMarker.bindPopup(label).openPopup();
   } catch (err) {
-    showToast("Ortssuche gerade nicht erreichbar");
+    reportError("Ortssuche", err);
+    showToast(`Ortssuche fehlgeschlagen – ${describeError(err)}`, "error");
   }
 }
 
@@ -1460,7 +2014,7 @@ function renderDayDetail(index) {
       const chip = document.createElement("div");
       chip.className = "hour-chip";
       chip.innerHTML = `
-      <div class="hour-time">${formatHour(hourly.time[i]).replace(" Uhr", "")}</div>
+      <div class="hour-time">${hourly.time[i].slice(11, 16)}</div>
       <svg class="hour-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">${weatherIcons[info.icon]}</svg>
       <div class="hour-temp">${Math.round(hourly.temperature_2m[i])}°</div>
       <div class="hour-rain">${hourly.precipitation_probability[i]}%</div>
@@ -1617,10 +2171,8 @@ async function loadWeatherForPlace(lat, lon, label) {
       `&hourly=temperature_2m,weather_code,precipitation_probability,surface_pressure,relative_humidity_2m,wind_speed_10m` +
       `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,uv_index_max,sunrise,sunset` +
       `&timezone=auto&forecast_days=6&past_days=1`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("Wetter HTTP " + res.status);
-    const data = await res.json();
-    if (!data.current || !(data.daily?.time?.length > 1)) throw new Error("Unvollständige Wetterdaten");
+    const data = await fetchData(url, { source: "Wetter" });
+    if (!data.current || !(data.daily?.time?.length > 1)) throw dataError("Wetter", "unvollständige Wetterdaten");
     const yesterday = splitOffYesterday(data);
     weatherData = data;
     updateTimezoneNote(data, label);
@@ -1694,9 +2246,15 @@ async function loadWeatherForPlace(lat, lon, label) {
       "Live-Daten von Open-Meteo · Tag anklicken für Details · aktualisiert bei jeder Suche";
     weatherLoading.textContent = "";
     setLastUpdatedNow();
+    return true;
   } catch (err) {
-    weatherLoading.textContent = "Wetterdaten konnten nicht geladen werden.";
+    reportError("Wetter", err);
+    const stale = weatherData ? " Angezeigt wird der letzte Stand." : "";
+    renderRetry(weatherLoading, `Wetter für "${label}" nicht verfügbar – ${describeError(err)}.${stale}`, () =>
+      loadWeatherForPlace(lat, lon, label),
+    );
     if (!weatherData) renderWeatherNoData();
+    return false;
   }
 }
 
@@ -1705,9 +2263,7 @@ async function searchWeatherPlace(query) {
   weatherLoading.textContent = `Suche "${query.trim()}" …`;
   try {
     const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query.trim())}&count=1&language=de&format=json`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("Geocoding HTTP " + res.status);
-    const data = await res.json();
+    const data = await fetchData(url, { source: "Ortssuche" });
     const hit = data.results?.[0];
     if (!hit) {
       weatherLoading.textContent = `Kein Ort namens "${query.trim()}" gefunden`;
@@ -1716,7 +2272,8 @@ async function searchWeatherPlace(query) {
     const label = [hit.name, hit.country].filter(Boolean).join(", ");
     loadWeatherForPlace(hit.latitude, hit.longitude, label);
   } catch (err) {
-    weatherLoading.textContent = "Ortssuche gerade nicht erreichbar.";
+    reportError("Ortssuche", err);
+    renderRetry(weatherLoading, `Ortssuche fehlgeschlagen – ${describeError(err)}.`, () => searchWeatherPlace(query));
   }
 }
 
@@ -1738,17 +2295,12 @@ function loadCalEvents() {
 }
 
 function saveCalEvents(events) {
-  try {
-    localStorage.setItem("dashboard-cal-events", JSON.stringify(events));
-  } catch (err) {}
+  storageSet("dashboard-cal-events", JSON.stringify(events));
   document.dispatchEvent(new Event("calendar-change"));
 }
 
 let calEvents = loadCalEvents();
 const today = new Date();
-let calViewYear = today.getFullYear();
-let calViewMonth = today.getMonth();
-let calSelectedKey = dateKey(today);
 
 function dateKey(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -1770,169 +2322,189 @@ const calMonthNames = [
 ];
 const calWeekdayLabels = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 
-function renderCalendar() {
-  document.getElementById("calTitle").textContent = `${calMonthNames[calViewMonth]} ${calViewYear}`;
-  const grid = document.getElementById("calGrid");
-  grid.innerHTML = "";
+const CAL_TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 
-  calWeekdayLabels.forEach((wd) => {
-    const el = document.createElement("div");
-    el.className = "cal-weekday";
-    el.textContent = wd;
-    grid.appendChild(el);
-  });
+// Jede Instanz hat eigenen Monat und ausgewählten Tag; die Termine sind für alle gleich
+function mountCalendarWidget(body) {
+  renderInto(
+    body,
+    `<div class="calendar cal-widget">
+      <div class="cal-header">
+        <div class="cal-title"></div>
+        <div class="cal-nav">
+          <button type="button" class="cal-prev" aria-label="Vorheriger Monat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <button type="button" class="cal-today-btn" aria-label="Heute">Heute</button>
+          <button type="button" class="cal-next" aria-label="Nächster Monat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="cal-grid"></div>
+      <div class="cal-selected-date">Termine für <span class="cal-selected-label">heute</span></div>
+      <div class="cal-events"></div>
+      <form class="cal-add">
+        <input type="text" class="cal-add-input" placeholder="Termin hinzufügen …" autocomplete="off" required aria-label="Terminname">
+        <input type="time" class="cal-add-time" aria-label="Uhrzeit" required>
+        <label class="cal-all-day"><input type="checkbox" class="cal-all-day-input">Ganztags</label>
+        <button type="submit" aria-label="Termin hinzufügen">+</button>
+      </form>
+    </div>`,
+  );
+  const $ = (sel) => body.querySelector(sel);
+  let viewYear = today.getFullYear();
+  let viewMonth = today.getMonth();
+  let selectedKey = dateKey(today);
 
-  const firstOfMonth = new Date(calViewYear, calViewMonth, 1);
-  let startOffset = firstOfMonth.getDay() - 1;
-  if (startOffset < 0) startOffset = 6;
-
-  const daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
-  const daysInPrevMonth = new Date(calViewYear, calViewMonth, 0).getDate();
-
-  const cells = [];
-  for (let i = startOffset; i > 0; i--) {
-    cells.push({ day: daysInPrevMonth - i + 1, muted: true, month: calViewMonth - 1 });
-  }
-  for (let d = 1; d <= daysInMonth; d++) {
-    cells.push({ day: d, muted: false, month: calViewMonth });
-  }
-  while (cells.length % 7 !== 0 || cells.length < 35) {
-    const nextDay = cells.length - (startOffset + daysInMonth) + 1;
-    cells.push({ day: nextDay, muted: true, month: calViewMonth + 1 });
-  }
-
-  cells.forEach((cell) => {
-    const cellDate = new Date(calViewYear, cell.month, cell.day);
-    const key = dateKey(cellDate);
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className =
-      "cal-day" +
-      (cell.muted ? " muted" : "") +
-      (key === dateKey(today) ? " today" : "") +
-      (calEvents[key]?.length ? " has-event" : "");
-    btn.textContent = cell.day;
-    btn.addEventListener("click", () => {
-      calSelectedKey = key;
-      if (cell.muted) {
-        calViewYear = cellDate.getFullYear();
-        calViewMonth = cellDate.getMonth();
-      }
-      renderCalendar();
-      renderCalEvents();
+  function renderGrid() {
+    $(".cal-title").textContent = `${calMonthNames[viewMonth]} ${viewYear}`;
+    const grid = $(".cal-grid");
+    grid.innerHTML = "";
+    calWeekdayLabels.forEach((wd) => {
+      const el = document.createElement("div");
+      el.className = "cal-weekday";
+      el.textContent = wd;
+      grid.appendChild(el);
     });
-    grid.appendChild(btn);
+
+    let startOffset = new Date(viewYear, viewMonth, 1).getDay() - 1;
+    if (startOffset < 0) startOffset = 6;
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+    const daysInPrevMonth = new Date(viewYear, viewMonth, 0).getDate();
+    const cells = [];
+    for (let i = startOffset; i > 0; i--) cells.push({ day: daysInPrevMonth - i + 1, muted: true, month: viewMonth - 1 });
+    for (let d = 1; d <= daysInMonth; d++) cells.push({ day: d, muted: false, month: viewMonth });
+    while (cells.length % 7 !== 0 || cells.length < 35) {
+      cells.push({ day: cells.length - (startOffset + daysInMonth) + 1, muted: true, month: viewMonth + 1 });
+    }
+
+    cells.forEach((cell) => {
+      const cellDate = new Date(viewYear, cell.month, cell.day);
+      const key = dateKey(cellDate);
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className =
+        "cal-day" +
+        (cell.muted ? " muted" : "") +
+        (key === dateKey(today) ? " today" : "") +
+        (key === selectedKey ? " selected" : "") +
+        (calEvents[key]?.length ? " has-event" : "");
+      btn.textContent = cell.day;
+      btn.addEventListener("click", () => {
+        selectedKey = key;
+        if (cell.muted) {
+          viewYear = cellDate.getFullYear();
+          viewMonth = cellDate.getMonth();
+        }
+        render();
+      });
+      grid.appendChild(btn);
+    });
+  }
+
+  function renderEvents() {
+    const [y, m, d] = selectedKey.split("-").map(Number);
+    const label = new Date(y, m - 1, d).toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" });
+    $(".cal-selected-label").textContent = selectedKey === dateKey(today) ? `heute, ${label}` : label;
+
+    const list = $(".cal-events");
+    list.innerHTML = "";
+    const items = (calEvents[selectedKey] || [])
+      .map((item, index) => ({
+        index,
+        event: typeof item === "string" ? { text: item, allDay: true, time: "" } : item,
+      }))
+      .sort((a, b) => {
+        const aKey = a.event.allDay || !CAL_TIME_PATTERN.test(a.event.time || "") ? "" : a.event.time;
+        const bKey = b.event.allDay || !CAL_TIME_PATTERN.test(b.event.time || "") ? "" : b.event.time;
+        return aKey.localeCompare(bKey) || a.index - b.index;
+      });
+    if (!items.length) {
+      const empty = document.createElement("div");
+      empty.className = "cal-empty";
+      empty.textContent = "Keine Termine — trag unten etwas ein.";
+      list.appendChild(empty);
+      return;
+    }
+    items.forEach(({ event, index }) => {
+      const row = document.createElement("div");
+      row.className = "cal-event";
+      const info = document.createElement("span");
+      info.className = "event-info";
+      const time = document.createElement("span");
+      time.className = "event-time";
+      time.textContent = event.allDay || !event.time ? "Ganztags" : event.time + " Uhr";
+      const name = document.createElement("span");
+      name.className = "event-name";
+      name.textContent = event.text || "";
+      info.append(time, name);
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.setAttribute("aria-label", "Termin löschen");
+      remove.textContent = "×";
+      row.append(info, remove);
+      remove.addEventListener("click", () => {
+        calEvents[selectedKey].splice(index, 1);
+        if (!calEvents[selectedKey].length) delete calEvents[selectedKey];
+        saveCalEvents(calEvents);
+      });
+      list.appendChild(row);
+    });
+  }
+
+  function render() {
+    renderGrid();
+    renderEvents();
+  }
+
+  const shiftMonth = (delta) => {
+    viewMonth += delta;
+    if (viewMonth < 0) {
+      viewMonth = 11;
+      viewYear--;
+    } else if (viewMonth > 11) {
+      viewMonth = 0;
+      viewYear++;
+    }
+    renderGrid();
+  };
+  $(".cal-prev").addEventListener("click", () => shiftMonth(-1));
+  $(".cal-next").addEventListener("click", () => shiftMonth(1));
+  $(".cal-today-btn").addEventListener("click", () => {
+    viewYear = today.getFullYear();
+    viewMonth = today.getMonth();
+    selectedKey = dateKey(today);
+    render();
   });
+
+  const input = $(".cal-add-input");
+  const timeInput = $(".cal-add-time");
+  const allDayInput = $(".cal-all-day-input");
+  allDayInput.addEventListener("change", () => {
+    timeInput.disabled = allDayInput.checked;
+    timeInput.required = !allDayInput.checked;
+  });
+  $(".cal-add").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text) return;
+    const allDay = allDayInput.checked;
+    const time = timeInput.value;
+    if (!allDay && !CAL_TIME_PATTERN.test(time)) {
+      timeInput.reportValidity();
+      return;
+    }
+    if (!calEvents[selectedKey]) calEvents[selectedKey] = [];
+    calEvents[selectedKey].push({ text, allDay, time: allDay ? "" : time });
+    input.value = "";
+    saveCalEvents(calEvents);
+  });
+
+  render();
+  document.addEventListener("calendar-change", render);
+  return () => document.removeEventListener("calendar-change", render);
 }
-
-function renderCalEvents() {
-  const [y, m, d] = calSelectedKey.split("-").map(Number);
-  const label = new Date(y, m - 1, d).toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" });
-  document.getElementById("calSelectedLabel").textContent =
-    calSelectedKey === dateKey(today) ? `heute, ${label}` : label;
-
-  const list = document.getElementById("calEvents");
-  list.innerHTML = "";
-  const items = (calEvents[calSelectedKey] || [])
-    .map((item, index) => ({
-      index,
-      event: typeof item === "string" ? { text: item, allDay: true, time: "" } : item,
-    }))
-    .sort((a, b) => {
-      const aKey = a.event.allDay || !/^([01]\d|2[0-3]):[0-5]\d$/.test(a.event.time || "") ? "" : a.event.time;
-      const bKey = b.event.allDay || !/^([01]\d|2[0-3]):[0-5]\d$/.test(b.event.time || "") ? "" : b.event.time;
-      return aKey.localeCompare(bKey) || a.index - b.index;
-    });
-  if (!items.length) {
-    const empty = document.createElement("div");
-    empty.className = "cal-selected-date";
-    empty.style.border = "none";
-    empty.style.padding = "0";
-    empty.textContent = "Keine Termine — trag unten etwas ein.";
-    list.appendChild(empty);
-    return;
-  }
-  items.forEach(({ event, index }) => {
-    const row = document.createElement("div");
-    row.className = "cal-event";
-    const info = document.createElement("span");
-    info.className = "event-info";
-    const time = document.createElement("span");
-    time.className = "event-time";
-    time.textContent = event.allDay || !event.time ? "Ganztags" : event.time + " Uhr";
-    const name = document.createElement("span");
-    name.className = "event-name";
-    name.textContent = event.text || "";
-    info.append(time, name);
-    const remove = document.createElement("button");
-    remove.type = "button";
-    remove.setAttribute("aria-label", "Termin löschen");
-    remove.textContent = "×";
-    row.append(info, remove);
-    remove.addEventListener("click", () => {
-      calEvents[calSelectedKey].splice(index, 1);
-      if (!calEvents[calSelectedKey].length) delete calEvents[calSelectedKey];
-      saveCalEvents(calEvents);
-      renderCalendar();
-      renderCalEvents();
-    });
-    list.appendChild(row);
-  });
-}
-
-document.getElementById("calPrev").addEventListener("click", () => {
-  calViewMonth--;
-  if (calViewMonth < 0) {
-    calViewMonth = 11;
-    calViewYear--;
-  }
-  renderCalendar();
-});
-
-document.getElementById("calNext").addEventListener("click", () => {
-  calViewMonth++;
-  if (calViewMonth > 11) {
-    calViewMonth = 0;
-    calViewYear++;
-  }
-  renderCalendar();
-});
-
-document.getElementById("calToday").addEventListener("click", () => {
-  calViewYear = today.getFullYear();
-  calViewMonth = today.getMonth();
-  calSelectedKey = dateKey(today);
-  renderCalendar();
-  renderCalEvents();
-});
-
-document.getElementById("calAddForm").addEventListener("submit", (e) => {
-  e.preventDefault();
-  const input = document.getElementById("calAddInput");
-  const text = input.value.trim();
-  if (!text) return;
-  if (!calEvents[calSelectedKey]) calEvents[calSelectedKey] = [];
-  const allDay = document.getElementById("calAllDay").checked;
-  const time = document.getElementById("calAddTime").value;
-  if (!allDay && !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) {
-    document.getElementById("calAddTime").reportValidity();
-    return;
-  }
-  calEvents[calSelectedKey].push({ text, allDay, time: allDay ? "" : time });
-  saveCalEvents(calEvents);
-  input.value = "";
-  renderCalendar();
-  renderCalEvents();
-});
-
-const calAllDay = document.getElementById("calAllDay");
-const calAddTime = document.getElementById("calAddTime");
-calAllDay.addEventListener("change", () => {
-  calAddTime.disabled = calAllDay.checked;
-  calAddTime.required = !calAllDay.checked;
-});
-renderCalendar();
-renderCalEvents();
 
 // ---- Feuerwehr Berlin: Brandeinsätze der letzten 7 Tage ----
 const FIRE_DATA_URL =
@@ -2080,22 +2652,27 @@ function renderFireNoData() {
   document.getElementById("fireDonutCaption").textContent = "";
   document.getElementById("fireTableBody").innerHTML =
     '<tr><td colspan="5" class="fire-table-empty">Keine Daten verfügbar</td></tr>';
-  document.getElementById("fireSourceNote").textContent =
-    "Daten der Berliner Feuerwehr konnten nicht geladen werden — später erneut versuchen.";
   document.getElementById("fireExportBtn").disabled = true;
 }
 
 async function loadFireData() {
   try {
-    const res = await fetch(FIRE_DATA_URL, { cache: "no-cache" });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const days = parseFireCsv(await res.text());
-    if (!days.length) throw new Error("Keine Tageswerte in der Datei");
+    const csv = await fetchData(FIRE_DATA_URL, { source: "Feuerwehr", parse: "text", cache: "no-cache", timeout: 20000 });
+    const days = parseFireCsv(csv);
+    if (!days.length) throw dataError("Feuerwehr", "keine Tageswerte in der Datei");
     fireDays = days;
     renderFire(days);
+    return true;
   } catch (err) {
-    console.warn("Feuerwehrdaten konnten nicht geladen werden:", err);
+    reportError("Feuerwehr", err);
     if (!fireDays.length) renderFireNoData();
+    const stale = fireDays.length ? " Angezeigt wird der letzte Stand." : "";
+    renderRetry(
+      document.getElementById("fireSourceNote"),
+      `Daten der Berliner Feuerwehr nicht verfügbar – ${describeError(err)}.${stale}`,
+      loadFireData,
+    );
+    return false;
   }
 }
 
@@ -2117,6 +2694,263 @@ document.getElementById("fireExportBtn").addEventListener("click", () => {
 });
 
 loadFireData();
+
+// ---- Wasserpegel: aktuelle Wasserstände von PEGELONLINE (WSV) ----
+const PEGEL_API = "https://www.pegelonline.wsv.de/webservices/rest-api/v2";
+const WATER_DEFAULT_STATION = "47d3e815-c556-4e1b-93de-9fe07329fb00"; // Berlin-Köpenick
+const WATER_STATION_KEY = "dashboard-water-station";
+const WATER_STATE_LABELS = { low: "Niedrig", normal: "Normal", high: "Hoch" };
+const WATER_REF_LINES = ["MNW", "MW", "MHW"];
+let waterStations = [];
+let waterStationId = WATER_DEFAULT_STATION;
+try {
+  waterStationId = localStorage.getItem(WATER_STATION_KEY) || WATER_DEFAULT_STATION;
+} catch (err) {}
+
+// PEGELONLINE liefert Namen in Großbuchstaben
+function pegelName(name) {
+  return (name || "")
+    .toLowerCase()
+    .replace(/(^|[\s\-(/.])(\p{L})/gu, (m, sep, ch) => sep + ch.toUpperCase())
+    .replace(/\b(Op|Up)\b/g, (m) => m.toUpperCase());
+}
+function pegelLabel(station) {
+  return `${pegelName(station.longname)} (${pegelName(station.water?.longname)})`;
+}
+function waterLevelOf(station) {
+  return station.timeseries?.find((t) => t.shortname === "W")?.currentMeasurement;
+}
+
+function fetchPegel(path) {
+  return fetchData(PEGEL_API + path, { source: "PEGELONLINE" });
+}
+let waterShownId = null;
+
+async function loadWaterStations() {
+  const list = document.getElementById("waterBerlinList");
+  try {
+    const data = await fetchPegel("/stations.json?includeTimeseries=true&includeCurrentMeasurement=true");
+    waterStations = data
+      .filter((s) => s.timeseries?.some((t) => t.shortname === "W"))
+      .sort((a, b) => a.longname.localeCompare(b.longname, "de"));
+    const datalist = document.getElementById("waterStationList");
+    datalist.replaceChildren(
+      ...waterStations.map((s) => {
+        const opt = document.createElement("option");
+        opt.value = pegelLabel(s);
+        return opt;
+      }),
+    );
+    renderBerlinStations();
+    return true;
+  } catch (err) {
+    reportError("Pegelliste", err);
+    if (!waterStations.length) {
+      renderRetry(list, `Pegelliste nicht verfügbar – ${describeError(err)}.`, loadWaterStations, "chart-empty");
+    }
+    return false;
+  }
+}
+
+function renderBerlinStations() {
+  const list = document.getElementById("waterBerlinList");
+  const berlin = waterStations.filter((s) => s.longname.startsWith("BERLIN"));
+  if (!berlin.length) {
+    list.innerHTML = '<div class="chart-empty">Keine Berliner Pegel gefunden.</div>';
+    return;
+  }
+  list.replaceChildren(
+    ...berlin.map((s) => {
+      const m = waterLevelOf(s);
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "water-item" + (s.uuid === waterStationId ? " selected" : "");
+      btn.innerHTML = `
+        <span class="water-item-text"><span class="water-item-name"></span><span class="water-item-water"></span></span>
+        <span class="water-item-value"></span>`;
+      btn.querySelector(".water-item-name").textContent = pegelName(s.longname).replace(/^Berlin-/, "");
+      btn.querySelector(".water-item-water").textContent = pegelName(s.water?.longname);
+      const value = btn.querySelector(".water-item-value");
+      value.textContent = m ? `${Math.round(m.value)} cm` : "–";
+      if (m && WATER_STATE_LABELS[m.stateMnwMhw]) {
+        value.classList.add("water-state-" + m.stateMnwMhw);
+        value.title = WATER_STATE_LABELS[m.stateMnwMhw];
+      }
+      btn.addEventListener("click", () => selectWaterStation(s.uuid));
+      return btn;
+    }),
+  );
+}
+
+// Messwert, der am nächsten an einem Zeitpunkt liegt
+function measurementNear(measurements, time) {
+  let best = null;
+  measurements.forEach((m) => {
+    const d = Math.abs(new Date(m.timestamp) - time);
+    if (!best || d < best.d) best = { m, d };
+  });
+  return best?.m;
+}
+
+async function loadWaterStation(id) {
+  const chartEl = document.getElementById("waterChart");
+  try {
+    const [station, series, measurements] = await Promise.all([
+      fetchPegel(`/stations/${id}.json`),
+      fetchPegel(`/stations/${id}/W.json?includeCharacteristicValues=true&includeCurrentMeasurement=true`),
+      fetchPegel(`/stations/${id}/W/measurements.json?start=P7D`),
+    ]);
+    const name = pegelName(station.longname);
+    const current = series.currentMeasurement || measurements[measurements.length - 1];
+    const chars = Object.fromEntries((series.characteristicValues || []).map((c) => [c.shortname, c.value]));
+    const values = measurements.map((m) => m.value);
+
+    document.getElementById("waterLevel").textContent = current ? `${Math.round(current.value)} cm` : "–";
+    document.getElementById("waterLevelLabel").textContent = `Wasserstand ${name}`;
+    const dayAgo = current && measurementNear(measurements, new Date(current.timestamp) - 24 * 3600 * 1000);
+    setStatDelta("waterLevelDelta", current && dayAgo ? formatDelta(current.value, dayAgo.value, " cm", "gestern") : null);
+
+    document.getElementById("waterState").textContent = WATER_STATE_LABELS[current?.stateMnwMhw] || "–";
+    setStatDelta(
+      "waterStateDelta",
+      chars.MW != null ? { main: `MW ${Math.round(chars.MW)} cm`, suffix: "(Mittelwasser)" } : { main: "keine Kennwerte" },
+    );
+
+    if (values.length) {
+      const avg = values.reduce((a, b) => a + b, 0) / values.length;
+      document.getElementById("waterRange").textContent = `${Math.round(Math.min(...values))}–${Math.round(Math.max(...values))} cm`;
+      setStatDelta("waterRangeDelta", { main: `Ø ${Math.round(avg)} cm` });
+    } else {
+      document.getElementById("waterRange").textContent = "–";
+      setStatDelta("waterRangeDelta", null);
+    }
+
+    const ts = current ? new Date(current.timestamp) : null;
+    document.getElementById("waterTime").textContent = ts
+      ? ts.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) + " Uhr"
+      : "–";
+    setStatDelta(
+      "waterTimeDelta",
+      ts ? { main: ts.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" }), suffix: `· ${pegelName(station.water?.longname)}` } : null,
+    );
+
+    document.getElementById("waterChartTitle").textContent = `Pegelverlauf · ${name}`;
+    document.getElementById("waterChartSub").textContent = `${name} · letzte 7 Tage · Wasserstand in cm`;
+    renderWaterChart(chartEl, measurements, chars);
+    waterShownId = id;
+    setLastUpdatedNow();
+    return true;
+  } catch (err) {
+    reportError("Pegel", err);
+    if (waterShownId === id) {
+      document.getElementById("waterChartSub").textContent =
+        `Nicht aktualisiert – ${describeError(err)}. Angezeigt wird der letzte Stand.`;
+    } else {
+      renderRetry(chartEl, `Pegeldaten nicht verfügbar – ${describeError(err)}.`, () => loadWaterStation(id), "chart-empty");
+    }
+    return false;
+  }
+}
+
+function renderWaterChart(el, measurements, chars) {
+  if (!measurements.length) {
+    el.innerHTML = '<div class="chart-empty">Keine Messwerte der letzten 7 Tage.</div>';
+    return;
+  }
+  const step = Math.max(1, Math.floor(measurements.length / 240));
+  const points = measurements.filter((_, i) => i % step === 0 || i === measurements.length - 1);
+  const refs = WATER_REF_LINES.filter((k) => chars[k] != null).map((k) => ({ key: k, value: chars[k] }));
+  const all = [...points.map((m) => m.value), ...refs.map((r) => r.value)];
+  const pad0 = Math.max((Math.max(...all) - Math.min(...all)) * 0.12, 2);
+  const minV = Math.min(...all) - pad0;
+  const maxV = Math.max(...all) + pad0;
+  const t0 = new Date(points[0].timestamp).getTime();
+  const t1 = new Date(points[points.length - 1].timestamp).getTime();
+  const w = 600,
+    h = 150;
+  const xOf = (t) => ((t - t0) / (t1 - t0 || 1)) * w;
+  const yOf = (v) => h - ((v - minV) / (maxV - minV)) * h;
+  const coords = points.map((m) => [xOf(new Date(m.timestamp).getTime()), yOf(m.value)]);
+  const line = coords.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+  const area = `${line} L${w} ${h} L0 ${h} Z`;
+  const pct = (v, total) => ((v / total) * 100).toFixed(2) + "%";
+
+  const refLines = refs
+    .map(
+      (r) =>
+        `<line x1="0" x2="${w}" y1="${yOf(r.value).toFixed(1)}" y2="${yOf(r.value).toFixed(1)}" class="water-ref water-ref-${r.key}" vector-effect="non-scaling-stroke"/>`,
+    )
+    .join("");
+  const refLabels = refs
+    .map((r) => `<span class="water-ref-label" style="top:${pct(yOf(r.value), h)}">${r.key} ${Math.round(r.value)}</span>`)
+    .join("");
+  const yLabels = [maxV, (maxV + minV) / 2, minV]
+    .map((v) => `<span style="top:${pct(yOf(v), h)}">${Math.round(v)}</span>`)
+    .join("");
+  const xLabels = [];
+  const day = new Date(t0);
+  day.setHours(24, 0, 0, 0);
+  for (; day.getTime() < t1; day.setDate(day.getDate() + 1)) {
+    const label = day.toLocaleDateString("de-DE", { weekday: "short", day: "numeric" }).replace(".,", ",");
+    xLabels.push(`<span style="left:${pct(xOf(day.getTime()), w)}">${label}</span>`);
+  }
+
+  el.setAttribute("role", "img");
+  el.setAttribute(
+    "aria-label",
+    `Wasserstand der letzten 7 Tage zwischen ${Math.round(Math.min(...points.map((m) => m.value)))} und ${Math.round(Math.max(...points.map((m) => m.value)))} cm`,
+  );
+  el.innerHTML = `
+    <div class="wave-plot">
+      <div class="wave-y">${yLabels}</div>
+      <div class="wave-area">
+        <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="waterFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" style="stop-color:var(--teal);stop-opacity:0.35"/>
+              <stop offset="100%" style="stop-color:var(--teal);stop-opacity:0"/>
+            </linearGradient>
+          </defs>
+          <path d="${area}" fill="url(#waterFill)" stroke="none"/>
+          ${refLines}
+          <path d="${line}" fill="none" style="stroke:var(--teal)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+        </svg>
+        ${refLabels}
+      </div>
+      <div class="wave-x">${xLabels.join("")}</div>
+    </div>`;
+}
+
+function selectWaterStation(id) {
+  waterStationId = id;
+  storageSet(WATER_STATION_KEY, id);
+  renderBerlinStations();
+  return loadWaterStation(id);
+}
+
+async function loadWaterData() {
+  const results = await Promise.all([loadWaterStations(), loadWaterStation(waterStationId)]);
+  return results.every(Boolean);
+}
+
+document.getElementById("waterSearchForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const input = document.getElementById("waterSearchInput");
+  const q = input.value.trim().toLowerCase();
+  if (!q) return;
+  const match =
+    waterStations.find((s) => pegelLabel(s).toLowerCase() === q) ||
+    waterStations.find((s) => s.longname.toLowerCase().includes(q)) ||
+    waterStations.find((s) => pegelLabel(s).toLowerCase().includes(q));
+  if (!match) {
+    showToast(waterStations.length ? "Kein Pegel mit diesem Namen gefunden" : "Pegelliste wird noch geladen …");
+    return;
+  }
+  input.value = "";
+  selectWaterStation(match.uuid);
+});
+
+loadWaterData();
 
 // ---- Übersicht: frei zusammenstellbare Widgets ----
 const OVERVIEW_STORAGE_KEY = "dashboard-overview-widgets";
@@ -2197,6 +3031,14 @@ const OVERVIEW_WIDGETS = {
     desc: "Kleine Karte mit dem letzten Radarbild",
     icon: OVERVIEW_ICONS.radar,
     mount: mountRadarWidget,
+  },
+  calendar: {
+    group: "Kalender & Organisation",
+    title: "Kalender",
+    desc: "Monatsansicht mit Terminen zum Eintragen",
+    icon: OVERVIEW_ICONS.calendar,
+    mount: mountCalendarWidget,
+    wide: true,
   },
   "calendar-today": {
     group: "Kalender & Organisation",
@@ -2291,40 +3133,72 @@ const OVERVIEW_WIDGETS = {
     mirror: ["#fireTablePanel .fire-table-wrap"],
     wide: true,
   },
+  "water-kpis": {
+    group: "Wasserpegel",
+    title: "Pegel-Kennzahlen",
+    desc: "Aktueller Wasserstand, Einordnung und 7-Tage-Spanne",
+    icon: OVERVIEW_ICONS.wave,
+    mirror: ["#waterStats"],
+    wide: true,
+  },
+  "water-chart": {
+    group: "Wasserpegel",
+    title: "Pegelverlauf",
+    desc: "Wasserstand der letzten 7 Tage mit Mittelwerten",
+    icon: OVERVIEW_ICONS.wave,
+    mirror: ["#waterChartSub", "#waterChart"],
+  },
 };
 
 // IDs werden umbenannt, damit sie eindeutig bleiben und SVG-Verläufe nicht auf die versteckte Vorlage zeigen
-function cloneForMirror(src) {
+function cloneForMirror(src, suffix) {
   const clone = src.cloneNode(true);
-  clone.querySelectorAll(".panel-toggle, .layout-handle, .fire-export").forEach((el) => el.remove());
+  clone.querySelectorAll(".panel-toggle, .layout-handle, .layout-resize, .fire-export").forEach((el) => el.remove());
   [clone, ...clone.querySelectorAll("*")].forEach((el) => {
-    el.classList.remove("collapsed", "layout-group", "layout-dragging");
+    el.classList.remove("collapsed", "layout-group", "layout-dragging", "layout-resizing");
     el.removeAttribute("data-layout-id");
     el.removeAttribute("data-layout-item");
-    if (el.id) el.id += "--ov";
+    el.removeAttribute("data-layout-grow");
+    el.style.removeProperty("--layout-grow");
+    if (el.id) el.id += "--" + suffix;
     ["fill", "stroke", "clip-path", "mask"].forEach((attr) => {
       const value = el.getAttribute(attr);
-      if (value && value.includes("url(#")) el.setAttribute(attr, value.replace(/url\(#([^)]+)\)/g, "url(#$1--ov)"));
+      if (value && value.includes("url(#"))
+        el.setAttribute(attr, value.replace(/url\(#([^)]+)\)/g, `url(#$1--${suffix})`));
     });
   });
   clone.hidden = false;
   return clone;
 }
 
-function mountMirrorWidget(body, selectors) {
+// Aus einer Kennzahlen-Reihe herausgezogene Karten gehören für die Spiegelung weiter zur Reihe
+function mirrorMembers(src) {
+  if (!src.classList.contains("stat-row") || !src._defaultOrder) return null;
+  return [...layoutItems(src, true), ...src._defaultOrder.filter((el) => el.parentElement !== src)];
+}
+
+function mountMirrorWidget(body, selectors, suffix) {
   const sources = selectors.map((s) => document.querySelector(s)).filter(Boolean);
   let queued = false;
   const update = () => {
     queued = false;
-    body.replaceChildren(...sources.map(cloneForMirror));
+    body.replaceChildren(
+      ...sources.map((src) => {
+        const members = mirrorMembers(src);
+        const clone = cloneForMirror(src, suffix);
+        if (members) clone.replaceChildren(...members.map((el) => cloneForMirror(el, suffix)));
+        return clone;
+      }),
+    );
   };
   const observer = new MutationObserver(() => {
     if (queued) return;
     queued = true;
     requestAnimationFrame(update);
   });
-  sources.forEach((src) =>
-    observer.observe(src, { childList: true, subtree: true, characterData: true, attributes: true }),
+  const watched = sources.flatMap((src) => [src, ...(mirrorMembers(src) ? src._defaultOrder : [])]);
+  watched.forEach((el) =>
+    observer.observe(el, { childList: true, subtree: true, characterData: true, attributes: true }),
   );
   update();
   return () => observer.disconnect();
@@ -2334,6 +3208,11 @@ function mountRadarWidget(body) {
   renderInto(body, '<div class="ov-map"></div><div class="warn-note ov-map-note">Radar wird geladen …</div>');
   const mapEl = body.querySelector(".ov-map");
   const note = body.querySelector(".ov-map-note");
+  if (!LEAFLET_AVAILABLE) {
+    mapEl.remove();
+    note.textContent = "Karte nicht verfügbar – die Kartenbibliothek Leaflet konnte nicht geladen werden.";
+    return () => {};
+  }
   const miniMap = L.map(mapEl, { zoomControl: false, attributionControl: false }).setView(
     [currentWeatherCoords.lat, currentWeatherCoords.lon],
     7,
@@ -2342,11 +3221,9 @@ function mountRadarWidget(body) {
   let layer = null;
   async function load() {
     try {
-      const res = await fetch("https://api.rainviewer.com/public/weather-maps.json");
-      if (!res.ok) throw new Error("RainViewer HTTP " + res.status);
-      const data = await res.json();
+      const data = await fetchData("https://api.rainviewer.com/public/weather-maps.json", { source: "RainViewer" });
       const past = data.radar?.past || [];
-      if (!past.length || !data.host?.startsWith("https://")) throw new Error("Keine Radarframes");
+      if (!past.length || !data.host?.startsWith("https://")) throw dataError("RainViewer", "keine Radarframes");
       const frame = past[past.length - 1];
       if (layer) miniMap.removeLayer(layer);
       layer = L.tileLayer(`${data.host}${frame.path}/512/{z}/{x}/{y}/2/1_1.png`, {
@@ -2356,7 +3233,9 @@ function mountRadarWidget(body) {
       }).addTo(miniMap);
       note.textContent = `Radar ${formatFrameTime(frame.time)} Uhr · © RainViewer · Karte © Esri`;
     } catch (err) {
-      note.textContent = "Radardaten konnten nicht geladen werden.";
+      reportError("Radar-Widget", err);
+      const stale = layer ? " Angezeigt wird der letzte Stand." : "";
+      renderRetry(note, `Radar nicht verfügbar – ${describeError(err)}.${stale}`, load);
     }
   }
   const resizeObserver = new ResizeObserver(() => miniMap.invalidateSize());
@@ -2383,7 +3262,7 @@ function mountCalendarTodayWidget(body) {
     );
     const list = body.querySelector(".ov-events");
     if (!events.length) {
-      list.innerHTML = '<div class="todo-empty">Heute keine Termine — im Kalender eintragen.</div>';
+      list.innerHTML = '<div class="todo-empty">Heute keine Termine — im Kalender-Widget eintragen.</div>';
       return;
     }
     events.forEach((ev) => {
@@ -2414,37 +3293,39 @@ function mountMeetingWidget(body) {
   return bindMeetingPointInput(body.querySelector(".meeting-input"), body.querySelector(".notes-saved"));
 }
 
-const overviewGrid = document.getElementById("overviewGrid");
-const overviewEmpty = document.getElementById("overviewEmpty");
-const overviewCleanups = new Map();
+// Jede Seite hat ein eigenes Widget-Raster; die Übersicht ist eines davon
+const PAGE_WIDGETS_STORAGE_PREFIX = "dashboard-page-widgets-";
+const widgetBoards = new Map();
 
-function loadOverviewTypes() {
+function loadBoardTypes(board, defaults) {
   try {
-    const raw = localStorage.getItem(OVERVIEW_STORAGE_KEY);
+    const raw = localStorage.getItem(board.storageKey);
     if (raw) return JSON.parse(raw).filter((type) => OVERVIEW_WIDGETS[type]);
   } catch (err) {}
-  const types = [...OVERVIEW_DEFAULT];
-  // Widget der früheren Widget-Seite übernehmen
-  try {
-    const legacy = localStorage.getItem("dashboard-widget-slot");
-    if (legacy && OVERVIEW_WIDGETS[legacy] && !types.includes(legacy)) types.push(legacy);
-    localStorage.removeItem("dashboard-widget-slot");
-  } catch (err) {}
-  return types;
-}
-let overviewTypes = loadOverviewTypes();
-
-function saveOverviewTypes() {
-  try {
-    localStorage.setItem(OVERVIEW_STORAGE_KEY, JSON.stringify(overviewTypes));
-  } catch (err) {}
+  return [...defaults];
 }
 
-function mountOverviewWidget(type) {
+function saveBoardTypes(board) {
+  storageSet(board.storageKey, JSON.stringify(board.types));
+}
+
+function createWidgetBoard(page, grid, { prefix, storageKey, defaults = [], emptyEl = null }) {
+  const board = { page, grid, prefix, storageKey, emptyEl, cleanups: new Map() };
+  board.types = loadBoardTypes(board, defaults);
+  widgetBoards.set(page.id, board);
+  return board;
+}
+
+// Ein Spiegel-Widget der eigenen Seite würde nur doppelt anzeigen, was dort schon steht
+function boardOffersWidget(board, def) {
+  return !def.mirror || !def.mirror.some((sel) => board.page.contains(document.querySelector(sel)));
+}
+
+function mountBoardWidget(board, type) {
   const def = OVERVIEW_WIDGETS[type];
   const panel = document.createElement("section");
   panel.className = "panel ov-widget" + (def.wide ? " ov-wide" : "");
-  panel.id = "ov-" + type;
+  panel.id = `${board.prefix}-${type}`;
   panel.setAttribute("aria-label", def.title);
   panel.innerHTML = `
     <div class="panel-title">${def.title}</div>
@@ -2457,60 +3338,72 @@ function mountOverviewWidget(type) {
   toggle.innerHTML = CHEVRON_SVG;
   panel.appendChild(toggle);
   setupToggle(panel, toggle);
-  panel.querySelector(".ov-remove").addEventListener("click", () => removeOverviewWidget(type));
-  overviewGrid.appendChild(panel);
+  panel.querySelector(".ov-remove").addEventListener("click", () => removeBoardWidget(board, type));
+  const size = loadLayoutSizes()[panel.id];
+  if (size?.frac) panel.dataset.colFrac = String(size.frac);
+  if (size?.weight) panel.dataset.rowWeight = String(size.weight);
+  board.grid.appendChild(panel);
 
   const body = panel.querySelector(".ov-body");
-  const cleanup = def.mirror ? mountMirrorWidget(body, def.mirror) : def.mount(body);
-  overviewCleanups.set(type, typeof cleanup === "function" ? cleanup : null);
+  let cleanup = null;
+  try {
+    cleanup = def.mirror ? mountMirrorWidget(body, def.mirror, board.prefix) : def.mount(body);
+  } catch (err) {
+    console.error(`[Dashboard] Widget "${type}" konnte nicht gestartet werden:`, err);
+    renderRetry(body, "Dieses Widget konnte nicht geladen werden. Widget entfernen und neu hinzufügen oder Seite neu laden.", null, "chart-empty");
+  }
+  board.cleanups.set(type, typeof cleanup === "function" ? cleanup : null);
 }
 
-function addOverviewWidget(type) {
-  if (!OVERVIEW_WIDGETS[type] || overviewTypes.includes(type)) return;
-  overviewTypes.push(type);
-  saveOverviewTypes();
-  mountOverviewWidget(type);
-  saveLayoutOrder(overviewGrid);
-  afterOverviewChange();
+function addBoardWidget(board, type) {
+  if (!OVERVIEW_WIDGETS[type] || board.types.includes(type)) return;
+  board.types.push(type);
+  saveBoardTypes(board);
+  mountBoardWidget(board, type);
+  afterBoardChange(board);
+  saveLayoutOrder(board.grid);
 }
 
-function removeOverviewWidget(type) {
-  overviewTypes = overviewTypes.filter((t) => t !== type);
-  saveOverviewTypes();
-  const cleanup = overviewCleanups.get(type);
+function removeBoardWidget(board, type) {
+  board.types = board.types.filter((t) => t !== type);
+  saveBoardTypes(board);
+  const cleanup = board.cleanups.get(type);
   if (cleanup) cleanup();
-  overviewCleanups.delete(type);
-  document.getElementById("ov-" + type)?.remove();
-  storeCollapsed("ov-" + type, false);
-  saveLayoutOrder(overviewGrid);
-  afterOverviewChange();
+  board.cleanups.delete(type);
+  document.getElementById(`${board.prefix}-${type}`)?.remove();
+  storeCollapsed(`${board.prefix}-${type}`, false);
+  saveLayoutSize(`${board.prefix}-${type}`, null);
+  saveWidgetPlace(`${board.prefix}-${type}`, null);
+  afterBoardChange(board);
+  saveLayoutOrder(board.grid);
 }
 
-function afterOverviewChange() {
-  overviewGrid.hidden = !overviewTypes.length;
-  overviewEmpty.hidden = overviewTypes.length > 0;
+function afterBoardChange(board) {
+  board.grid.hidden = !board.grid.querySelector(":scope > .ov-widget");
+  if (board.emptyEl) board.emptyEl.hidden = board.types.length > 0;
   refreshLayoutHandles();
-  fitOverviewGrid();
-  if (pickerOverlay.classList.contains("show")) renderWidgetPicker();
+  fitWidgetGrid(board.grid);
+  if (pickerOverlay.classList.contains("show") && pickerBoard === board) renderWidgetPicker();
 }
 
 // Zeilen, in denen alles eingeklappt ist, bekommen nur ihre Titelhöhe; alle anderen teilen sich den Rest
-function fitOverviewGrid() {
-  if (!overviewGrid.offsetParent) return;
-  const gap = parseFloat(getComputedStyle(overviewGrid).columnGap) || 0;
-  const width = overviewGrid.clientWidth;
-  const height = overviewGrid.clientHeight;
-  const items = layoutItems(overviewGrid);
+function fitWidgetGrid(grid) {
+  if (!grid.offsetParent) return;
+  const gap = parseFloat(getComputedStyle(grid).columnGap) || 0;
+  const width = grid.clientWidth;
+  const height = grid.clientHeight;
+  const items = layoutItems(grid);
 
   // Mobil scrollt die Seite: feste Kachelhöhe, breite Widgets über die ganze Breite
   if (MOBILE_SCROLL_QUERY.matches) {
     const mobileCols = width >= 2 * OVERVIEW_MIN_COL_TIGHT + gap ? 2 : 1;
     const mobileRows = packOverviewRows(items, mobileCols, 2);
-    overviewGrid.classList.remove("ov-overfull");
-    overviewGrid.style.gridTemplateColumns = `repeat(${mobileCols}, minmax(0, 1fr))`;
+    grid._layoutRows = mobileRows;
+    grid.classList.remove("ov-overfull");
+    grid.style.gridTemplateColumns = `repeat(${mobileCols}, minmax(0, 1fr))`;
     mobileRows.forEach((row) => row.forEach(({ el, span }) => (el.style.gridColumn = span > 1 ? `span ${span}` : "")));
-    overviewGrid.style.gridTemplateRows = mobileRows
-      .map((row) => (row.some(({ el }) => !el.classList.contains("collapsed")) ? `${OVERVIEW_MOBILE_ROW}px` : "auto"))
+    grid.style.gridTemplateRows = mobileRows
+      .map((row) => (isOpenRow(row) ? `${OVERVIEW_MOBILE_ROW}px` : "auto"))
       .join(" ");
     return;
   }
@@ -2529,33 +3422,56 @@ function fitOverviewGrid() {
     cols++;
   }
   const rows = packOverviewRows(items, cols);
-  // Nur wenn so viele Widgets gewählt sind, dass nicht einmal die Titel passen, darf die Übersicht scrollen
+  grid._layoutRows = rows;
+  // Nur wenn so viele Widgets gewählt sind, dass nicht einmal die Titel passen, darf das Raster scrollen
   const overfull = items.length > 0 && rowHeight(cols) < OVERVIEW_MIN_TILE;
-  overviewGrid.classList.toggle("ov-overfull", overfull);
-  const openRow = `minmax(${overfull ? OVERVIEW_MIN_TILE : 0}px, 1fr)`;
-  overviewGrid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+  grid.classList.toggle("ov-overfull", overfull);
+  const minRow = overfull ? OVERVIEW_MIN_TILE : 0;
+  grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
   rows.forEach((row) => row.forEach(({ el, span }) => (el.style.gridColumn = span > 1 ? `span ${span}` : "")));
-  overviewGrid.style.gridTemplateRows = rows
-    .map((row) => (row.some(({ el }) => !el.classList.contains("collapsed")) ? openRow : "auto"))
+  // fr-Werte mit Summe unter 1 füllen die Höhe nicht, daher nur das Verhältnis der Reihen übernehmen
+  const openWeight = rows.filter(isOpenRow).reduce((sum, row) => sum + rowWeight(row), 0);
+  const scale = openWeight > 0 && openWeight < 1 ? 1 / openWeight : 1;
+  grid.style.gridTemplateRows = rows
+    .map((row) => (isOpenRow(row) ? `minmax(${minRow}px, ${+(rowWeight(row) * scale).toFixed(3)}fr)` : "auto"))
     .join(" ");
 }
+function isOpenRow(row) {
+  return row.some(({ el }) => !el.classList.contains("collapsed"));
+}
+// Eine Reihe ist so hoch wie ihr höchstes offenes Widget
+function rowWeight(row) {
+  return Math.max(
+    1e-3,
+    ...row.filter(({ el }) => !el.classList.contains("collapsed")).map(({ el }) => Number(el.dataset.rowWeight) || 1),
+  );
+}
+function fitAllWidgetGrids() {
+  widgetBoards.forEach((board) => fitWidgetGrid(board.grid));
+}
 
-// Verteilt die Kacheln zeilenweise; passt eine nicht mehr hinein, füllt die letzte Kachel der Zeile die Lücke
+// Verteilt die Kacheln zeilenweise; die freien Spalten einer Zeile gehen reihum an die Kacheln,
+// deren Breite nicht von Hand festgelegt wurde
 function packOverviewRows(items, cols, minColsForWide = 3) {
   const rows = [];
   let row = [];
   let used = 0;
   const closeRow = () => {
     if (!row.length) return;
-    row[row.length - 1].span += cols - used;
+    const flexible = row.filter((cell) => !cell.fixed).reverse();
+    for (let free = cols - used, i = 0; free > 0 && flexible.length; free--, i++) {
+      flexible[i % flexible.length].span++;
+    }
     rows.push(row);
     row = [];
     used = 0;
   };
   items.forEach((el) => {
-    const span = el.classList.contains("ov-wide") && cols >= minColsForWide ? 2 : 1;
+    const frac = Number(el.dataset.colFrac) || 0;
+    const custom = frac ? Math.max(1, Math.round(frac * cols)) : 0;
+    const span = Math.min(cols, custom || (el.classList.contains("ov-wide") && cols >= minColsForWide ? 2 : 1));
     if (used + span > cols) closeRow();
-    row.push({ el, span });
+    row.push({ el, span, fixed: custom > 0 });
     used += span;
   });
   closeRow();
@@ -2565,18 +3481,20 @@ function packOverviewRows(items, cols, minColsForWide = 3) {
 // ---- Widget-Auswahl: fügt hinzu oder entfernt wieder ----
 const pickerOverlay = document.getElementById("widgetPickerOverlay");
 const pickerBody = document.getElementById("widgetPickerBody");
+let pickerBoard = null;
 
 function renderWidgetPicker() {
-  const groups = [...new Set(Object.values(OVERVIEW_WIDGETS).map((d) => d.group))];
+  const offered = Object.entries(OVERVIEW_WIDGETS).filter(([, d]) => boardOffersWidget(pickerBoard, d));
+  const groups = [...new Set(offered.map(([, d]) => d.group))];
   pickerBody.innerHTML = groups
     .map(
       (group) => `<div class="widget-picker-group">
       <div class="widget-picker-group-title">${group}</div>
       <div class="widget-picker-grid">
-        ${Object.entries(OVERVIEW_WIDGETS)
+        ${offered
           .filter(([, d]) => d.group === group)
           .map(([type, d]) => {
-            const added = overviewTypes.includes(type);
+            const added = pickerBoard.types.includes(type);
             return `<button type="button" class="widget-option${added ? " added" : ""}" data-widget="${type}" aria-pressed="${added}">
               <span class="widget-option-icon">${d.icon}</span>
               <span class="widget-option-text">
@@ -2592,7 +3510,8 @@ function renderWidgetPicker() {
     )
     .join("");
 }
-function openWidgetPicker() {
+function openWidgetPicker(board) {
+  pickerBoard = board;
   renderWidgetPicker();
   pickerOverlay.classList.add("show");
   pickerBody.querySelector(".widget-option")?.focus();
@@ -2604,8 +3523,8 @@ pickerBody.addEventListener("click", (e) => {
   const option = e.target.closest(".widget-option");
   if (!option) return;
   const type = option.dataset.widget;
-  if (overviewTypes.includes(type)) removeOverviewWidget(type);
-  else addOverviewWidget(type);
+  if (pickerBoard.types.includes(type)) removeBoardWidget(pickerBoard, type);
+  else addBoardWidget(pickerBoard, type);
   pickerBody.querySelector(`[data-widget="${type}"]`)?.focus();
 });
 document.getElementById("widgetPickerClose").addEventListener("click", closeWidgetPicker);
@@ -2616,16 +3535,114 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && pickerOverlay.classList.contains("show")) closeWidgetPicker();
 });
 
-document.getElementById("overviewAddBtn").addEventListener("click", openWidgetPicker);
-overviewEmpty.addEventListener("click", openWidgetPicker);
-document.getElementById("overviewArrangeBtn").addEventListener("click", () => {
-  setLayoutEditing(!document.body.classList.contains("layout-editing"));
+const overviewBoard = createWidgetBoard(document.getElementById("overviewPage"), document.getElementById("overviewGrid"), {
+  prefix: "ov",
+  storageKey: OVERVIEW_STORAGE_KEY,
+  defaults: OVERVIEW_DEFAULT,
+  emptyEl: document.getElementById("overviewEmpty"),
+});
+// Widget der früheren Widget-Seite übernehmen
+try {
+  const legacy = localStorage.getItem("dashboard-widget-slot");
+  if (legacy && OVERVIEW_WIDGETS[legacy] && !overviewBoard.types.includes(legacy)) overviewBoard.types.push(legacy);
+  localStorage.removeItem("dashboard-widget-slot");
+} catch (err) {}
+overviewBoard.emptyEl.addEventListener("click", () => openWidgetPicker(overviewBoard));
+
+document.querySelectorAll(".page").forEach((page) => {
+  const grid = page === overviewBoard.page ? overviewBoard.grid : document.getElementById(page.id + "Widgets");
+  if (!grid) return;
+  const board =
+    widgetBoards.get(page.id) ||
+    createWidgetBoard(page, grid, { prefix: page.id, storageKey: PAGE_WIDGETS_STORAGE_PREFIX + page.id });
+  page.querySelector('[data-widget-action="add"]')?.addEventListener("click", () => openWidgetPicker(board));
 });
 
-saveOverviewTypes();
-overviewTypes.forEach(mountOverviewWidget);
-applySavedLayoutOrder(overviewGrid);
-afterOverviewChange();
-new ResizeObserver(fitOverviewGrid).observe(overviewGrid);
-document.addEventListener("widget-collapse", fitOverviewGrid);
-window.addEventListener("resize", fitOverviewGrid);
+// Frei platzierte Widgets zurück in ihre Zeile oder Spalte setzen
+function placeRoamingWidgets(board) {
+  const places = loadWidgetPlaces();
+  const sizes = loadLayoutSizes();
+  const touched = new Set();
+  layoutItems(board.grid, true).forEach((panel) => {
+    const container = roamContainers(board.page, panel).find(
+      (c) => c !== board.grid && layoutContainerKey(c) === places[panel.id],
+    );
+    if (!container) return;
+    container.appendChild(panel);
+    if (sizes[panel.id]?.grow > 0) applyFlexGrow(panel, sizes[panel.id].grow);
+    touched.add(container);
+  });
+  touched.forEach(applySavedLayoutOrder);
+}
+
+widgetBoards.forEach((board) => {
+  saveBoardTypes(board);
+  board.types.forEach((type) => mountBoardWidget(board, type));
+  applySavedLayoutOrder(board.grid);
+  if (board !== overviewBoard) placeRoamingWidgets(board);
+  board.grid.hidden = !board.grid.querySelector(":scope > .ov-widget");
+  if (board.emptyEl) board.emptyEl.hidden = board.types.length > 0;
+  new ResizeObserver(() => fitWidgetGrid(board.grid)).observe(board.grid);
+});
+updateEmptyGroups();
+refreshLayoutHandles();
+fitAllWidgetGrids();
+document.addEventListener("widget-collapse", () => {
+  fitAllWidgetGrids();
+  updateResizeHandles();
+});
+window.addEventListener("resize", fitAllWidgetGrids);
+MOBILE_SCROLL_QUERY.addEventListener("change", updateResizeHandles);
+
+// ---- Seite auf Standard-Layout zurücksetzen (mit Rückfrage) ----
+function resetPageLayout(page) {
+  const board = widgetBoards.get(page.id);
+  if (board) [...board.types].forEach((type) => removeBoardWidget(board, type));
+  resetLayoutOrderAndSizes(page);
+  updateEmptyGroups();
+  refreshLayoutHandles();
+  fitAllWidgetGrids();
+  document.dispatchEvent(new Event("widget-collapse"));
+  window.dispatchEvent(new Event("resize"));
+}
+
+const resetOverlay = document.getElementById("resetConfirmOverlay");
+let resetTargetPage = null;
+let resetReturnFocus = null;
+
+function openResetConfirm(page, trigger) {
+  resetTargetPage = page;
+  resetReturnFocus = trigger;
+  const title = page.querySelector(".overview-title")?.textContent.trim() || "diese Seite";
+  document.getElementById("resetConfirmText").textContent =
+    page === overviewBoard.page
+      ? `Soll „${title}“ wirklich zurückgesetzt werden? Dabei werden alle Widgets entfernt.`
+      : `Soll das Layout der Seite „${title}“ wirklich auf den Standard zurückgesetzt werden? ` +
+        "Reihenfolge, Größen und eingeklappte Widgets werden zurückgesetzt, hinzugefügte Widgets entfernt.";
+  resetOverlay.classList.add("show");
+  document.getElementById("resetConfirmCancel").focus();
+}
+function closeResetConfirm() {
+  resetOverlay.classList.remove("show");
+  resetTargetPage = null;
+  resetReturnFocus?.focus();
+}
+
+document.querySelectorAll('[data-widget-action="reset"]').forEach((btn) =>
+  btn.addEventListener("click", () => openResetConfirm(btn.closest(".page"), btn)),
+);
+document.getElementById("resetConfirmOk").addEventListener("click", () => {
+  const page = resetTargetPage;
+  closeResetConfirm();
+  if (!page) return;
+  resetPageLayout(page);
+  showToast(page === overviewBoard.page ? "Übersicht zurückgesetzt – alle Widgets entfernt" : "Layout auf Standard zurückgesetzt");
+});
+document.getElementById("resetConfirmCancel").addEventListener("click", closeResetConfirm);
+document.getElementById("resetConfirmClose").addEventListener("click", closeResetConfirm);
+resetOverlay.addEventListener("click", (e) => {
+  if (e.target === resetOverlay) closeResetConfirm();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && resetOverlay.classList.contains("show")) closeResetConfirm();
+});

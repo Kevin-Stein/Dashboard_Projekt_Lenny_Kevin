@@ -232,8 +232,9 @@ h1 {
   border-radius: 12px;
 }
 
-.day.today {
-  background: var(--panel-2);
+.day.today .day-label {
+  color: var(--teal);
+  font-weight: 700;
 }
 
 .day-label {
@@ -265,16 +266,18 @@ h1 {
 
 /* Weather detail stats */
 .weather-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   padding-top: 4px;
 }
 
 .weather-stat {
+  flex: 0 1 auto;
   display: flex;
   align-items: center;
   gap: 8px;
+  white-space: nowrap;
   background: var(--panel-2);
   border-radius: 10px;
   padding: 8px 10px;
@@ -308,6 +311,7 @@ h1 {
   color: #fff;
 }
 
+.day.selected .day-label,
 .day.selected .day-low,
 .day.selected .day-icon {
   color: inherit;
@@ -335,6 +339,14 @@ h1 {
 .day-detail-rain {
   font-size: 12.5px;
   color: var(--ink-soft);
+}
+
+.hour-strip-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-soft);
+  margin-bottom: -4px;
 }
 
 .hour-strip-wrap {
@@ -1411,6 +1423,57 @@ h1 {
   transform: translateX(-50%) translateY(0);
 }
 
+.toast.error {
+  background: #b23a3a;
+  color: #fff;
+  max-width: min(560px, calc(100vw - 32px));
+  border-radius: 14px;
+  text-align: center;
+}
+
+/* ---------- Fehlermeldungen mit „Erneut versuchen“ ---------- */
+.load-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 10px;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+.retry-btn {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: var(--panel);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.retry-btn:hover {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
+.retry-btn:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+.map-loading.has-retry {
+  pointer-events: auto;
+  padding: 16px;
+}
+
+.sidebar-errors {
+  color: #c73c3c;
+  opacity: 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .temp-now {
     animation: none;
@@ -1699,7 +1762,7 @@ body {
   align-items: stretch;
   width: 100%;
   height: 100vh;
-  max-width: 1500px;
+  max-width: 2560px;
   margin: 0 auto;
   overflow: hidden;
 }
@@ -1918,6 +1981,31 @@ body {
   border-top: 1px solid var(--side-line);
 }
 
+/* Dokumentation sitzt unten direkt über dem Trennstrich des Footers */
+.nav-docs {
+  margin-top: auto;
+  margin-bottom: -14px;
+  text-decoration: none;
+}
+.nav-docs + .sidebar-footer {
+  margin-top: 0;
+}
+@media (max-height: 760px) and (min-width: 761px) {
+  .nav-docs {
+    margin-bottom: -6px;
+  }
+}
+@media (max-width: 760px) {
+  .nav-docs {
+    display: none;
+    width: 100%;
+    margin: 0;
+  }
+  .sidebar.menu-open .nav-docs {
+    display: flex;
+  }
+}
+
 .sidebar-btn {
   display: flex;
   align-items: center;
@@ -1976,7 +2064,7 @@ body {
 .page {
   display: none;
   width: 100%;
-  max-width: 1080px;
+  max-width: none;
   margin: 0 auto;
   flex: 1;
   min-height: 0;
@@ -2070,7 +2158,7 @@ body {
 /* Stat cards row */
 .stat-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(var(--stat-cols, 4), minmax(0, 1fr));
   gap: 18px;
 }
 
@@ -2285,7 +2373,10 @@ body {
   border-left: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
+/* Absolut, damit das SVG nicht über das viewBox-Seitenverhältnis die Höhe bestimmt */
 .wave-area svg {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   display: block;
@@ -2402,7 +2493,7 @@ body {
 
 @media (max-width: 1080px) {
   .stat-row {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(min(var(--stat-cols, 4), 2), minmax(0, 1fr));
   }
   .charts-row,
   .lower-row,
@@ -2484,10 +2575,10 @@ body {
 .cal-add {
   flex-wrap: wrap;
 }
-.cal-add #calAddInput {
+.cal-add .cal-add-input {
   flex: 1 1 100%;
 }
-.cal-add #calAddTime {
+.cal-add .cal-add-time {
   flex: 0 1 105px;
   max-width: 120px;
 }
@@ -2602,23 +2693,110 @@ body {
   outline: 1.5px dashed var(--line-strong);
   outline-offset: -2px;
 }
-.layout-editing .layout-group {
+.layout-editing .layout-group,
+.layout-editing .layout-drop {
   padding-top: 28px;
   border-radius: var(--card-radius);
 }
 .layout-dragging {
   opacity: 0.6;
 }
+/* Leer gezogene Zeilen und Spalten: nur beim Anordnen als Ablagefläche sichtbar */
+.layout-empty {
+  display: none !important;
+}
+.layout-editing .layout-empty {
+  display: flex !important;
+  flex: 0 0 90px !important;
+  min-height: 90px;
+  min-width: 90px;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--card-radius);
+  color: var(--ink-soft);
+  font-size: 12.5px;
+}
+.layout-editing .layout-empty::before {
+  content: "Hierher ziehen";
+}
+/* Kennzahlen-Karten außerhalb ihrer Reihe behalten ihre natürliche Höhe */
+:not(.stat-row) > .stat-card:not([data-layout-grow]) {
+  flex: 0 0 auto;
+}
 body.layout-drag-active,
 body.layout-drag-active * {
   cursor: grabbing !important;
   user-select: none;
 }
-#layoutResetBtn {
+.layout-reset-btn {
   display: none;
 }
-.layout-editing #layoutResetBtn {
+.layout-editing .layout-reset-btn {
+  display: inline-block;
+}
+
+.confirm-dialog {
+  max-width: 420px;
+}
+.confirm-text {
+  margin: 0 0 20px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.confirm-actions {
   display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Größe ändern */
+.layout-resize {
+  display: none;
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  z-index: 20;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: var(--panel-2);
+  color: var(--ink-soft);
+  cursor: nwse-resize;
+  touch-action: none;
+  align-items: center;
+  justify-content: center;
+}
+.layout-resize svg {
+  width: 12px;
+  height: 12px;
+}
+.layout-resize:hover,
+.layout-resizing > .layout-resize {
+  color: var(--teal);
+  border-color: var(--teal-soft);
+}
+.layout-editing .layout-resize {
+  display: flex;
+}
+.layout-editing .layout-resize[hidden] {
+  display: none;
+}
+.layout-resizing {
+  outline-color: var(--teal) !important;
+}
+body.layout-resize-active,
+body.layout-resize-active * {
+  user-select: none;
+}
+[data-layout-grow]:not(.collapsed) {
+  flex: var(--layout-grow) 1 0 !important;
+}
+.layout-group[data-layout-grow]:not(:has(.panel:not(.collapsed))) {
+  flex: 0 0 auto !important;
 }
 @media (max-width: 560px) {
   .main-content {
@@ -2754,12 +2932,21 @@ body.layout-drag-active * {
   overflow: hidden;
 }
 
-/* Kalender-Seite: Tage füllen die Höhe statt quadratisch zu sein */
-.page.active > .panel.calendar {
-  flex: 1 1 0;
-  overflow: hidden;
-  padding: clamp(14px, 2.4vh, 28px);
-  gap: clamp(8px, 1.4vh, 14px);
+/* Kalender: Tage füllen die Höhe statt quadratisch zu sein */
+.cal-widget {
+  gap: clamp(6px, 1.2vh, 12px);
+}
+.cal-nav .cal-today-btn {
+  width: auto;
+  padding: 0 8px;
+  font-size: 11px;
+}
+.cal-day.selected:not(.today) {
+  box-shadow: inset 0 0 0 1.5px var(--teal);
+}
+.cal-empty {
+  font-size: 12.5px;
+  color: var(--ink-soft);
 }
 .calendar .cal-grid {
   flex: 1 1 0;
@@ -2807,7 +2994,19 @@ body.layout-drag-active * {
   flex: 1 1 0;
   max-height: none;
   min-height: 0;
-  overflow: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.disaster-warn .scroll-list > *,
+.disaster-checklist .scroll-list > *,
+#disasterNumbersList > * {
+  flex-shrink: 0;
+}
+#disasterNumbersList {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 .page.active > .disaster-checklist {
   flex: 0 1 auto;
@@ -2855,7 +3054,7 @@ body.layout-drag-active * {
 /* Bis 760px bleiben Widgets nebeneinander (überschreibt die ältere 1080px-Regel) */
 @media (max-width: 1080px) {
   .stat-row {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(var(--stat-cols, 4), minmax(0, 1fr));
   }
   .stat-card {
     padding: clamp(8px, 1.6vh, 16px) 14px;
@@ -2887,7 +3086,7 @@ body.layout-drag-active * {
 /* Schmale Bildschirme: Widgets untereinander, teilen sich die Höhe */
 @media (max-width: 760px) {
   .stat-row {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(var(--stat-cols, 4), minmax(0, 1fr));
     gap: 6px;
   }
   .stat-card {
@@ -2969,6 +3168,40 @@ body.layout-drag-active * {
   font-size: 10px;
   opacity: 0.8;
 }
+.chart-card {
+  container: chartcard / inline-size;
+}
+/* Nur auf dem Desktop ist die Höhe vorgegeben; mobil bestimmt der Inhalt die Höhe */
+@media (min-width: 761px) {
+  .chart-card:not(.collapsed),
+  .donut-card:not(.collapsed) {
+    container: chartcard / size;
+  }
+}
+@container chartcard (max-height: 230px) {
+  .panel-sub,
+  .donut-caption {
+    display: none;
+  }
+  .bar-chart {
+    min-height: 40px;
+  }
+}
+@container chartcard (max-width: 380px) {
+  .bar-chart {
+    gap: 4px;
+  }
+  .bar-col {
+    min-width: 0;
+  }
+  .bar-col .bar-value,
+  .bar-col .bar-label {
+    font-size: 10px;
+  }
+  .bar-label .bar-date {
+    display: none;
+  }
+}
 .fire-table-card {
   background: var(--panel);
   padding: clamp(12px, 2.2vh, 22px);
@@ -2979,7 +3212,8 @@ body.layout-drag-active * {
 .fire-table-wrap {
   flex: 1 1 0;
   min-height: 0;
-  overflow: hidden;
+  overflow: auto;
+  scrollbar-width: thin;
 }
 .fire-table {
   width: 100%;
@@ -3188,6 +3422,17 @@ body.layout-drag-active * {
 .page.active > .overview-grid {
   flex: 1 1 0;
 }
+/* Frei zwischen die Panels gezogene Widgets teilen sich den Platz wie die Panels daneben */
+.disaster-side > .ov-widget:not(.collapsed) {
+  flex: 1 1 0;
+}
+/* Auf Seitenebene nur ein halber Anteil, sonst würden ganze Zeilen darunter halbiert */
+.page.active > .ov-widget:not(.collapsed) {
+  flex: 0.5 1 0;
+}
+:not(.overview-grid) > .ov-widget:not(.collapsed) {
+  min-height: 140px;
+}
 .overview-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
@@ -3236,10 +3481,10 @@ body.layout-drag-active * {
   flex-direction: column;
   gap: clamp(6px, 1vh, 10px);
   overflow: hidden;
-  container-type: size;
+  container: ovbody / size;
 }
 /* Flache Kacheln zeigen nur das Wesentliche */
-@container (max-height: 120px) {
+@container ovbody (max-height: 120px) {
   .ov-body .stat-delta,
   .ov-body .donut-caption,
   .ov-body .warn-note,
@@ -3252,7 +3497,7 @@ body.layout-drag-active * {
     padding-bottom: 8px;
   }
 }
-@container (max-height: 80px) {
+@container ovbody (max-height: 80px) {
   .ov-body .range,
   .ov-body .stat-label {
     display: none;
@@ -3314,27 +3559,73 @@ body.layout-drag-active * {
   flex: 1 1 0;
   min-height: 0;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  align-content: start;
+  grid-auto-rows: minmax(0, 1fr);
+  align-items: stretch;
+  gap: clamp(6px, 2.5cqmin, 18px);
 }
-@container (max-width: 460px) {
+/* Spaltenzahl nach Seitenverhältnis, damit die Karten eher breit als hochkant sind */
+@container ovbody (max-width: 460px) or (max-aspect-ratio: 18/5) {
   .ov-body .stat-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-@container (max-width: 620px) {
-  .ov-body .stat-icon {
-    display: none;
+@container ovbody (max-aspect-ratio: 9/10) {
+  .ov-body .stat-row {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
+/* Jede Karte ist ein eigener Container, damit Wert und Icon mit der Karte wachsen */
 .ov-body .stat-card {
   background: var(--panel-2);
   box-shadow: none;
   min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  container: statcard / size;
+  padding: clamp(6px, 3cqh, 22px) clamp(8px, 2.5cqw, 24px);
+  gap: clamp(8px, 2cqw, 18px);
+}
+.ov-body .stat-body {
+  min-width: 0;
+}
+.ov-body .stat-value {
+  font-size: clamp(14px, min(26cqh, 12cqw), 56px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ov-body .stat-label {
+  font-size: clamp(11px, min(10cqh, 5.5cqw), 18px);
+}
+.ov-body .stat-delta {
+  font-size: clamp(10.5px, min(9cqh, 5cqw), 16px);
+}
+.ov-body .stat-icon {
+  width: clamp(28px, min(36cqh, 16cqw), 72px);
+  height: clamp(28px, min(36cqh, 16cqw), 72px);
+}
+.ov-body .stat-icon svg {
+  width: 50%;
+  height: 50%;
+}
+@container statcard (max-width: 190px) {
+  .ov-body .stat-icon {
+    display: none;
+  }
+}
+@container statcard (max-height: 84px) {
+  .ov-body .stat-delta {
+    display: none;
+  }
+}
+@container statcard (max-height: 52px) {
+  .ov-body .stat-label {
+    display: none;
+  }
 }
 .ov-body .fire-table-wrap {
   flex: 1 1 0;
   min-height: 0;
-  overflow: hidden;
 }
 #countdownBody {
   display: flex;
@@ -3365,7 +3656,7 @@ body.layout-drag-active * {
   min-width: 0;
 }
 .ov-body .temp-now {
-  font-size: clamp(38px, 7vh, 64px);
+  font-size: clamp(30px, min(34cqh, 19cqw), 170px);
   animation: none;
   opacity: 1;
   flex-shrink: 0;
@@ -3374,6 +3665,18 @@ body.layout-drag-active * {
   padding-bottom: 0;
   min-width: 0;
 }
+.ov-body-weather-now > .temp-row {
+  gap: clamp(8px, 3cqw, 32px);
+}
+.ov-body-weather-now .condition-text {
+  font-size: clamp(13px, min(7cqh, 4.2cqw), 30px);
+}
+.ov-body-weather-now .range {
+  font-size: clamp(11px, min(4.6cqh, 2.8cqw), 19px);
+}
+.ov-body-weather-now > .place {
+  font-size: clamp(12px, min(4.4cqh, 2.6cqw), 18px);
+}
 .ov-body .range {
   overflow: hidden;
   display: -webkit-box;
@@ -3381,8 +3684,8 @@ body.layout-drag-active * {
   -webkit-box-orient: vertical;
 }
 .ov-body-weather-now > .condition-icon {
-  width: clamp(36px, 7vh, 56px);
-  height: clamp(36px, 7vh, 56px);
+  width: clamp(34px, min(30cqh, 18cqw), 150px);
+  height: clamp(34px, min(30cqh, 18cqw), 150px);
 }
 
 .ov-body-rain-donut {
@@ -3423,9 +3726,6 @@ body.layout-drag-active * {
     grid-column: 1 / -1;
     flex-wrap: wrap;
     gap: 2px 10px;
-  }
-  .ov-body .temp-now {
-    font-size: 34px;
   }
   .ov-body .bar-chart {
     gap: 3px;
@@ -3476,6 +3776,124 @@ body.layout-drag-active * {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Listen und Tabellen scrollen in kleinen Kacheln, statt Einträge abzuschneiden */
+.ov-body .todo-list,
+.ov-body .warn-list,
+.ov-body .clock-list,
+.ov-body .scroll-list,
+.ov-body .ov-events,
+.ov-body .fire-table-wrap,
+.ov-body .cal-events,
+.ov-body #countdownBody {
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.ov-body .fire-table-wrap {
+  overflow-x: auto;
+}
+.ov-body .todo-list > *,
+.ov-body .clock-list > *,
+.ov-body .warn-list > * {
+  flex-shrink: 0;
+}
+
+/* Uhr und Notrufnummern: Zeilen teilen sich die Höhe, Schrift wächst mit */
+.ov-body .clock-list > .clock-row,
+.ov-body .clock-list > .emerg-row {
+  flex: 1 0 auto;
+  max-height: 140px;
+}
+.ov-body .clock-row-time {
+  font-size: clamp(16px, min(7cqh, 6cqw), 40px);
+}
+.ov-body .clock-row-city {
+  font-size: clamp(13px, min(3.6cqh, 3.4cqw), 20px);
+}
+.ov-body .clock-row-diff {
+  font-size: clamp(11px, min(2.8cqh, 2.6cqw), 15px);
+}
+.ov-body .emerg-num {
+  font-size: clamp(16px, min(5.5cqh, 5cqw), 34px);
+}
+.ov-body .emerg-label {
+  font-size: clamp(11px, min(2.8cqh, 2.4cqw), 15px);
+  max-width: 60%;
+}
+
+/* Countdown und Treffpunkt stehen mittig und wachsen mit */
+.ov-body .countdown-number {
+  font-size: clamp(30px, min(32cqh, 24cqw), 140px);
+}
+.ov-body .countdown-title {
+  font-size: clamp(13px, min(6cqh, 4.5cqw), 24px);
+}
+.ov-body .countdown-label {
+  font-size: clamp(12px, min(4.5cqh, 3.5cqw), 18px);
+}
+.ov-body #countdownBody {
+  justify-content: safe center;
+}
+.ov-body #countdownBody > * {
+  flex-shrink: 0;
+}
+.ov-body-meeting {
+  justify-content: safe center;
+}
+.ov-body .meeting-input {
+  font-size: clamp(13px, min(9cqh, 4cqw), 22px);
+  padding: clamp(8px, 4cqh, 16px) clamp(10px, 3cqw, 18px);
+}
+
+/* Kalender: Monatsraster hat Vorrang, Terminliste und Eingabe weichen in flachen Kacheln */
+.ov-body-calendar {
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.ov-body .cal-grid {
+  grid-auto-rows: minmax(16px, 1fr);
+  gap: clamp(2px, 0.8cqmin, 6px);
+}
+.ov-body .cal-day {
+  font-size: clamp(11px, min(3.6cqh, 2.6cqw), 20px);
+}
+.ov-body .cal-weekday {
+  font-size: clamp(10px, min(2.8cqh, 2.2cqw), 15px);
+  padding-bottom: 2px;
+}
+.ov-body .cal-title {
+  font-size: clamp(14px, min(5cqh, 3.6cqw), 24px);
+}
+.ov-body .cal-add {
+  flex-wrap: wrap;
+}
+.ov-body .cal-add .cal-add-input {
+  flex: 1 1 100%;
+}
+@container ovbody (min-width: 420px) {
+  .ov-body .cal-add .cal-add-input {
+    flex: 1 1 0;
+  }
+}
+@container ovbody (max-height: 360px) {
+  .ov-body .cal-selected-date,
+  .ov-body .cal-events {
+    display: none;
+  }
+}
+@container ovbody (max-height: 240px) {
+  .ov-body .cal-add {
+    display: none;
+  }
+}
+@container ovbody (max-height: 150px) {
+  .ov-body .cal-weekday {
+    display: none;
+  }
+  .ov-body .cal-grid {
+    grid-auto-rows: minmax(10px, 1fr);
+  }
 }
 
 @media (max-width: 760px) {
@@ -3688,7 +4106,104 @@ body.layout-drag-active * {
   .overview-grid {
     overflow: visible;
   }
+  :not(.overview-grid) > .ov-widget:not(.collapsed) {
+    height: 260px;
+  }
   .overview-empty {
     min-height: 200px;
   }
+}
+
+/* ===================== Wasserpegel ===================== */
+.water-chart {
+  flex: 1 1 0;
+  min-height: 80px;
+  height: auto;
+}
+.water-ref {
+  stroke: var(--ink-soft);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+  opacity: 0.55;
+}
+.water-ref-MW {
+  stroke: var(--orange);
+  opacity: 0.8;
+}
+.water-ref-label {
+  position: absolute;
+  right: 4px;
+  transform: translateY(-50%);
+  font-size: 10px;
+  line-height: 1;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--panel);
+  color: var(--ink-soft);
+  pointer-events: none;
+}
+.water-list {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.water-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: var(--panel-2);
+  color: var(--ink);
+  font-family: "Inter", sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+.water-item:hover {
+  border-color: var(--line-strong);
+}
+.water-item.selected {
+  border-color: var(--teal);
+}
+.water-item-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.water-item-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.water-item-water {
+  font-size: 10.5px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.water-item-value {
+  flex: none;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: var(--panel);
+}
+.water-item-value.water-state-normal {
+  color: var(--teal);
+}
+.water-item-value.water-state-low {
+  color: var(--amber);
+}
+.water-item-value.water-state-high {
+  color: var(--orange);
 }
