@@ -65,7 +65,6 @@ body {
 .page {
   max-width: 1080px;
   margin: 0 auto;
-  height: calc(100vh - 112px);
   display: flex;
   flex-direction: column;
 }
@@ -126,7 +125,7 @@ h1 {
 .weather {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 15px;
   position: relative;
   overflow: hidden;
   min-height: 0;
@@ -183,7 +182,7 @@ h1 {
 .temp-now {
   font-family: "Fraunces", serif;
   font-weight: 500;
-  font-size: clamp(64px, 9vw, 92px);
+  font-size: clamp(56px, 7vw, 78px);
   line-height: 0.9;
   letter-spacing: -0.02em;
   opacity: 0;
@@ -338,11 +337,51 @@ h1 {
   color: var(--ink-soft);
 }
 
+.hour-strip-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .hour-strip {
+  flex: 1;
+  min-width: 0;
   display: flex;
   gap: 6px;
-  overflow-x: hidden;
+  overflow-x: auto;
+  scroll-behavior: smooth;
   padding-bottom: 4px;
+}
+.hour-scroll {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--line-strong);
+  background: var(--panel-2);
+  color: var(--ink);
+  cursor: pointer;
+}
+.hour-scroll svg {
+  width: 14px;
+  height: 14px;
+}
+.hour-scroll:hover:not(:disabled) {
+  border-color: var(--teal-soft);
+  color: var(--teal);
+}
+.hour-scroll:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.tz-note {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  margin-top: 3px;
 }
 
 .hour-chip {
@@ -1477,7 +1516,7 @@ h1 {
 
 /* Inhalt jedes Widgets vollständig ausblenden, Header bleibt sichtbar */
 .panel.collapsed
-  > *:not(.weather-top):not(.cal-header):not(.radar-header):not(.widget-panel-header):not(.widget-remove):not(.layout-handle) {
+  > *:not(.weather-top):not(.cal-header):not(.radar-header):not(.widget-panel-header):not(.widget-remove):not(.layout-handle):not(.panel-title):not(.panel-toggle) {
   display: none;
 }
 
@@ -1773,9 +1812,11 @@ body {
 /* Pages - show only active page */
 .page {
   display: none;
+  width: 100%;
   max-width: 1080px;
   margin: 0 auto;
-  height: calc(100vh - 112px);
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
 }
 
@@ -1783,10 +1824,6 @@ body {
   display: flex;
   flex-direction: column;
   gap: 16px;
-}
-
-.page.active > * {
-  flex-shrink: 0;
 }
 
 /* Responsive widget grid */
@@ -1924,6 +1961,28 @@ body {
   color: var(--ink-soft);
   margin-top: 2px;
 }
+.stat-delta {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  margin-top: 3px;
+}
+.stat-delta:empty {
+  display: none;
+}
+
+.chart-empty {
+  flex: 1;
+  align-self: center;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
 
 /* Charts row: bar chart + donut */
 .charts-row {
@@ -1961,6 +2020,14 @@ body {
   gap: 6px;
 }
 
+.bar-track {
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
 .bar-col .bar {
   width: 60%;
   border-radius: 8px 8px 4px 4px;
@@ -2028,12 +2095,60 @@ body {
 
 .wave-chart {
   width: 100%;
-  height: 150px;
+  height: 172px;
+  display: flex;
 }
-.wave-chart svg {
+/* Achsen: links Temperatur, unten Uhrzeit */
+.wave-plot {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  grid-template-rows: 1fr 18px;
+  min-width: 0;
+}
+.wave-y {
+  position: relative;
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.wave-y span {
+  position: absolute;
+  right: 6px;
+  transform: translateY(-50%);
+}
+.wave-area {
+  position: relative;
+  min-width: 0;
+  border-left: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.wave-area svg {
   width: 100%;
   height: 100%;
   display: block;
+}
+.wave-x {
+  grid-column: 2;
+  position: relative;
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.wave-x span {
+  position: absolute;
+  top: 3px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+.wave-now-label {
+  position: absolute;
+  top: 2px;
+  transform: translateX(-50%);
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--orange);
+  background: var(--panel);
+  padding: 0 4px;
+  border-radius: 4px;
 }
 
 .lower-row .calendar {
@@ -2049,14 +2164,18 @@ body {
 }
 
 .detail-row .weather {
-  padding: 24px;
+  padding: 22px;
 }
 .detail-row .placeholder {
   min-height: 220px;
 }
 
-.panel.radar {
-  padding: 24px;
+/* Checkliste zweispaltig, damit die Seite ohne Scrollen passt */
+.disaster-checklist .todo-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 6px 14px;
+  max-height: none;
 }
 
 /* Katastrophenschutz-Seite */
@@ -2069,16 +2188,34 @@ body {
 .disaster-side {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 }
 .disaster-warn,
 .disaster-checklist,
 #disasterNumbersPanel,
 #disasterMeetingPanel {
-  padding: 22px;
+  padding: 18px 20px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+#disasterNumbersList .emerg-row {
+  gap: 14px;
+}
+#disasterNumbersList .emerg-label {
+  max-width: none;
+}
+.disaster-checklist .todo-item {
+  padding: 6px 10px;
+}
+/* "Gespeichert" überlagert den Panel-Rand, statt dauerhaft eine Zeile zu reservieren */
+#disasterMeetingPanel {
+  position: relative;
+}
+#meetingSaved {
+  position: absolute;
+  right: 20px;
+  bottom: 4px;
 }
 .scroll-list {
   max-height: 260px;
@@ -2327,5 +2464,464 @@ body.layout-drag-active * {
   .wave-card,
   .panel.radar {
     padding: 16px;
+  }
+}
+
+/* ===================================================================
+   Bildschirmfüllendes Layout: keine Seite scrollt. Die Widgets teilen
+   sich den verfügbaren Platz, eingeklappte Widgets geben ihn frei.
+   =================================================================== */
+.page,
+#disasterPage.page.active {
+  overflow: hidden;
+  padding-right: 0;
+}
+.page.active {
+  gap: clamp(8px, 1.8vh, 16px);
+}
+.page.active > * {
+  flex: 0 0 auto;
+  min-height: 0;
+}
+
+/* Zeilen mit mehreren Widgets nebeneinander */
+.charts-row,
+.lower-row,
+.detail-row,
+.disaster-row {
+  display: flex;
+  align-items: stretch;
+  gap: clamp(10px, 1.8vh, 18px);
+}
+.page.active > .charts-row,
+.page.active > .lower-row,
+.page.active > .detail-row,
+.page.active > .disaster-row {
+  flex: 1 1 0;
+}
+.charts-row > *,
+.lower-row > *,
+.detail-row > *,
+.disaster-row > * {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.charts-row > .chart-card {
+  flex-grow: 1.6;
+}
+.disaster-row > .disaster-warn {
+  flex-grow: 1.4;
+}
+.charts-row > .collapsed,
+.lower-row > .collapsed,
+.detail-row > .collapsed,
+.disaster-row > .collapsed {
+  flex: 0 0 auto;
+  align-self: flex-start;
+}
+/* Sind alle Widgets einer Zeile eingeklappt, schrumpft die Zeile */
+.page.active > .charts-row:not(:has(> .panel:not(.collapsed))),
+.page.active > .lower-row:not(:has(> .panel:not(.collapsed))),
+.page.active > .detail-row:not(:has(> .panel:not(.collapsed))),
+.page.active > .disaster-row:not(:has(> .panel:not(.collapsed))):not(:has(> .disaster-side > .panel:not(.collapsed))) {
+  flex: 0 0 auto;
+}
+
+.panel,
+.stat-card {
+  position: relative;
+}
+
+/* Kennzahlen-Karten */
+.stat-row {
+  gap: clamp(8px, 1.6vh, 18px);
+  align-items: start;
+}
+.stat-card {
+  padding: clamp(10px, 1.8vh, 18px) 20px;
+}
+
+/* Diagramme passen sich der Kartenhöhe an */
+.chart-card,
+.donut-card,
+.wave-card {
+  min-height: 0;
+  overflow: hidden;
+  padding: clamp(12px, 2.2vh, 22px);
+  gap: clamp(4px, 1vh, 10px);
+}
+.bar-chart {
+  flex: 1 1 0;
+  min-height: 80px;
+}
+.donut-chart {
+  flex: 1 1 0;
+  min-height: 96px;
+  width: 100%;
+  height: auto;
+}
+.donut-chart svg {
+  transform: none;
+}
+.wave-chart {
+  flex: 1 1 0;
+  min-height: 80px;
+  height: auto;
+}
+
+/* Wetter-Seite */
+.detail-row .weather {
+  min-height: 0;
+  overflow: hidden;
+  gap: clamp(8px, 1.6vh, 15px);
+  padding: clamp(14px, 2.4vh, 22px);
+}
+.day-detail.show {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Kalender-Seite: Tage füllen die Höhe statt quadratisch zu sein */
+.page.active > .panel.calendar {
+  flex: 1 1 0;
+  overflow: hidden;
+  padding: clamp(14px, 2.4vh, 28px);
+  gap: clamp(8px, 1.4vh, 14px);
+}
+.calendar .cal-grid {
+  flex: 1 1 0;
+  min-height: 0;
+  grid-template-rows: auto;
+  grid-auto-rows: minmax(0, 1fr);
+}
+.calendar .cal-day {
+  aspect-ratio: auto;
+  height: auto;
+  min-height: 0;
+}
+.calendar .cal-events {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: 30%;
+  overflow: hidden;
+}
+
+/* Regenradar-Seite: Karte nimmt den Rest ein */
+.page.active > .panel.radar {
+  flex: 1 1 0;
+  overflow: hidden;
+  padding: clamp(14px, 2.4vh, 22px);
+  gap: clamp(8px, 1.4vh, 12px);
+}
+.panel.radar .map-wrap {
+  flex: 1 1 0;
+  min-height: 0;
+  height: auto;
+}
+
+/* Widget-Seite */
+.page.active > #widgetSlot {
+  flex: 1 1 0;
+}
+.widget-panel-body {
+  overflow: hidden;
+}
+
+/* Katastrophenschutz-Seite */
+.disaster-side {
+  display: flex;
+  flex-direction: column;
+}
+.disaster-side > .panel {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+.disaster-warn .scroll-list,
+.disaster-checklist .scroll-list {
+  flex: 1 1 0;
+  max-height: none;
+  min-height: 0;
+  overflow: hidden;
+}
+.page.active > .disaster-checklist {
+  flex: 0 1 auto;
+  overflow: hidden;
+}
+
+/* Eingeklappte Widgets: nur Titel und Pfeil */
+.page.active > .panel.collapsed,
+.page.active > #widgetSlot.collapsed {
+  flex: 0 0 auto;
+}
+.stat-card.collapsed {
+  align-self: start;
+}
+.stat-card.collapsed .stat-value,
+.stat-card.collapsed .stat-delta {
+  display: none;
+}
+.panel-toggle.auto-toggle {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 3;
+}
+.stat-card > .panel-toggle.auto-toggle {
+  top: 8px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+}
+.panel:has(> .auto-toggle) > .panel-title {
+  padding-right: 34px;
+}
+
+/* Wenig Höhe: Hinweistexte zuerst ausblenden */
+@media (max-height: 760px) {
+  .source-note,
+  .radar-note,
+  .radar-detail-note,
+  .panel-sub,
+  .warn-note {
+    display: none;
+  }
+}
+
+/* Bis 760px bleiben Widgets nebeneinander (überschreibt die ältere 1080px-Regel) */
+@media (max-width: 1080px) {
+  .stat-row {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .stat-card {
+    padding: clamp(8px, 1.6vh, 16px) 14px;
+    gap: 10px;
+    min-width: 0;
+  }
+  .stat-card > * {
+    min-width: 0;
+  }
+  .stat-label {
+    hyphens: auto;
+  }
+  .stat-icon {
+    width: 34px;
+    height: 34px;
+  }
+}
+@media (max-width: 900px) {
+  .stat-icon,
+  .stat-delta-suffix {
+    display: none;
+  }
+  .stat-value {
+    font-size: 20px;
+    white-space: nowrap;
+  }
+}
+
+/* Schmale Bildschirme: Widgets untereinander, teilen sich die Höhe */
+@media (max-width: 760px) {
+  .stat-row {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .stat-card {
+    padding: 8px;
+    gap: 0;
+    min-width: 0;
+  }
+  .stat-card > div {
+    min-width: 0;
+  }
+  .stat-icon,
+  .stat-delta-suffix,
+  .panel-sub {
+    display: none;
+  }
+  .stat-value {
+    font-size: 15px;
+    white-space: nowrap;
+  }
+  .stat-label {
+    font-size: 10px;
+    padding-right: 0;
+    hyphens: auto;
+  }
+  .stat-value {
+    padding-right: 18px;
+  }
+  .stat-delta {
+    white-space: nowrap;
+  }
+  .donut-caption {
+    display: none;
+  }
+  .disaster-row > .disaster-side {
+    flex: 0 0 auto;
+  }
+  .stat-card > .panel-toggle.auto-toggle {
+    top: 4px;
+    right: 4px;
+    width: 18px;
+    height: 18px;
+  }
+  .stat-card > .panel-toggle.auto-toggle svg {
+    width: 11px;
+    height: 11px;
+  }
+  .charts-row,
+  .lower-row,
+  .detail-row,
+  .disaster-row {
+    flex-direction: column;
+  }
+  .charts-row > *,
+  .lower-row > *,
+  .detail-row > *,
+  .disaster-row > *,
+  .charts-row > .chart-card,
+  .disaster-row > .disaster-warn {
+    flex: 1 1 0;
+  }
+  .charts-row > .collapsed,
+  .lower-row > .collapsed,
+  .detail-row > .collapsed,
+  .disaster-row > .collapsed {
+    flex: 0 0 auto;
+    align-self: stretch;
+  }
+  .page.active > .disaster-checklist:not(.collapsed) {
+    flex: 1 1 0;
+  }
+}
+
+/* ===================== Feuerwehr-Seite ===================== */
+.bar-label .bar-date {
+  display: block;
+  font-size: 10px;
+  opacity: 0.8;
+}
+.fire-table-card {
+  background: var(--panel);
+  padding: clamp(12px, 2.2vh, 22px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px, 1vh, 10px);
+}
+.fire-table-wrap {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.fire-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.fire-table th,
+.fire-table td {
+  padding: clamp(3px, 0.7vh, 7px) 10px;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+  white-space: nowrap;
+}
+.fire-table th:first-child,
+.fire-table td:first-child {
+  text-align: left;
+}
+.fire-table th {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.fire-table tbody tr:first-child td {
+  font-weight: 600;
+}
+.fire-table .fire-table-empty {
+  text-align: center;
+  color: var(--ink-soft);
+  padding: 18px;
+}
+#firePage > .lower-row {
+  flex-grow: 1.3;
+}
+.fire-export {
+  position: absolute;
+  top: 12px;
+  right: 46px;
+  height: 26px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 0 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.fire-export:hover:not(:disabled) {
+  border-color: var(--orange);
+}
+.fire-export:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+@media (max-width: 760px) {
+  .fire-table {
+    font-size: 11px;
+  }
+  .fire-table th,
+  .fire-table td {
+    padding: 3px 4px;
+  }
+  .fire-table th {
+    font-size: 10px;
+    white-space: normal;
+  }
+  #fireSourceNote {
+    font-size: 10.5px;
+  }
+  .stat-unit {
+    display: none;
+  }
+  #firePage .charts-row > .donut-card:not(.collapsed) {
+    flex: 0 0 auto;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    text-align: left;
+  }
+  #firePage .donut-card .donut-chart {
+    flex: 0 0 auto;
+    width: 64px;
+    height: 64px;
+    min-height: 0;
+    margin-right: 34px;
+  }
+  #firePage .donut-card .donut-pct {
+    font-size: 14px;
+  }
+  #firePage .donut-card .donut-word {
+    display: none;
+  }
+  #firePage > .charts-row {
+    flex-grow: 1.5;
+  }
+  #firePage > .lower-row {
+    flex-grow: 1;
+  }
+}
+@media (max-height: 760px) {
+  .fire-table th,
+  .fire-table td {
+    padding-top: 2px;
+    padding-bottom: 2px;
   }
 }

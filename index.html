@@ -88,6 +88,7 @@
         <div class="stat-body">
           <div class="stat-value" id="statTempNow">–</div>
           <div class="stat-label">Temperatur</div>
+          <div class="stat-delta" id="statTempDelta"></div>
         </div>
       </div>
       <div class="stat-card accent-orange">
@@ -97,6 +98,7 @@
         <div class="stat-body">
           <div class="stat-value" id="statWind">–</div>
           <div class="stat-label">Wind</div>
+          <div class="stat-delta" id="statWindDelta"></div>
         </div>
       </div>
       <div class="stat-card accent-light">
@@ -106,6 +108,7 @@
         <div class="stat-body">
           <div class="stat-value" id="statHumidity">–</div>
           <div class="stat-label">Luftfeuchte</div>
+          <div class="stat-delta" id="statHumidityDelta"></div>
         </div>
       </div>
       <div class="stat-card accent-navy2">
@@ -115,6 +118,7 @@
         <div class="stat-body">
           <div class="stat-value" id="statRain">–</div>
           <div class="stat-label">Regenchance heute</div>
+          <div class="stat-delta" id="statRainDelta"></div>
         </div>
       </div>
     </div>
@@ -123,11 +127,11 @@
       <section class="panel chart-card" aria-label="Temperaturvorhersage">
         <div class="panel-title">Vorhersage · Höchsttemperatur</div>
         <div class="panel-sub">Nächste Tage</div>
-        <div id="barChart" class="bar-chart"></div>
+        <div id="barChart" class="bar-chart"><div class="chart-empty">Daten werden geladen …</div></div>
       </section>
       <section class="panel donut-card" aria-label="Regenwahrscheinlichkeit">
         <div class="panel-title">Regenwahrscheinlichkeit</div>
-        <div id="donutChart" class="donut-chart"></div>
+        <div id="donutChart" class="donut-chart"><div class="chart-empty">Daten werden geladen …</div></div>
         <div class="donut-caption" id="donutCaption">heute</div>
       </section>
     </div>
@@ -136,7 +140,7 @@
       <section class="panel wave-card" aria-label="Temperaturverlauf">
         <div class="panel-title">Temperaturverlauf</div>
         <div class="panel-sub" id="waveDayLabel">heute, stündlich</div>
-        <div id="waveChart" class="wave-chart"></div>
+        <div id="waveChart" class="wave-chart"><div class="chart-empty">Daten werden geladen …</div></div>
       </section>
     </div>
     </div> <!-- Ende Übersicht Page -->
@@ -152,6 +156,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>
               <span id="weatherPlaceName">Wiesbaden</span>
             </div>
+            <div class="tz-note" id="weatherTzNote" hidden></div>
           </div>
           <div class="weather-top-right">
             <svg class="condition-icon" id="weatherIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -172,10 +177,10 @@
         <div class="weather-loading" id="weatherLoading"></div>
 
         <div class="temp-row">
-          <div class="temp-now" id="weatherTempNow">11°</div>
+          <div class="temp-now" id="weatherTempNow">–</div>
           <div class="temp-meta">
-            <div class="condition-text" id="weatherConditionText">Bewölkt</div>
-            <div class="range" id="weatherRange">Heute 9° – 22° · 10 % Regenwahrscheinlichkeit</div>
+            <div class="condition-text" id="weatherConditionText">–</div>
+            <div class="range" id="weatherRange">Wetterdaten werden geladen …</div>
           </div>
         </div>
 
@@ -186,7 +191,15 @@
         <div class="day-detail" id="dayDetail">
           <div class="day-detail-title" id="dayDetailTitle">Details</div>
           <div class="day-detail-rain" id="dayDetailRain"></div>
-          <div class="hour-strip" id="dayDetailHours"></div>
+          <div class="hour-strip-wrap">
+            <button type="button" class="hour-scroll" id="hourScrollPrev" aria-label="Frühere Stunden">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <div class="hour-strip" id="dayDetailHours"></div>
+            <button type="button" class="hour-scroll" id="hourScrollNext" aria-label="Spätere Stunden">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+            </button>
+          </div>
         </div>
 
         <div class="source-note" id="weatherSourceNote">Wetterdaten werden geladen … · Quelle: Open-Meteo</div>
@@ -285,7 +298,7 @@
         <div class="frame-time" id="frameTime">–</div>
       </div>
 
-      <div class="radar-note">Kartenbasis © Esri · Radar © RainViewer · Niederschlagskarte © OpenWeather · Ortssuche: Open-Meteo. Testschlüssel ist im HTML und in Netzwerkanfragen sichtbar.</div>
+      <div class="radar-note">Kartenbasis © Esri · Radar © RainViewer · Niederschlagskarte © OpenWeather · Ortssuche: Open-Meteo. Der API-Key aus js/config.js ist in Netzwerkanfragen sichtbar.</div>
     </section>
     </div> <!-- Ende Regenradar Page -->
 
@@ -326,6 +339,81 @@
         <div class="todo-list scroll-list" id="disasterChecklistList"></div>
       </section>
     </div> <!-- Ende Katastrophenschutz Page -->
+
+    <!-- FEUERWEHR SEITE -->
+    <div id="firePage" class="page">
+      <div class="stat-row" id="fireStats">
+        <div class="stat-card accent-orange">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21c-3.9 0-6.5-2.6-6.5-6.2 0-3.3 2.3-5.4 3.6-7.6.3 1.6 1.1 2.8 2.2 3.4.2-2.9 1.4-5.6 3.7-7.6.3 2.7 1.3 4.6 2.6 6.4 1 1.4.9 2.9.9 5.4 0 3.6-2.6 6.2-6.5 6.2z"/></svg>
+          </div>
+          <div class="stat-body">
+            <div class="stat-value" id="fireTotal">–</div>
+            <div class="stat-label">Brandeinsätze (7 Tage)</div>
+            <div class="stat-delta" id="fireTotalDelta"></div>
+          </div>
+        </div>
+        <div class="stat-card accent-navy">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 9.5h17M8 3v3.5M16 3v3.5"/></svg>
+          </div>
+          <div class="stat-body">
+            <div class="stat-value" id="fireAvg">–</div>
+            <div class="stat-label">Ø pro Tag</div>
+            <div class="stat-delta" id="fireAvgDelta"></div>
+          </div>
+        </div>
+        <div class="stat-card accent-light">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+          </div>
+          <div class="stat-body">
+            <div class="stat-value" id="firePeak">–</div>
+            <div class="stat-label">Spitzentag</div>
+            <div class="stat-delta" id="firePeakDelta"></div>
+          </div>
+        </div>
+        <div class="stat-card accent-navy2">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9.5 2.5h5"/></svg>
+          </div>
+          <div class="stat-body">
+            <div class="stat-value" id="fireResponse">–</div>
+            <div class="stat-label">Eintreffzeit 1. Löschfahrzeug</div>
+            <div class="stat-delta" id="fireResponseDelta"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <section class="panel chart-card" aria-label="Brandeinsätze pro Tag">
+          <div class="panel-title">Brandeinsätze pro Tag</div>
+          <div class="panel-sub" id="fireChartSub">Berliner Feuerwehr · orange = Spitzentag</div>
+          <div id="fireBarChart" class="bar-chart"><div class="chart-empty">Daten werden geladen …</div></div>
+        </section>
+        <section class="panel donut-card" aria-label="Anteil an allen Einsätzen">
+          <div class="panel-title">Anteil an allen Einsätzen</div>
+          <div id="fireDonut" class="donut-chart"><div class="chart-empty">Daten werden geladen …</div></div>
+          <div class="donut-caption" id="fireDonutCaption"></div>
+        </section>
+      </div>
+
+      <div class="lower-row">
+        <section class="panel fire-table-card" id="fireTablePanel" aria-label="Tagesübersicht Feuerwehr">
+          <div class="panel-title">Tagesübersicht</div>
+          <button type="button" class="fire-export" id="fireExportBtn" disabled>CSV exportieren</button>
+          <div class="fire-table-wrap">
+            <table class="fire-table">
+              <thead>
+                <tr><th>Tag</th><th>Brände</th><th>Techn. Hilfe</th><th>Alle Einsätze</th><th>Eintreffzeit 1. LF</th></tr>
+              </thead>
+              <tbody id="fireTableBody"><tr><td colspan="5" class="fire-table-empty">Daten werden geladen …</td></tr></tbody>
+            </table>
+          </div>
+          <div class="warn-note" id="fireSourceNote">Quelle: Berliner Feuerwehr Open Data · Tage nach Berliner Ortszeit</div>
+        </section>
+      </div>
+    </div> <!-- Ende Feuerwehr Page -->
 
   </main>
 </div>
@@ -393,6 +481,7 @@
 <div class="toast" id="toast">Hier entsteht bald ein neues Widget</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="js/config.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

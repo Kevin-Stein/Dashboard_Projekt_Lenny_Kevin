@@ -62,6 +62,15 @@ const NAV_CATEGORIES = {
     </svg><span>Katastrophenschutz</span>`,
     target: "disasterPage",
   },
+  fire: {
+    id: "fire",
+    label: "Feuerwehr",
+    alwaysShow: true,
+    html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+      <path d="M12 21c-3.9 0-6.5-2.6-6.5-6.2 0-3.3 2.3-5.4 3.6-7.6.3 1.6 1.1 2.8 2.2 3.4.2-2.9 1.4-5.6 3.7-7.6.3 2.7 1.3 4.6 2.6 6.4 1 1.4.9 2.9.9 5.4 0 3.6-2.6 6.2-6.5 6.2z" />
+    </svg><span>Feuerwehr</span>`,
+    target: "firePage",
+  },
   widgets: {
     id: "widgets",
     label: "Widget",
@@ -165,19 +174,53 @@ document.querySelectorAll(".placeholder").forEach((btn) => {
   btn.addEventListener("click", openWidgetPicker);
 });
 
+const COLLAPSED_STORAGE_KEY = "dashboard-collapsed";
+
+function loadCollapsedIds() {
+  try {
+    return JSON.parse(localStorage.getItem(COLLAPSED_STORAGE_KEY) || "[]");
+  } catch (err) {
+    return [];
+  }
+}
+function storeCollapsed(id, collapsed) {
+  const ids = loadCollapsedIds().filter((x) => x !== id);
+  if (collapsed) ids.push(id);
+  try {
+    localStorage.setItem(COLLAPSED_STORAGE_KEY, JSON.stringify(ids));
+  } catch (err) {}
+}
+
+function setCollapsed(panelEl, btnEl, collapsed) {
+  panelEl.classList.toggle("collapsed", collapsed);
+  btnEl.classList.toggle("rotated", collapsed);
+  btnEl.setAttribute("aria-expanded", String(!collapsed));
+}
+
 function setupToggle(panelEl, btnEl) {
   if (!panelEl || !btnEl) return;
-  btnEl.setAttribute("aria-expanded", "true");
+  const id = panelEl.id || panelEl.dataset.layoutId;
+  setCollapsed(panelEl, btnEl, Boolean(id) && loadCollapsedIds().includes(id));
   btnEl.addEventListener("click", () => {
     const willCollapse = !panelEl.classList.contains("collapsed");
-    panelEl.classList.toggle("collapsed");
-    btnEl.classList.toggle("rotated");
-    btnEl.setAttribute("aria-expanded", String(!willCollapse));
-    if (!willCollapse && panelEl.querySelector("#map")) {
-      setTimeout(() => {
-        if (typeof map !== "undefined" && map) map.invalidateSize();
-      }, 200);
-    }
+    setCollapsed(panelEl, btnEl, willCollapse);
+    if (id) storeCollapsed(id, willCollapse);
+  });
+}
+
+// Alle übrigen Widgets bekommen einen eigenen Einklapp-Pfeil
+function addMissingToggles() {
+  document.querySelectorAll(".page .panel, .page .stat-card").forEach((el) => {
+    if (el.querySelector(".panel-toggle")) return;
+    const title = el.querySelector(".panel-title, .stat-label");
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "panel-toggle auto-toggle";
+    btn.setAttribute("aria-label", `${title ? title.textContent.trim() : "Widget"} ein-/ausklappen`);
+    btn.innerHTML =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>';
+    el.appendChild(btn);
+    setupToggle(el, btn);
   });
 }
 
@@ -272,6 +315,7 @@ async function refreshDashboardData() {
       loadWeatherForPlace(currentWeatherCoords.lat, currentWeatherCoords.lon, currentWeatherCoords.label),
       loadRadar(),
       loadDisasterWarnings(document.getElementById("disasterWarnSearchInput")?.value || ""),
+      loadFireData(),
     ]);
   } finally {
     refreshIcon.classList.remove("spinning");
@@ -1150,6 +1194,7 @@ function initLayout() {
 })();
 
 initLayout();
+addMissingToggles();
 
 // ---- Live-Regenradar (Leaflet + RainViewer + Open-Meteo Geocoding) ----
 const map = L.map("map", {
@@ -1157,6 +1202,7 @@ const map = L.map("map", {
   attributionControl: true,
   maxZoom: 16,
 }).setView([50.0782, 8.2398], 8);
+new ResizeObserver(() => map.invalidateSize()).observe(document.getElementById("map"));
 
 L.tileLayer(
   "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
@@ -1166,8 +1212,8 @@ L.tileLayer(
   },
 ).addTo(map);
 
-// Hinweis: Ersetze 'DEIN_OPENWEATHER_API_KEY' mit deinem echten API-Key von https://openweathermap.org/api
-const OPENWEATHER_TEST_KEY = "DEIN_OPENWEATHER_API_KEY";
+// Kommt aus js/config.js (nicht im Repository, Vorlage: js/config.example.js) und ist im Browser trotzdem sichtbar
+const OPENWEATHER_KEY = (window.DASHBOARD_CONFIG && window.DASHBOARD_CONFIG.openWeatherKey) || "";
 let radarLayers = [];
 let frames = [];
 let currentFrame = 0;
@@ -1182,6 +1228,12 @@ const playBtn = document.getElementById("playBtn");
 const playIcon = document.getElementById("playIcon");
 const radarProvider = document.getElementById("radarProvider");
 const radarDetailNote = document.getElementById("radarDetailNote");
+if (!OPENWEATHER_KEY) {
+  const option = radarProvider.querySelector('option[value="openweather"]');
+  option.disabled = true;
+  option.textContent += " (kein API-Key in js/config.js)";
+  radarProvider.value = "rainviewer";
+}
 const playback = document.getElementById("radarPlayback");
 
 function formatFrameTime(unixSeconds) {
@@ -1272,7 +1324,7 @@ function loadOpenWeather() {
   let seen = false;
   openWeatherLayer = L.tileLayer(
     "https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=" +
-      encodeURIComponent(OPENWEATHER_TEST_KEY),
+      encodeURIComponent(OPENWEATHER_KEY),
     {
       attribution: "Niederschlag © OpenWeather",
       opacity: 0.7,
@@ -1432,7 +1484,7 @@ function renderForecastBars(data) {
       const label = i === 0 ? "Heute" : weatherDayLabels[d.getDay()];
       return `<div class="bar-col${i === 0 ? " today" : ""}">
       <div class="bar-value">${high}°</div>
-      <div class="bar" style="height:${heightPct.toFixed(0)}%"></div>
+      <div class="bar-track"><div class="bar" style="height:${heightPct.toFixed(0)}%"></div></div>
       <div class="bar-label">${label}</div>
     </div>`;
     })
@@ -1450,7 +1502,7 @@ function renderRainDonut(percent, captionText) {
   el.innerHTML = `
     <svg viewBox="0 0 120 120">
       <circle cx="60" cy="60" r="${r}" fill="none" style="stroke:var(--line)" stroke-width="14"/>
-      <circle cx="60" cy="60" r="${r}" fill="none" style="stroke:var(--orange)" stroke-width="14"
+      <circle cx="60" cy="60" r="${r}" fill="none" style="stroke:var(--orange)" stroke-width="14" transform="rotate(-90 60 60)"
         stroke-linecap="round" stroke-dasharray="${filled.toFixed(1)} ${circumference.toFixed(1)}"/>
     </svg>
     <div class="donut-center">
@@ -1462,7 +1514,7 @@ function renderRainDonut(percent, captionText) {
 }
 
 // ---- NEU: Wellen-/Flächendiagramm (stündlicher Temperaturverlauf) ----
-function renderTempWave(hourIdxForDay, hourly) {
+function renderTempWave(hourIdxForDay, hourly, nowIso) {
   const el = document.getElementById("waveChart");
   if (!el || !hourIdxForDay.length) return;
   const temps = hourIdxForDay.map((i) => hourly.temperature_2m[i]);
@@ -1481,17 +1533,52 @@ function renderTempWave(hourIdxForDay, hourly) {
   const linePath = points.map((p, i) => (i === 0 ? "M" : "L") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
   const areaPath =
     linePath + ` L${points[points.length - 1][0].toFixed(1)} ${h - pad} L${points[0][0].toFixed(1)} ${h - pad} Z`;
+
+  // Beschriftungen als HTML, weil Text im gestreckten SVG (preserveAspectRatio="none") verzerrt würde
+  const xPct = (x) => ((x / w) * 100).toFixed(2) + "%";
+  const yPct = (y) => ((y / h) * 100).toFixed(2) + "%";
+  const xLabels = hourIdxForDay
+    .map((idx, i) => ({ i, hour: Number(hourly.time[idx].slice(11, 13)) }))
+    .filter(({ hour }) => hour % 6 === 0)
+    .map(({ i, hour }) => `<span style="left:${xPct(points[i][0])}">${String(hour).padStart(2, "0")}:00</span>`)
+    .join("");
+  const yLabels =
+    `<span style="top:${yPct(pad)}">${Math.round(maxT)}°</span>` +
+    `<span style="top:${yPct(h / 2)}">${Math.round((maxT + minT) / 2)}°</span>` +
+    `<span style="top:${yPct(h - pad)}">${Math.round(minT)}°</span>`;
+
+  let nowLine = "";
+  let nowLabel = "";
+  if (nowIso) {
+    const i = hourIdxForDay.findIndex((idx) => hourly.time[idx].startsWith(nowIso.slice(0, 13)));
+    if (i >= 0) {
+      const x = points[i][0].toFixed(1);
+      nowLine = `<line x1="${x}" y1="0" x2="${x}" y2="${h}" style="stroke:var(--orange)" stroke-width="1.5" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>`;
+      nowLabel = `<span class="wave-now-label" style="left:${xPct(points[i][0])}">jetzt</span>`;
+    }
+  }
+
+  el.setAttribute("role", "img");
+  el.setAttribute("aria-label", `Temperaturverlauf zwischen ${Math.round(minT)}° und ${Math.round(maxT)}°`);
   el.innerHTML = `
-    <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
-      <defs>
-        <linearGradient id="waveFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" style="stop-color:var(--orange);stop-opacity:0.35"/>
-          <stop offset="100%" style="stop-color:var(--orange);stop-opacity:0"/>
-        </linearGradient>
-      </defs>
-      <path d="${areaPath}" fill="url(#waveFill)" stroke="none"/>
-      <path d="${linePath}" fill="none" style="stroke:var(--navy)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
-    </svg>`;
+    <div class="wave-plot">
+      <div class="wave-y">${yLabels}</div>
+      <div class="wave-area">
+        <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="waveFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" style="stop-color:var(--orange);stop-opacity:0.35"/>
+              <stop offset="100%" style="stop-color:var(--orange);stop-opacity:0"/>
+            </linearGradient>
+          </defs>
+          <path d="${areaPath}" fill="url(#waveFill)" stroke="none"/>
+          <path d="${linePath}" fill="none" style="stroke:var(--navy)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+          ${nowLine}
+        </svg>
+        ${nowLabel}
+      </div>
+      <div class="wave-x">${xLabels}</div>
+    </div>`;
 }
 
 function renderDayDetail(index) {
@@ -1545,15 +1632,17 @@ function renderDayDetail(index) {
     `;
       hoursEl.appendChild(chip);
     });
+  hoursEl.scrollLeft = 0;
+  updateHourScrollButtons();
 
   document.getElementById("dayDetail").classList.add("show");
 
   const dayPop = d.precipitation_probability_max[index] ?? 0;
   const shortLabel = index === 0 ? "heute" : dateLabel;
   renderRainDonut(dayPop, shortLabel);
-  renderTempWave(hourIdxForDay, hourly);
+  renderTempWave(hourIdxForDay, hourly, index === 0 ? weatherData.current.time : null);
   const waveLabelEl = document.getElementById("waveDayLabel");
-  if (waveLabelEl) waveLabelEl.textContent = shortLabel + ", stündlich";
+  if (waveLabelEl) waveLabelEl.textContent = shortLabel + ", stündlich" + (weatherTzShort ? ` · ${weatherTzShort}` : "");
 
   const statsEl = document.getElementById("weatherStats");
   if (index === 0) {
@@ -1585,6 +1674,104 @@ function renderDayDetail(index) {
   }
 }
 
+// ---- Stundenleiste mit Pfeiltasten (Scrollbars sind ausgeblendet) ----
+const hourStripEl = document.getElementById("dayDetailHours");
+const hourPrevBtn = document.getElementById("hourScrollPrev");
+const hourNextBtn = document.getElementById("hourScrollNext");
+
+function updateHourScrollButtons() {
+  hourPrevBtn.disabled = hourStripEl.scrollLeft <= 2;
+  hourNextBtn.disabled = hourStripEl.scrollLeft + hourStripEl.clientWidth >= hourStripEl.scrollWidth - 2;
+}
+hourPrevBtn.addEventListener("click", () => hourStripEl.scrollBy({ left: -hourStripEl.clientWidth * 0.8 }));
+hourNextBtn.addEventListener("click", () => hourStripEl.scrollBy({ left: hourStripEl.clientWidth * 0.8 }));
+hourStripEl.addEventListener("scroll", updateHourScrollButtons);
+// Auf versteckten Seiten ist die Breite 0 — beim Einblenden neu prüfen
+new ResizeObserver(updateHourScrollButtons).observe(hourStripEl);
+
+// ---- KPI-Vergleich mit dem Vortag ----
+// Mit past_days=1 liefert Open-Meteo den Vortag vorne mit; er wird abgetrennt,
+// damit Index 0 im Rest des Codes weiterhin "heute" ist.
+function splitOffYesterday(data) {
+  const yDate = data.daily.time[0];
+  const cut = data.hourly.time.findIndex((t) => !t.startsWith(yDate));
+  const yesterday = { hourly: {}, daily: {} };
+  Object.keys(data.hourly).forEach((k) => {
+    yesterday.hourly[k] = data.hourly[k].slice(0, cut);
+    data.hourly[k] = data.hourly[k].slice(cut);
+  });
+  Object.keys(data.daily).forEach((k) => {
+    yesterday.daily[k] = data.daily[k][0];
+    data.daily[k] = data.daily[k].slice(1);
+  });
+  return yesterday;
+}
+
+function sameHourYesterday(yesterday, currentIso, key) {
+  const hour = currentIso.slice(11, 13);
+  const i = yesterday.hourly.time.findIndex((t) => t.slice(11, 13) === hour);
+  return i >= 0 ? yesterday.hourly[key][i] : null;
+}
+
+function formatDelta(now, before, unit, compareText, decimals = 0) {
+  if (now == null || before == null) return null;
+  const factor = 10 ** decimals;
+  const diff = Math.round((now - before) * factor) / factor;
+  if (diff === 0) return { main: "→", suffix: `wie ${compareText}` };
+  const amount = Math.abs(diff).toLocaleString("de-DE", { maximumFractionDigits: decimals });
+  return { main: `${diff > 0 ? "↑" : "↓"} ${amount}${unit}`, suffix: `ggü. ${compareText}` };
+}
+
+// Der Zusatztext wird auf schmalen Bildschirmen per CSS ausgeblendet
+function setStatDelta(id, delta) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = delta ? delta.main : "";
+  if (delta && delta.suffix) {
+    const suffix = document.createElement("span");
+    suffix.className = "stat-delta-suffix";
+    suffix.textContent = " " + delta.suffix;
+    el.appendChild(suffix);
+  }
+}
+
+// ---- Zeitzone des gesuchten Orts ----
+let weatherTzShort = "";
+
+function formatUtcOffset(seconds) {
+  const sign = seconds >= 0 ? "+" : "−";
+  const abs = Math.abs(seconds);
+  const h = Math.floor(abs / 3600);
+  const m = Math.round((abs % 3600) / 60);
+  return `UTC${sign}${h}${m ? ":" + String(m).padStart(2, "0") : ""}`;
+}
+
+function updateTimezoneNote(data, label) {
+  const tzEl = document.getElementById("weatherTzNote");
+  const browserOffset = -new Date().getTimezoneOffset() * 60;
+  if (typeof data.utc_offset_seconds !== "number" || data.utc_offset_seconds === browserOffset) {
+    weatherTzShort = "";
+    tzEl.hidden = true;
+    return;
+  }
+  const place = label.split(",")[0];
+  weatherTzShort = `Ortszeit ${place}`;
+  tzEl.textContent = `Alle Uhrzeiten in Ortszeit ${place} (${formatUtcOffset(data.utc_offset_seconds)})`;
+  tzEl.hidden = false;
+}
+
+function renderWeatherNoData() {
+  const msg = '<div class="chart-empty">Keine Daten verfügbar</div>';
+  ["barChart", "donutChart", "waveChart"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = msg;
+  });
+  ["statTempDelta", "statWindDelta", "statHumidityDelta", "statRainDelta"].forEach((id) =>
+    setStatDelta(id, { main: "Keine Daten", suffix: "verfügbar" }),
+  );
+  document.getElementById("weatherRange").textContent = "Keine Daten verfügbar";
+}
+
 async function loadWeatherForPlace(lat, lon, label) {
   currentWeatherCoords = { lat, lon, label };
   weatherLoading.textContent = `Lade Wetter für "${label}" …`;
@@ -1592,14 +1779,16 @@ async function loadWeatherForPlace(lat, lon, label) {
     const url =
       `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
       `&current=temperature_2m,weather_code,relative_humidity_2m,apparent_temperature,surface_pressure,wind_speed_10m` +
-      `&hourly=temperature_2m,weather_code,precipitation_probability,surface_pressure,relative_humidity_2m` +
+      `&hourly=temperature_2m,weather_code,precipitation_probability,surface_pressure,relative_humidity_2m,wind_speed_10m` +
       `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,uv_index_max,sunrise,sunset` +
-      `&timezone=auto&forecast_days=6`;
+      `&timezone=auto&forecast_days=6&past_days=1`;
     const res = await fetch(url);
     if (!res.ok) throw new Error("Wetter HTTP " + res.status);
     const data = await res.json();
-    if (!data.current || !data.daily?.time?.length) throw new Error("Unvollständige Wetterdaten");
+    if (!data.current || !(data.daily?.time?.length > 1)) throw new Error("Unvollständige Wetterdaten");
+    const yesterday = splitOffYesterday(data);
     weatherData = data;
+    updateTimezoneNote(data, label);
 
     document.getElementById("weatherPlaceName").textContent = label;
     const sidebarPlaceEl = document.getElementById("sidebarPlaceName");
@@ -1625,6 +1814,24 @@ async function loadWeatherForPlace(lat, lon, label) {
     if (statWindEl) statWindEl.textContent = `${Math.round(data.current.wind_speed_10m)} km/h`;
     if (statHumEl) statHumEl.textContent = `${data.current.relative_humidity_2m}%`;
     if (statRainEl) statRainEl.textContent = `${pop ?? 0}%`;
+
+    const c = data.current;
+    setStatDelta(
+      "statTempDelta",
+      formatDelta(c.temperature_2m, sameHourYesterday(yesterday, c.time, "temperature_2m"), "°", "gestern"),
+    );
+    setStatDelta(
+      "statWindDelta",
+      formatDelta(c.wind_speed_10m, sameHourYesterday(yesterday, c.time, "wind_speed_10m"), " km/h", "gestern"),
+    );
+    setStatDelta(
+      "statHumidityDelta",
+      formatDelta(c.relative_humidity_2m, sameHourYesterday(yesterday, c.time, "relative_humidity_2m"), " %", "gestern"),
+    );
+    setStatDelta(
+      "statRainDelta",
+      formatDelta(pop, yesterday.daily.precipitation_probability_max, " %", "gestern"),
+    );
 
     renderForecastBars(data);
 
@@ -1654,6 +1861,7 @@ async function loadWeatherForPlace(lat, lon, label) {
     setLastUpdatedNow();
   } catch (err) {
     weatherLoading.textContent = "Wetterdaten konnten nicht geladen werden.";
+    if (!weatherData) renderWeatherNoData();
   }
 }
 
@@ -1890,3 +2098,187 @@ calAllDay.addEventListener("change", () => {
 });
 renderCalendar();
 renderCalEvents();
+
+// ---- Feuerwehr Berlin: Brandeinsätze der letzten 7 Tage ----
+const FIRE_DATA_URL =
+  "https://raw.githubusercontent.com/Berliner-Feuerwehr/BF-Open-Data/main/Datasets/Daily_Data/BFw_mission_data_daily.csv";
+let fireDays = [];
+
+function parseFireCsv(text) {
+  const lines = text.trim().split(/\r?\n/);
+  const header = lines[0].split(",");
+  const idx = {
+    date: header.indexOf("mission_created_date"),
+    fire: header.indexOf("mission_count_fire"),
+    tech: header.indexOf("mission_count_technical_rescue"),
+    all: header.indexOf("mission_count_all"),
+    pump: header.indexOf("response_time_fire_time_to_first_pump_median"),
+  };
+  if (Object.values(idx).some((i) => i < 0)) throw new Error("Unbekanntes CSV-Format");
+  const num = (v) => (v === undefined || v === "" ? null : Number(v));
+  return lines
+    .slice(-14)
+    .map((line) => {
+      const c = line.split(",");
+      return { date: c[idx.date], fire: num(c[idx.fire]), tech: num(c[idx.tech]), all: num(c[idx.all]), pump: num(c[idx.pump]) };
+    })
+    .filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d.date) && Number.isFinite(d.fire))
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
+
+function sumBy(days, key) {
+  return days.reduce((sum, d) => sum + (d[key] || 0), 0);
+}
+function meanBy(days, key) {
+  const values = days.map((d) => d[key]).filter((v) => Number.isFinite(v));
+  return values.length ? values.reduce((a, b) => a + b, 0) / values.length : null;
+}
+function formatMinSec(seconds) {
+  if (!Number.isFinite(seconds)) return "–";
+  const s = Math.round(seconds);
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")} min`;
+}
+function fireWeekday(iso) {
+  return weatherDayLabels[new Date(iso + "T00:00:00").getDay()];
+}
+function fireShortDate(iso) {
+  return new Date(iso + "T00:00:00").toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
+}
+function fireDayLabel(iso) {
+  return `${fireWeekday(iso)}, ${fireShortDate(iso)}`;
+}
+
+function renderFire(days) {
+  const week = days.slice(-7);
+  const prev = days.length >= 14 ? days.slice(-14, -7) : null;
+  const last = week[week.length - 1];
+
+  const total = sumBy(week, "fire");
+  const prevTotal = prev ? sumBy(prev, "fire") : null;
+  document.getElementById("fireTotal").textContent = total.toLocaleString("de-DE");
+  setStatDelta("fireTotalDelta", formatDelta(total, prevTotal, "", "Vorwoche"));
+
+  const avg = total / week.length;
+  document.getElementById("fireAvg").textContent = avg.toLocaleString("de-DE", { maximumFractionDigits: 1 });
+  setStatDelta("fireAvgDelta", formatDelta(avg, prev ? prevTotal / prev.length : null, "", "Vorwoche", 1));
+
+  const peak = week.reduce((a, b) => (b.fire > a.fire ? b : a));
+  document.getElementById("firePeak").textContent = peak.fire.toLocaleString("de-DE");
+  setStatDelta("firePeakDelta", { main: fireDayLabel(peak.date), suffix: "" });
+
+  const response = meanBy(week, "pump");
+  const responseEl = document.getElementById("fireResponse");
+  responseEl.textContent = formatMinSec(response).replace(" min", "");
+  if (Number.isFinite(response)) {
+    const unit = document.createElement("span");
+    unit.className = "stat-unit";
+    unit.textContent = " min";
+    responseEl.appendChild(unit);
+  }
+  setStatDelta("fireResponseDelta", formatDelta(response, prev ? meanBy(prev, "pump") : null, " s", "Vorwoche"));
+
+  const bar = document.getElementById("fireBarChart");
+  const max = Math.max(...week.map((d) => d.fire), 1);
+  bar.setAttribute("role", "img");
+  bar.setAttribute("aria-label", `Brandeinsätze pro Tag: ${week.map((d) => `${fireDayLabel(d.date)} ${d.fire}`).join(", ")}`);
+  bar.innerHTML = week
+    .map(
+      (d) => `<div class="bar-col${d === peak ? " today" : ""}" title="${fireDayLabel(d.date)}: ${d.fire} Brandeinsätze">
+      <div class="bar-value">${d.fire}</div>
+      <div class="bar-track"><div class="bar" style="height:${Math.max(4, (d.fire / max) * 100).toFixed(0)}%"></div></div>
+      <div class="bar-label">${fireWeekday(d.date)}<span class="bar-date">${fireShortDate(d.date)}</span></div>
+    </div>`,
+    )
+    .join("");
+  document.getElementById("fireChartSub").textContent =
+    `${fireDayLabel(week[0].date)} – ${fireDayLabel(last.date)} · orange = Spitzentag`;
+
+  const all = sumBy(week, "all");
+  const share = all ? (total / all) * 100 : 0;
+  const r = 52;
+  const circumference = 2 * Math.PI * r;
+  const filled = (Math.min(share, 100) / 100) * circumference;
+  document.getElementById("fireDonut").innerHTML = `
+    <svg viewBox="0 0 120 120" role="img" aria-label="${share.toLocaleString("de-DE", { maximumFractionDigits: 1 })} Prozent aller Einsätze waren Brände">
+      <circle cx="60" cy="60" r="${r}" fill="none" style="stroke:var(--line)" stroke-width="14"/>
+      <circle cx="60" cy="60" r="${r}" fill="none" style="stroke:var(--orange)" stroke-width="14" transform="rotate(-90 60 60)"
+        stroke-linecap="round" stroke-dasharray="${filled.toFixed(1)} ${circumference.toFixed(1)}"/>
+    </svg>
+    <div class="donut-center">
+      <div class="donut-pct">${share.toLocaleString("de-DE", { maximumFractionDigits: 1 })}%</div>
+      <div class="donut-word">Brände</div>
+    </div>`;
+  document.getElementById("fireDonutCaption").textContent =
+    `${total.toLocaleString("de-DE")} von ${all.toLocaleString("de-DE")} Einsätzen`;
+
+  document.getElementById("fireTableBody").innerHTML = [...week]
+    .reverse()
+    .map(
+      (d) => `<tr>
+      <td>${fireDayLabel(d.date)}</td>
+      <td>${d.fire.toLocaleString("de-DE")}</td>
+      <td>${Number.isFinite(d.tech) ? d.tech.toLocaleString("de-DE") : "–"}</td>
+      <td>${Number.isFinite(d.all) ? d.all.toLocaleString("de-DE") : "–"}</td>
+      <td>${formatMinSec(d.pump)}</td>
+    </tr>`,
+    )
+    .join("");
+
+  const ageDays = Math.round((new Date().setHours(0, 0, 0, 0) - new Date(last.date + "T00:00:00")) / 86400000);
+  document.getElementById("fireSourceNote").textContent =
+    `Quelle: Berliner Feuerwehr Open Data · Stand: ${fireDayLabel(last.date)}` +
+    (ageDays > 2 ? ` (Daten ${ageDays} Tage alt)` : "") +
+    " · Tage nach Berliner Ortszeit";
+  document.getElementById("fireExportBtn").disabled = false;
+}
+
+function renderFireNoData() {
+  ["fireTotal", "fireAvg", "firePeak", "fireResponse"].forEach((id) => {
+    document.getElementById(id).textContent = "–";
+  });
+  ["fireTotalDelta", "fireAvgDelta", "firePeakDelta", "fireResponseDelta"].forEach((id) =>
+    setStatDelta(id, { main: "Keine Daten", suffix: "verfügbar" }),
+  );
+  ["fireBarChart", "fireDonut"].forEach((id) => {
+    document.getElementById(id).innerHTML = '<div class="chart-empty">Keine Daten verfügbar</div>';
+  });
+  document.getElementById("fireDonutCaption").textContent = "";
+  document.getElementById("fireTableBody").innerHTML =
+    '<tr><td colspan="5" class="fire-table-empty">Keine Daten verfügbar</td></tr>';
+  document.getElementById("fireSourceNote").textContent =
+    "Daten der Berliner Feuerwehr konnten nicht geladen werden — später erneut versuchen.";
+  document.getElementById("fireExportBtn").disabled = true;
+}
+
+async function loadFireData() {
+  try {
+    const res = await fetch(FIRE_DATA_URL, { cache: "no-cache" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const days = parseFireCsv(await res.text());
+    if (!days.length) throw new Error("Keine Tageswerte in der Datei");
+    fireDays = days;
+    renderFire(days);
+  } catch (err) {
+    console.warn("Feuerwehrdaten konnten nicht geladen werden:", err);
+    if (!fireDays.length) renderFireNoData();
+  }
+}
+
+document.getElementById("fireExportBtn").addEventListener("click", () => {
+  const week = fireDays.slice(-7);
+  if (!week.length) return;
+  const rows = [
+    ["Datum", "Brandeinsätze", "Technische Hilfe", "Alle Einsätze", "Eintreffzeit 1. Löschfahrzeug Median (s)"],
+    ...week.map((d) => [d.date, d.fire, d.tech ?? "", d.all ?? "", Number.isFinite(d.pump) ? Math.round(d.pump) : ""]),
+  ];
+  // BOM und Semikolon, damit Excel mit deutscher Einstellung Umlaute und Spalten richtig liest
+  const csv = "\uFEFF" + rows.map((row) => row.join(";")).join("\r\n");
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `feuerwehr-berlin-brandeinsaetze-${week[week.length - 1].date}.csv`;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+
+loadFireData();
