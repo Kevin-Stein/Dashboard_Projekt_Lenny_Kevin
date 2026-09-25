@@ -187,7 +187,7 @@ I18N.registerDocs("en", `
         <dt>“too many requests”</dt><dd>The weather service limits many requests in a short time. Wait a minute and try again.</dd>
         <dt>“the service is not responding” / “service currently disrupted”</dt><dd>The external service is slow or down. The request is cancelled after 12 seconds and retried once automatically. Try again later.</dd>
         <dt>No warnings</dt><dd>Warnings are fetched via the server (<code>/api/warnings</code>). If you open <code>index.html</code> directly or use “Live Server”, this endpoint is missing. Start the project with <code>node dev-server.js</code> instead. “Incomplete: …” means that individual warning systems are currently unreachable.</dd>
-        <dt>OpenWeather map empty</dt><dd>No API key or an invalid one has been entered. The rain radar then only works with RainViewer.</dd>
+        <dt>OpenWeather map empty</dt><dd>No key is set. On Vercel add the <code>OPENWEATHER_KEY</code> variable, locally <code>js/config.js</code> or the same variable. The rain radar then only works with RainViewer.</dd>
         <dt>“Map not available”</dt><dd>The Leaflet map library could not be loaded (e.g. because of an ad blocker or network filter). The rest of the dashboard keeps working.</dd>
         <dt>“Not saved”</dt><dd>The browser does not allow saving (private mode, storage full). Notes, layout and settings are then lost when you close it.</dd>
         <dt>Layout messed up</dt><dd>Click “↺ Reset” in arrange mode.</dd>
@@ -200,7 +200,7 @@ I18N.registerDocs("en", `
 
     <section class="docs-card" id="architektur">
       <h2>Architecture &amp; files</h2>
-      <p>The dashboard is a static single-page application built with HTML, CSS and vanilla JavaScript, with no build step and no framework. Only the official warnings need a small server function, because <code>warnung.bund.de</code> does not send CORS headers.</p>
+      <p>The dashboard is a static single-page application built with HTML, CSS and vanilla JavaScript, with no build step and no framework. Official warnings and OpenWeather tiles need a small server function: <code>warnung.bund.de</code> does not send CORS headers, and the OpenWeather key should not sit in the browser.</p>
       <div class="docs-table-wrap">
         <table class="docs-table">
           <thead><tr><th>File</th><th>Purpose</th></tr></thead>
@@ -210,13 +210,13 @@ I18N.registerDocs("en", `
             <tr><td><code>js/app.js</code></td><td>All logic: navigation, theme, data fetching, charts, widget catalogue, layout system</td></tr>
             <tr><td><code>js/i18n.js</code></td><td>Internationalisation: translation function <code>t()</code>, language detection, language drop-down</td></tr>
             <tr><td><code>js/lang/&lt;code&gt;.js</code>, <code>js/lang/docs.&lt;code&gt;.js</code></td><td>Texts of the dashboard and of the documentation per language (<code>de</code>, <code>en</code>)</td></tr>
-            <tr><td><code>js/config.js</code></td><td>Optional OpenWeather key. Listed in <code>.gitignore</code>; the template is <code>js/config.example.js</code></td></tr>
+            <tr><td><code>js/config.js</code></td><td>Optional OpenWeather key for the local fallback. Listed in <code>.gitignore</code>; the template is <code>js/config.example.js</code>. On Vercel the <code>OPENWEATHER_KEY</code> variable is used</td></tr>
             <tr><td><code>api/warnings.js</code></td><td>Serverless function (Vercel): fetches MoWaS, KATWARN, BIWAPP, DWD and LHP and returns them bundled as JSON</td></tr>
-            <tr><td><code>dev-server.js</code></td><td>Local Node server: serves the files and provides <code>/api/warnings</code></td></tr>
+            <tr><td><code>api/radar.js</code></td><td>Serverless function: serves OpenWeather precipitation tiles; the key stays on the server</td></tr>
+            <tr><td><code>dev-server.js</code></td><td>Local Node server: serves the files and provides <code>/api/warnings</code> and <code>/api/radar</code></td></tr>
             <tr><td><code>package.json</code>, <code>playwright.config.js</code>, <code>tests/</code></td><td>Playwright suite. Start with <code>npm test</code>, see <a href="#tests">Tests</a></td></tr>
             <tr><td><code>testresults/</code></td><td>Markdown log of the last test run, one file per test plus an overview</td></tr>
             <tr><td><code>docs.html</code>, <code>css/docs.css</code>, <code>js/docs.js</code>, <code>img/docs/</code></td><td>This documentation with screenshots (WebP, 1440 × 900 or 390 px smartphone width at double resolution)</td></tr>
-            <tr><td><code>.cursor/skills/</code>, <code>.claude/skills/</code></td><td>Project skills for the AI assistant. Excluded from deployment via <code>.vercelignore</code></td></tr>
           </tbody>
         </table>
       </div>
@@ -234,16 +234,18 @@ I18N.registerDocs("en", `
       <h3>Running locally</h3>
       <pre><code>node dev-server.js
 # → http://localhost:3000  (other port: PORT=3123 node dev-server.js)</code></pre>
-      <p>No dependencies are needed, just Node.js.</p>
+      <p>Node.js is enough to run the dashboard; <code>npm install</code> is not required. The Playwright tests additionally need the packages from <code>package.json</code>.</p>
       <h3>OpenWeather key (optional)</h3>
+      <p>On Vercel under <strong>Settings → Environment Variables</strong> set <code>OPENWEATHER_KEY</code> (Production and Preview). The tiles go through <code>/api/radar</code>, so the key does not appear in the browser.</p>
+      <p>Locally use the same key as an environment variable or in <code>js/config.js</code> (template: <code>js/config.example.js</code>). <code>js/config.js</code> must not be committed. Opening <code>index.html</code> directly without <code>dev-server.js</code> only has this fallback, and then the key is visible in the network requests.</p>
       <pre><code>cp js/config.example.js js/config.js
-# enter your own key in js/config.js</code></pre>
-      <p class="docs-note">The key is used in the browser and is visible in the network requests. <code>js/config.js</code> must not be committed.</p>
+# enter your own key
+# or: OPENWEATHER_KEY=… node dev-server.js</code></pre>
       <h3>Deploying to Vercel</h3>
       <ul>
-        <li>The static files are served directly; <code>api/warnings.js</code> runs as a serverless function at <code>/api/warnings</code>.</li>
+        <li>The static files are served directly; <code>api/warnings.js</code> and <code>api/radar.js</code> run as serverless functions at <code>/api/warnings</code> and <code>/api/radar</code>.</li>
         <li>The response is cached with <code>Cache-Control: s-maxage=60, stale-while-revalidate=300</code>.</li>
-        <li><code>.vercelignore</code> excludes <code>.cursor/</code> and <code>.claude/</code> from the upload.</li>
+        <li><code>.vercelignore</code> excludes local folders such as <code>.cursor/</code> and <code>.claude/</code> from the upload, if they are present.</li>
       </ul>
       <p>The automated tests are described in the <a href="#tests">Tests</a> section.</p>
     </section>
@@ -314,7 +316,7 @@ npm run test:headed  # the same tests, browser visible</code></pre>
             <tr><td>Weather</td><td><code>api.open-meteo.com/v1/forecast</code></td><td><code>forecast_days=6&amp;past_days=1</code>. The previous day is split off (<code>splitOffYesterday</code>) and used for the “compared with yesterday” comparison</td></tr>
             <tr><td>Location search</td><td><code>geocoding-api.open-meteo.com/v1/search</code></td><td>First match, language follows the selected UI language</td></tr>
             <tr><td>Radar</td><td><code>api.rainviewer.com/public/weather-maps.json</code></td><td>List of radar images, tiles as a Leaflet layer, animation every 850 ms</td></tr>
-            <tr><td>Precipitation</td><td><code>tile.openweathermap.org/map/precipitation_new</code></td><td>Only with a key from <code>js/config.js</code></td></tr>
+            <tr><td>Precipitation</td><td><code>/api/radar</code> → <code>tile.openweathermap.org/map/precipitation_new</code></td><td>Key via Vercel <code>OPENWEATHER_KEY</code> or local <code>js/config.js</code>. Without the server the browser falls back to the key in <code>js/config.js</code></td></tr>
             <tr><td>Map</td><td><code>server.arcgisonline.com/…/World_Light_Gray_Base</code></td><td>Background tiles from Esri</td></tr>
             <tr><td>Warnings</td><td><code>/api/warnings</code> → <code>warnung.bund.de/api31/&lt;source&gt;/mapData.json</code></td><td>Sources: mowas, katwarn, biwapp, dwd, lhp. Timeout of 8 s per source; failed sources are listed in the <code>X-Warnings-Failed</code> header, and only if all of them fail is HTTP 502 returned</td></tr>
             <tr><td>Fire brigade</td><td><code>raw.githubusercontent.com/Berliner-Feuerwehr/BF-Open-Data/…/BFw_mission_data_daily.csv</code></td><td>Daily CSV; the last 7 days and the previous week are evaluated</td></tr>

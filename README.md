@@ -1,8 +1,6 @@
 # Dashboard Projekt - Lenny & Kevin
 
-## test test
-
-**Katastrophenschutz – „Wir helfen Berlin“**: ein interaktives Dashboard für Berlin mit Wetter, Warnungen, Feuerwehr-Einsätzen und frei anordenbaren Widgets. Standardort ist Berlin.
+**Katastrophenschutz – „Wir helfen Berlin“**: ein interaktives Dashboard für Berlin mit Wetter, Warnungen, Feuerwehr-Einsätzen und frei anordenbaren Widgets. Standardort ist Berlin. Die ausführliche Anleitung steht in [`docs.html`](docs.html).
 
 ## Features
 
@@ -11,6 +9,7 @@
 - **Kalender**: als Widget auf jeder Seite hinzufügbar – Monatsansicht mit Terminverwaltung im lokalen Speicher
 - **Feuerwehr**: Brandeinsätze der Berliner Feuerwehr der letzten 7 Tage (Berliner Feuerwehr Open Data)
 - **Wasserpegel**: aktuelle Wasserstände der Bundeswasserstraßen ([PEGELONLINE](https://pegelonline.wsv.de/gast/start), WSV) – Standard ist Berlin-Köpenick, weitere Pegel per Suche oder aus der Liste der Berliner Pegel; 7-Tage-Verlauf mit MNW/MW/MHW
+- **Amtliche Warnungen**: MoWaS, KATWARN, BIWAPP, DWD und Hochwasser über `api/warnings.js` (BBK/NINA)
 - **Übersicht**: frei zusammenstellbar – Widgets aller Bereiche hinzufügen, entfernen und per „Anordnen“ verschieben. Verfügbare Widgets u. a.:
   - Wetter, Kennzahlen, Vorhersage, Regenchance, Temperaturverlauf, Mini-Regenradar
   - Feuerwehr-Kennzahlen, -Diagramm und -Tabelle
@@ -28,6 +27,7 @@
 ## Funktionen
 
 - Light/Dark Mode
+- Deutsch und Englisch (Sprachmenü neben dem Farbmodus)
 - Automatische Daten-Aktualisierung
 - Responsive Design
 - Ortsbasierte Wetteranzeige
@@ -35,20 +35,33 @@
 
 ## Technologie-Stack
 
-- HTML5
-- CSS3 (mit CSS Variables für Themes)
-- Vanilla JavaScript
+- HTML5, CSS3 (CSS Variables für Themes), Vanilla JavaScript
 - Leaflet.js für Karten
-- Open-Meteo API
-- RainViewer API
-- OpenWeather API
+- Open-Meteo, RainViewer, OpenWeather
+- PEGELONLINE (WSV), Berliner Feuerwehr Open Data, warnung.bund.de (BBK/NINA)
+- Playwright für die Oberflächestests
+
+## Dateien
+
+Zum Dashboard gehören mehr als nur HTML, CSS und eine JS-Datei:
+
+| Datei | Aufgabe |
+|---|---|
+| `index.html` | Struktur aller Seiten, Seitenleiste, Dialoge |
+| `css/style.css` | Styles des Dashboards (Hell/Dunkel, Widgets, Mobile) |
+| `js/app.js` | Logik: Navigation, Daten, Widgets, Layout |
+| `js/i18n.js`, `js/lang/` | Mehrsprachigkeit (`de.js`, `en.js`, englische Doku in `docs.en.js`) |
+| `js/config.example.js` | Vorlage für den optionalen OpenWeather-Key (`js/config.js`, nicht im Repo) |
+| `api/warnings.js` | Bündelt die amtlichen Warnungen (Vercel + lokaler Server) |
+| `api/radar.js` | OpenWeather-Niederschlagskacheln, Key bleibt auf dem Server |
+| `dev-server.js` | Lokaler Node-Server inkl. `/api/warnings` und `/api/radar` |
+| `docs.html`, `css/docs.css`, `js/docs.js`, `img/docs/` | Dokumentation mit Screenshots |
+| `package.json`, `playwright.config.js`, `tests/` | Playwright-Suite (`npm test`) |
+| `testresults/` | Markdown-Protokoll des letzten Testlaufs |
+
+`.cursor/` und `.claude/` sind nur lokal (Vorlagen für den KI-Assistenten) und stehen nicht im Repository. `.vercelignore` hält sie vom Deployment fern.
 
 ## Entwicklung
-
-Das Projekt besteht aus drei Hauptdateien:
-- `index.html` - HTML-Struktur
-- `css/style.css` - Alle Styles
-- `js/app.js` - JavaScript-Funktionen
 
 ### Lokal starten
 
@@ -56,7 +69,7 @@ Das Projekt besteht aus drei Hauptdateien:
 node dev-server.js
 ```
 
-Dann http://localhost:3000 öffnen. Die amtlichen Warnungen laufen über `api/warnings.js` (auf Vercel als Serverless-Funktion), weil `warnung.bund.de` keine direkten Browser-Abrufe erlaubt. Beim reinen Öffnen der `index.html` oder mit Live Server bleiben die Warnungen deshalb leer.
+Dann http://localhost:3000 öffnen. Es reicht Node.js, ein `npm install` ist zum Starten nicht nötig. Die amtlichen Warnungen laufen über `api/warnings.js`, die OpenWeather-Kacheln über `api/radar.js` (auf Vercel als Serverless-Funktionen). Beim reinen Öffnen der `index.html` oder mit Live Server bleiben die Warnungen leer; OpenWeather braucht dann den Key in `js/config.js`.
 
 ### Tests
 
@@ -71,8 +84,9 @@ npm test
 
 ### API-Key für OpenWeather
 
-`js/config.example.js` nach `js/config.js` kopieren und den eigenen OpenWeather-Key eintragen.
-`js/config.js` ist in `.gitignore` und wird nicht committet. Ohne Key läuft das Regenradar nur mit RainViewer.
+Auf Vercel unter Settings → Environment Variables `OPENWEATHER_KEY` setzen. Der Browser lädt die Kacheln über `/api/radar`, der Key bleibt auf dem Server.
+
+Lokal dieselbe Variable oder `js/config.example.js` nach `js/config.js` kopieren. `js/config.js` ist in `.gitignore` und wird nicht committet. Ohne Key läuft das Regenradar nur mit RainViewer.
 
 ### Fehlerbehandlung
 
@@ -81,11 +95,6 @@ Alle Datenabrufe laufen über `fetchData()` in `js/app.js`: 12 s Timeout, eine a
 ### Mehrsprachigkeit
 
 Dashboard und Dokumentation gibt es auf Deutsch und Englisch; umgeschaltet wird über das Sprach-Menü neben dem Farbmodus. Ohne gespeicherte Wahl gilt die Browsersprache, sonst Deutsch. Alle Texte stehen in `js/lang/de.js` und `js/lang/en.js` (`I18N.register(...)`), die englische Dokumentation in `js/lang/docs.en.js`. Fehlt ein Text, wird der deutsche genommen. Neue Sprache: `js/lang/en.js` z. B. nach `js/lang/fr.js` kopieren, Code, Name und Locale anpassen, übersetzen und per `<script>` in `index.html` und `docs.html` einbinden; sie erscheint dann automatisch im Menü. Details stehen in der Dokumentation unter „Mehrsprachigkeit“.
-
-### Cursor-Skills
-
-Projekt-Skills liegen in `.cursor/skills/<name>/SKILL.md` und werden mit dem Repository geteilt. Vorlage und Regeln stehen in [`.cursor/skills/README.md`](.cursor/skills/README.md). Der Ordner wird über `.vercelignore` nicht mit auf Vercel veröffentlicht.
-
 
 ### Lizenzen
 

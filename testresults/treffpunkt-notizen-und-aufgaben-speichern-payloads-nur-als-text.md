@@ -5,8 +5,8 @@
 | Status | **bestanden** |
 | Suite | Code-Injection |
 | Testdatei | `tests/injection.spec.js` |
-| Dauer | 7.75 s |
-| Lauf | 25.9.2026, 19:00:00 |
+| Dauer | 7.50 s |
+| Lauf | 25.9.2026, 19:50:33 |
 
 ## Zweck
 
