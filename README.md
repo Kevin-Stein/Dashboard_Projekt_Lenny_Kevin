@@ -67,6 +67,10 @@ Dann http://localhost:3000 öffnen. Die amtlichen Warnungen laufen über `api/wa
 
 Alle Datenabrufe laufen über `fetchData()` in `js/app.js`: 12 s Timeout, eine automatische Wiederholung bei Netzfehlern, HTTP 429 und 5xx sowie verständliche Meldungen (offline, Timeout, Dienst gestört, fehlerhafte Daten). Fällt eine Quelle aus, zeigt das Widget den Grund und „Erneut versuchen“; vorhandene Daten bleiben sichtbar. Nach „Aktualisieren“ steht in der Seitenleiste, welche Bereiche fehlgeschlagen sind. Offline/Online wird erkannt, ohne Leaflet laufen alle anderen Bereiche weiter. `api/warnings.js` bricht einzelne Warnquellen nach 8 s ab und meldet Teilausfälle im Header `X-Warnings-Failed`. Details stehen in der Dokumentation unter „Fehlerbehandlung“.
 
+### Mehrsprachigkeit
+
+Dashboard und Dokumentation gibt es auf Deutsch und Englisch; umgeschaltet wird über das Sprach-Menü neben dem Farbmodus. Ohne gespeicherte Wahl gilt die Browsersprache, sonst Deutsch. Alle Texte stehen in `js/lang/de.js` und `js/lang/en.js` (`I18N.register(...)`), die englische Dokumentation in `js/lang/docs.en.js`. Fehlt ein Text, wird der deutsche genommen. Neue Sprache: `js/lang/en.js` z. B. nach `js/lang/fr.js` kopieren, Code, Name und Locale anpassen, übersetzen und per `<script>` in `index.html` und `docs.html` einbinden; sie erscheint dann automatisch im Menü. Details stehen in der Dokumentation unter „Mehrsprachigkeit“.
+
 ### Cursor-Skills
 
 Projekt-Skills liegen in `.cursor/skills/<name>/SKILL.md` und werden mit dem Repository geteilt. Vorlage und Regeln stehen in [`.cursor/skills/README.md`](.cursor/skills/README.md). Der Ordner wird über `.vercelignore` nicht mit auf Vercel veröffentlicht.
