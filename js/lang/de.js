@@ -82,6 +82,7 @@ I18N.register("de", {
     "docs.nav.arrange": "Anordnen & Größe",
     "docs.nav.data": "Deine Daten",
     "docs.nav.development": "Entwicklung & Deployment",
+    "docs.nav.tests": "Tests",
     "docs.nav.errors": "Fehlerbehandlung",
     "docs.nav.extend": "Erweitern",
     "docs.nav.help": "Hilfe bei Problemen",

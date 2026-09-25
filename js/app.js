@@ -1795,7 +1795,9 @@ async function searchPlace(query) {
     if (searchMarker) map.removeLayer(searchMarker);
     searchMarker = L.marker([hit.latitude, hit.longitude]).addTo(map);
     const label = [hit.name, hit.admin1, hit.country].filter(Boolean).join(", ");
-    searchMarker.bindPopup(label).openPopup();
+    const popup = document.createElement("div");
+    popup.textContent = label;
+    searchMarker.bindPopup(popup).openPopup();
   } catch (err) {
     reportError("Ortssuche", err);
     showToast(t("search.failed", { reason: describeError(err) }), "error");

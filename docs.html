@@ -45,6 +45,7 @@
       <div class="docs-nav-group" data-i18n="docs.nav.technical">Technik</div>
       <a class="nav-item" href="#architektur" data-i18n="docs.nav.architecture">Architektur &amp; Dateien</a>
       <a class="nav-item" href="#entwicklung" data-i18n="docs.nav.development">Entwicklung &amp; Deployment</a>
+      <a class="nav-item" href="#tests" data-i18n="docs.nav.tests">Tests</a>
       <a class="nav-item" href="#apis" data-i18n="docs.nav.apis">Datenquellen &amp; APIs</a>
       <a class="nav-item" href="#fehler" data-i18n="docs.nav.errors">Fehlerbehandlung</a>
       <a class="nav-item" href="#layout" data-i18n="docs.nav.layout">Layout-System</a>
@@ -282,6 +283,8 @@
             <tr><td><code>js/config.js</code></td><td>Optionaler OpenWeather-Key. Steht in <code>.gitignore</code>, Vorlage ist <code>js/config.example.js</code></td></tr>
             <tr><td><code>api/warnings.js</code></td><td>Serverless-Funktion (Vercel): holt MoWaS, KATWARN, BIWAPP, DWD und LHP und liefert sie gebündelt als JSON</td></tr>
             <tr><td><code>dev-server.js</code></td><td>Lokaler Node-Server: liefert die Dateien aus und stellt <code>/api/warnings</code> bereit</td></tr>
+            <tr><td><code>package.json</code>, <code>playwright.config.js</code>, <code>tests/</code></td><td>Playwright-Suite. Start mit <code>npm test</code>, siehe <a href="#tests">Tests</a></td></tr>
+            <tr><td><code>testresults/</code></td><td>Markdown-Protokoll des letzten Testlaufs, eine Datei je Test plus Übersicht</td></tr>
             <tr><td><code>docs.html</code>, <code>css/docs.css</code>, <code>js/docs.js</code>, <code>img/docs/</code></td><td>Diese Dokumentation mit Screenshots (WebP, 1440 × 900 bzw. Smartphone 390 px bei doppelter Auflösung)</td></tr>
             <tr><td><code>.cursor/skills/</code>, <code>.claude/skills/</code></td><td>Projekt-Skills für den KI-Assistenten. Per <code>.vercelignore</code> vom Deployment ausgeschlossen</td></tr>
           </tbody>
@@ -311,6 +314,64 @@
         <li>Die statischen Dateien werden direkt ausgeliefert, <code>api/warnings.js</code> läuft als Serverless-Funktion unter <code>/api/warnings</code>.</li>
         <li>Die Antwort wird mit <code>Cache-Control: s-maxage=60, stale-while-revalidate=300</code> gecacht.</li>
         <li><code>.vercelignore</code> schließt <code>.cursor/</code> und <code>.claude/</code> vom Upload aus.</li>
+      </ul>
+      <p>Die automatisierten Tests stehen im Abschnitt <a href="#tests">Tests</a>.</p>
+    </section>
+
+    <section class="docs-card" id="tests">
+      <h2>Tests</h2>
+      <p>Die Oberfläche wird mit Playwright im echten Chromium geprüft. Die Suite startet selbst <code>dev-server.js</code> auf Port <code>3125</code> (<code>127.0.0.1</code>), damit ein lokal laufendes Dashboard und dessen <code>localStorage</code> unberührt bleiben. Wetter, Radar, Warnungen, Pegel und Feuerwehr werden im Test nachgebaut, es gehen also keine echten API-Aufrufe raus.</p>
+      <h3>Starten</h3>
+      <pre><code>npm install          # einmalig: Pakete und Chromium
+npm test             # alle Tests, unsichtbar
+npm run test:headed  # dieselben Tests, Browser sichtbar</code></pre>
+      <p><code>npm install</code> lädt Chromium über das Skript <code>postinstall</code>. Einzelne Dateien: <code>npx playwright test tests/injection.spec.js</code>.</p>
+      <p>Nach jedem Lauf schreibt <code>tests/markdown-reporter.js</code> die Ergebnisse nach <code>testresults/</code>: <code>README.md</code> als Übersicht und eine Markdown-Datei je Test mit Zweck, Ablauf, Erwartung und Status.</p>
+      <h3>Dateien</h3>
+      <div class="docs-table-wrap">
+        <table class="docs-table">
+          <thead><tr><th>Datei</th><th>Aufgabe</th></tr></thead>
+          <tbody>
+            <tr><td><code>playwright.config.js</code></td><td>Port 3125, Locale <code>de-DE</code>, Reporter (Liste + Markdown)</td></tr>
+            <tr><td><code>tests/helpers.js</code></td><td>Sprache setzen, Seiten öffnen, Widgets hinzufügen, API-Stubs</td></tr>
+            <tr><td><code>tests/dashboard.spec.js</code></td><td>Navigation, Sprachen, Theme, Widget-Katalog, Doku, Smartphone-Menü</td></tr>
+            <tr><td><code>tests/inputs.spec.js</code></td><td>Formulare, Suche, Speichern</td></tr>
+            <tr><td><code>tests/injection.spec.js</code></td><td>XSS- und HTML-Payloads in allen Eingabefeldern</td></tr>
+            <tr><td><code>tests/stress.spec.js</code></td><td>Viele Klicks, lange Texte, viele Widgets</td></tr>
+            <tr><td><code>tests/markdown-reporter.js</code></td><td>Schreibt <code>testresults/*.md</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Was die Suite prüft</h3>
+      <h4>Dashboard und Dokumentation</h4>
+      <ul>
+        <li>Sprachmenü steht neben dem Farbmodus, Einträge Deutsch und English.</li>
+        <li>Start auf Deutsch, Wechsel auf Englisch inkl. Reload: Titel, Navigation, Übersicht.</li>
+        <li>Alle sechs Seiten (Übersicht, Wetter, Regenradar, Katastrophenschutz, Feuerwehr, Wasserpegel).</li>
+        <li>Widget-Katalog auf Deutsch und Englisch öffnen und schließen.</li>
+        <li>Farbmodus Hell → Dunkel.</li>
+        <li>Smartphone (390×844): Navigation verborgen, Menü öffnet die Seitenleiste.</li>
+        <li>Dokumentation: deutsche Texte, Sprachwechsel, Abschnitt Mehrsprachigkeit, Knopf „Zum Dashboard“.</li>
+      </ul>
+      <h4>Eingabefelder</h4>
+      <ul>
+        <li>Leeres Absenden bei Wetter, Radar und Pegel ändert nichts.</li>
+        <li>Ortssuche: Treffer (Hamburg), unbekannter Name, Radar-Schnellwahl Potsdam.</li>
+        <li>Familien-Treffpunkt inkl. Sonderzeichen, Speichern, Reload.</li>
+        <li>Warnungsfilter (Dresden / kein Treffer) und Checkliste abhaken.</li>
+        <li>Pegelsuche: Dresden anzeigen, unbekannter Name als Toast.</li>
+        <li>Aufgaben anlegen, abhaken, löschen; Notizen speichern; Kalendertermin; Countdown.</li>
+        <li>Radar-Quelle OpenWeather und Auto-Aktualisierung aus.</li>
+      </ul>
+      <h4>Code-Injection</h4>
+      <p>Payloads wie <code>&lt;script&gt;alert(1)&lt;/script&gt;</code>, <code>&lt;img src=x onerror=alert(1)&gt;</code>, SVG-<code>onload</code>, Textarea-Breakout, <code>javascript:</code>-URLs und Template-Injection in Treffpunkt, Aufgaben, Notizen, Kalender, Countdown, Wetter-/Radar-/Pegelsuche und Warnungsfilter. Erwartung: kein Dialog, Payload nur als Text, keine eingeschleusten <code>img</code>/<code>script</code>-Knoten. Ortsnamen im Radar-Popup werden per <code>textContent</code> gesetzt, nicht als HTML.</p>
+      <h4>Belastung</h4>
+      <ul>
+        <li>Alle Seiten achtmal hintereinander umschalten.</li>
+        <li>Theme, Widget-Katalog und Anordnen sehr oft klicken.</li>
+        <li>Leere Formulare und 4000-Zeichen-Text mit HTML und Umlauten.</li>
+        <li>40 Aufgaben, mehrere Widgets hinzufügen und wieder entfernen.</li>
+        <li>Aktualisieren, Auto-Aktualisierung und Sprachwechsel mehrfach.</li>
       </ul>
     </section>
 

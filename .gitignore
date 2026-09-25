@@ -21,6 +21,13 @@ js/config.js
 # Build outputs
 dist/
 build/
+node_modules/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+blob-report/
 
 # Temporary files
 *.tmp

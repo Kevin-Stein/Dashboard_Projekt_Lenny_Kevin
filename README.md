@@ -58,6 +58,17 @@ node dev-server.js
 
 Dann http://localhost:3000 öffnen. Die amtlichen Warnungen laufen über `api/warnings.js` (auf Vercel als Serverless-Funktion), weil `warnung.bund.de` keine direkten Browser-Abrufe erlaubt. Beim reinen Öffnen der `index.html` oder mit Live Server bleiben die Warnungen deshalb leer.
 
+### Tests
+
+Die Playwright-Suite prüft Navigation, Sprachen, Formulare, Code-Injection und Belastung. Start und der genaue Umfang stehen in der Dokumentation unter „Tests“.
+
+```bash
+npm install
+npm test
+```
+
+`npm install` lädt Chromium mit. Playwright startet selbst `dev-server.js` auf Port 3125. Nach jedem Lauf liegen die Ergebnisse als Markdown unter [`testresults/`](testresults/README.md). Mit `npm run test:headed` läuft der Browser sichtbar.
+
 ### API-Key für OpenWeather
 
 `js/config.example.js` nach `js/config.js` kopieren und den eigenen OpenWeather-Key eintragen.

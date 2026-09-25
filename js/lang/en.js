@@ -82,6 +82,7 @@ I18N.register("en", {
     "docs.nav.arrange": "Arranging & resizing",
     "docs.nav.data": "Your data",
     "docs.nav.development": "Development & deployment",
+    "docs.nav.tests": "Tests",
     "docs.nav.errors": "Error handling",
     "docs.nav.extend": "Extending",
     "docs.nav.help": "Troubleshooting",

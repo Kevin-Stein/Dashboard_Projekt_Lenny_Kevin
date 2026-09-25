@@ -213,6 +213,8 @@ I18N.registerDocs("en", `
             <tr><td><code>js/config.js</code></td><td>Optional OpenWeather key. Listed in <code>.gitignore</code>; the template is <code>js/config.example.js</code></td></tr>
             <tr><td><code>api/warnings.js</code></td><td>Serverless function (Vercel): fetches MoWaS, KATWARN, BIWAPP, DWD and LHP and returns them bundled as JSON</td></tr>
             <tr><td><code>dev-server.js</code></td><td>Local Node server: serves the files and provides <code>/api/warnings</code></td></tr>
+            <tr><td><code>package.json</code>, <code>playwright.config.js</code>, <code>tests/</code></td><td>Playwright suite. Start with <code>npm test</code>, see <a href="#tests">Tests</a></td></tr>
+            <tr><td><code>testresults/</code></td><td>Markdown log of the last test run, one file per test plus an overview</td></tr>
             <tr><td><code>docs.html</code>, <code>css/docs.css</code>, <code>js/docs.js</code>, <code>img/docs/</code></td><td>This documentation with screenshots (WebP, 1440 × 900 or 390 px smartphone width at double resolution)</td></tr>
             <tr><td><code>.cursor/skills/</code>, <code>.claude/skills/</code></td><td>Project skills for the AI assistant. Excluded from deployment via <code>.vercelignore</code></td></tr>
           </tbody>
@@ -242,6 +244,64 @@ I18N.registerDocs("en", `
         <li>The static files are served directly; <code>api/warnings.js</code> runs as a serverless function at <code>/api/warnings</code>.</li>
         <li>The response is cached with <code>Cache-Control: s-maxage=60, stale-while-revalidate=300</code>.</li>
         <li><code>.vercelignore</code> excludes <code>.cursor/</code> and <code>.claude/</code> from the upload.</li>
+      </ul>
+      <p>The automated tests are described in the <a href="#tests">Tests</a> section.</p>
+    </section>
+
+    <section class="docs-card" id="tests">
+      <h2>Tests</h2>
+      <p>The UI is checked with Playwright in real Chromium. The suite starts <code>dev-server.js</code> itself on port <code>3125</code> (<code>127.0.0.1</code>) so a locally running dashboard and its <code>localStorage</code> stay untouched. Weather, radar, warnings, gauges and fire brigade data are stubbed in the tests, so no real API calls go out.</p>
+      <h3>Running the suite</h3>
+      <pre><code>npm install          # once: packages and Chromium
+npm test             # all tests, headless
+npm run test:headed  # the same tests, browser visible</code></pre>
+      <p><code>npm install</code> downloads Chromium via the <code>postinstall</code> script. A single file: <code>npx playwright test tests/injection.spec.js</code>.</p>
+      <p>After every run, <code>tests/markdown-reporter.js</code> writes the results to <code>testresults/</code>: <code>README.md</code> as an overview and one Markdown file per test with purpose, steps, expected result and status.</p>
+      <h3>Files</h3>
+      <div class="docs-table-wrap">
+        <table class="docs-table">
+          <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>playwright.config.js</code></td><td>Port 3125, locale <code>de-DE</code>, reporters (list + Markdown)</td></tr>
+            <tr><td><code>tests/helpers.js</code></td><td>Set language, open pages, add widgets, API stubs</td></tr>
+            <tr><td><code>tests/dashboard.spec.js</code></td><td>Navigation, languages, theme, widget catalogue, docs, smartphone menu</td></tr>
+            <tr><td><code>tests/inputs.spec.js</code></td><td>Forms, search, saving</td></tr>
+            <tr><td><code>tests/injection.spec.js</code></td><td>XSS and HTML payloads in all input fields</td></tr>
+            <tr><td><code>tests/stress.spec.js</code></td><td>Many clicks, long texts, many widgets</td></tr>
+            <tr><td><code>tests/markdown-reporter.js</code></td><td>Writes <code>testresults/*.md</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>What the suite covers</h3>
+      <h4>Dashboard and documentation</h4>
+      <ul>
+        <li>Language menu next to the colour mode, entries Deutsch and English.</li>
+        <li>Start in German, switch to English including reload: title, navigation, overview.</li>
+        <li>All six pages (Overview, Weather, Rain radar, Civil protection, Fire brigade, Water levels).</li>
+        <li>Open and close the widget catalogue in German and English.</li>
+        <li>Colour mode light → dark.</li>
+        <li>Smartphone (390×844): navigation hidden, the menu opens the sidebar.</li>
+        <li>Documentation: German texts, language switch, Internationalisation section, “Back to dashboard”.</li>
+      </ul>
+      <h4>Input fields</h4>
+      <ul>
+        <li>Empty submit on weather, radar and gauges does nothing.</li>
+        <li>Place search: hit (Hamburg), unknown name, radar quick pick Potsdam.</li>
+        <li>Family meeting point including special characters, save, reload.</li>
+        <li>Warning filter (Dresden / no match) and ticking the checklist.</li>
+        <li>Gauge search: show Dresden, unknown name as a toast.</li>
+        <li>Add, tick and delete tasks; save notes; calendar event; countdown.</li>
+        <li>Radar source OpenWeather and auto-refresh off.</li>
+      </ul>
+      <h4>Code injection</h4>
+      <p>Payloads such as <code>&lt;script&gt;alert(1)&lt;/script&gt;</code>, <code>&lt;img src=x onerror=alert(1)&gt;</code>, SVG <code>onload</code>, textarea breakout, <code>javascript:</code> URLs and template injection in the meeting point, tasks, notes, calendar, countdown, weather/radar/gauge search and the warning filter. Expected: no dialog, payload as text only, no injected <code>img</code>/<code>script</code> nodes. Place names in the radar popup are set with <code>textContent</code>, not as HTML.</p>
+      <h4>Load / stress</h4>
+      <ul>
+        <li>Switch all pages eight times in a row.</li>
+        <li>Click theme, widget catalogue and arrange mode very often.</li>
+        <li>Empty forms and a 4000-character string with HTML and umlauts.</li>
+        <li>40 tasks, add several widgets and remove them again.</li>
+        <li>Refresh, auto-refresh and language switching repeatedly.</li>
       </ul>
     </section>
 
