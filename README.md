@@ -63,24 +63,53 @@ Zum Dashboard gehören mehr als nur HTML, CSS und eine JS-Datei:
 
 ## Entwicklung
 
+### Voraussetzungen
+
+Zum Starten werden nur diese Programme gebraucht:
+
+| Programm | Wofür | Installation |
+|---|---|---|
+| [Node.js](https://nodejs.org/) 18 oder neuer (LTS) | Server `dev-server.js`, bringt **npm** mit | Installer von der Website. Danach `node -v` und `npm -v` prüfen (z. B. `v22.11.0`) |
+| [Git](https://git-scm.com/) | Repository klonen | Installer von der Website, auf Linux oft schon dabei |
+| Ein aktueller Browser | Dashboard anzeigen | Chrome, Firefox, Edge oder Safari |
+
+Kurz je System, falls der Installer nicht genutzt wird:
+
+```bash
+# Linux (Arch / CachyOS)
+sudo pacman -S nodejs npm git
+
+# Debian / Ubuntu
+sudo apt install nodejs npm git
+
+# macOS (Homebrew)
+brew install node git
+```
+
+Unter Windows den LTS-Installer von [nodejs.org](https://nodejs.org/) und [Git for Windows](https://git-scm.com/download/win) verwenden. Eine Internetverbindung ist nötig, weil Wetter, Radar, Warnungen, Feuerwehr und Pegel von öffentlichen APIs kommen.
+
 ### Lokal starten
 
 ```bash
+git clone https://github.com/Kevin-Stein/Dashboard_Projekt_Lenny_Kevin.git
+cd Dashboard_Projekt_Lenny_Kevin
 node dev-server.js
 ```
 
-Dann http://localhost:3000 öffnen. Es reicht Node.js, ein `npm install` ist zum Starten nicht nötig. Die amtlichen Warnungen laufen über `api/warnings.js`, die OpenWeather-Kacheln über `api/radar.js` (auf Vercel als Serverless-Funktionen). Beim reinen Öffnen der `index.html` oder mit Live Server bleiben die Warnungen leer; OpenWeather braucht dann den Key in `js/config.js`.
+Im Browser http://localhost:3000 öffnen. Ein `npm install` ist zum Starten nicht nötig (`npm start` macht dasselbe wie `node dev-server.js`). Anderer Port: `PORT=3001 node dev-server.js`.
+
+Die amtlichen Warnungen laufen über `api/warnings.js`, die OpenWeather-Kacheln über `api/radar.js` (auf Vercel als Serverless-Funktionen). Beim reinen Öffnen der `index.html` oder mit Live Server bleiben die Warnungen leer; OpenWeather braucht dann den Key in `js/config.js`.
 
 ### Tests
 
-Die Playwright-Suite prüft Navigation, Sprachen, Formulare, Code-Injection und Belastung. Start und der genaue Umfang stehen in der Dokumentation unter „Tests“.
+Zusätzlich zu Node.js: einmal `npm install`. Das lädt Playwright und Chromium (kein extra Chrome-Install). Die Suite prüft Navigation, Sprachen, Formulare, Code-Injection und Belastung. Start und der genaue Umfang stehen in der Dokumentation unter „Tests“.
 
 ```bash
 npm install
 npm test
 ```
 
-`npm install` lädt Chromium mit. Playwright startet selbst `dev-server.js` auf Port 3125. Nach jedem Lauf liegen die Ergebnisse als Markdown unter [`testresults/`](testresults/README.md). Mit `npm run test:headed` läuft der Browser sichtbar.
+Playwright startet selbst `dev-server.js` auf Port 3125. Nach jedem Lauf liegen die Ergebnisse als Markdown unter [`testresults/`](testresults/README.md). Mit `npm run test:headed` läuft der Browser sichtbar.
 
 ### API-Key für OpenWeather
 

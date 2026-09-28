@@ -301,10 +301,14 @@
 
     <section class="docs-card" id="entwicklung">
       <h2>Entwicklung &amp; Deployment</h2>
+      <h3>Voraussetzungen</h3>
+      <p>Zum Starten: <strong>Node.js 18 oder neuer</strong> (LTS von <a href="https://nodejs.org/" target="_blank" rel="noopener">nodejs.org</a>, enthält npm) und <strong>Git</strong> zum Klonen. Prüfung: <code>node -v</code>, <code>npm -v</code>. Details und Installationsbefehle stehen in der <code>README.md</code>.</p>
       <h3>Lokal starten</h3>
-      <pre><code>node dev-server.js
+      <pre><code>git clone https://github.com/Kevin-Stein/Dashboard_Projekt_Lenny_Kevin.git
+cd Dashboard_Projekt_Lenny_Kevin
+node dev-server.js
 # → http://localhost:3000  (anderer Port: PORT=3123 node dev-server.js)</code></pre>
-      <p>Zum Starten reicht Node.js, ein <code>npm install</code> ist nicht nötig. Die Playwright-Tests brauchen zusätzlich die Pakete aus <code>package.json</code>.</p>
+      <p>Ein <code>npm install</code> ist zum Starten nicht nötig. Die Playwright-Tests brauchen zusätzlich die Pakete aus <code>package.json</code> (Chromium kommt mit <code>npm install</code>).</p>
       <h3>OpenWeather-Key (optional)</h3>
       <p>Auf Vercel unter <strong>Settings → Environment Variables</strong> <code>OPENWEATHER_KEY</code> eintragen (Production und Preview). Die Kacheln laufen über <code>/api/radar</code>, der Key erscheint nicht im Browser.</p>
       <p>Lokal derselbe Key als Umgebungsvariable oder in <code>js/config.js</code> (Vorlage: <code>js/config.example.js</code>). <code>js/config.js</code> darf nicht committet werden. Beim direkten Öffnen der <code>index.html</code> ohne <code>dev-server.js</code> bleibt nur dieser Fallback, dann ist der Key in den Netzwerkanfragen sichtbar.</p>

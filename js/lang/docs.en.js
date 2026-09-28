@@ -231,10 +231,14 @@ I18N.registerDocs("en", `
 
     <section class="docs-card" id="entwicklung">
       <h2>Development &amp; deployment</h2>
+      <h3>Prerequisites</h3>
+      <p>To run it: <strong>Node.js 18 or newer</strong> (LTS from <a href="https://nodejs.org/" target="_blank" rel="noopener">nodejs.org</a>, includes npm) and <strong>Git</strong> to clone. Check with <code>node -v</code>, <code>npm -v</code>. Install commands are in <code>README.md</code>.</p>
       <h3>Running locally</h3>
-      <pre><code>node dev-server.js
+      <pre><code>git clone https://github.com/Kevin-Stein/Dashboard_Projekt_Lenny_Kevin.git
+cd Dashboard_Projekt_Lenny_Kevin
+node dev-server.js
 # → http://localhost:3000  (other port: PORT=3123 node dev-server.js)</code></pre>
-      <p>Node.js is enough to run the dashboard; <code>npm install</code> is not required. The Playwright tests additionally need the packages from <code>package.json</code>.</p>
+      <p><code>npm install</code> is not required to start. The Playwright tests additionally need the packages from <code>package.json</code> (Chromium comes with <code>npm install</code>).</p>
       <h3>OpenWeather key (optional)</h3>
       <p>On Vercel under <strong>Settings → Environment Variables</strong> set <code>OPENWEATHER_KEY</code> (Production and Preview). The tiles go through <code>/api/radar</code>, so the key does not appear in the browser.</p>
       <p>Locally use the same key as an environment variable or in <code>js/config.js</code> (template: <code>js/config.example.js</code>). <code>js/config.js</code> must not be committed. Opening <code>index.html</code> directly without <code>dev-server.js</code> only has this fallback, and then the key is visible in the network requests.</p>
