@@ -73,7 +73,14 @@ test.describe("Dashboard", () => {
     await expect(page.locator("html")).not.toHaveAttribute("data-theme", "dark");
     await page.locator("#themeToggle").click();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-    await expect(page.locator("#themeToggle")).toContainText("Modus: Dunkel");
+    await expect(page.locator("#themeToggle")).toHaveClass(/is-dark/);
+    await expect(page.locator("#themeToggle")).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator("#themeToggle")).toHaveText("");
+    await expect(page.locator("#themeToggle")).toHaveAttribute("title", "Zu Light Mode wechseln");
+    await page.locator("#themeToggle").click();
+    await expect(page.locator("html")).not.toHaveAttribute("data-theme", "dark");
+    await expect(page.locator("#themeToggle")).not.toHaveClass(/is-dark/);
+    await expect(page.locator("#themeToggle")).toHaveAttribute("aria-pressed", "false");
   });
 
   test("öffnet das Menü auf dem Smartphone", async ({ page }) => {

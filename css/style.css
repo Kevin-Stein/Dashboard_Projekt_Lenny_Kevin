@@ -217,7 +217,7 @@ h1 {
 
 .forecast {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(8, minmax(0, 1fr));
   gap: 8px;
   padding-top: 18px;
   border-top: 1px solid var(--line);
@@ -230,11 +230,22 @@ h1 {
   gap: 6px;
   padding: 10px 4px;
   border-radius: 12px;
+  transition: background-color 0.15s ease;
+}
+
+.day:hover:not(.selected) {
+  background: var(--panel-2);
 }
 
 .day.today .day-label {
   color: var(--teal);
   font-weight: 700;
+  font-size: 10px;
+}
+
+.day.today:not(.selected) {
+  background: var(--panel-2);
+  box-shadow: inset 0 0 0 1px var(--line);
 }
 
 .day-label {
@@ -2048,8 +2059,73 @@ body {
   gap: 6px;
 }
 .sidebar-row #themeToggle {
-  flex: 1;
-  min-width: 0;
+  position: relative;
+  flex: 0 0 56px;
+  width: 56px;
+  height: 32px;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--side-btn-bg);
+  box-shadow: inset 0 1px 2px rgba(20, 40, 45, 0.1);
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+#themeToggle.sidebar-btn:hover {
+  background: var(--side-btn-hover);
+  box-shadow: inset 0 1px 2px rgba(20, 40, 45, 0.08);
+}
+#themeToggle.sidebar-btn.is-dark {
+  border-color: #668f91;
+  background: #263b3d;
+  box-shadow:
+    0 0 0 1px rgba(127, 191, 192, 0.14),
+    inset 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+#themeToggle.sidebar-btn.is-dark:hover {
+  border-color: #91c9c9;
+  background: #30494b;
+}
+#themeToggle.sidebar-btn svg {
+  position: absolute;
+  z-index: 1;
+  width: 14px;
+  height: 14px;
+  color: var(--side-ink-soft);
+  transition: color 0.2s ease;
+}
+#themeToggle.sidebar-btn svg:first-of-type {
+  left: 8px;
+  color: #e3a31a;
+}
+#themeToggle.sidebar-btn svg:last-of-type {
+  right: 6px;
+}
+#themeToggle.sidebar-btn.is-dark svg:last-of-type {
+  color: #244247;
+}
+.theme-switch-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--side-btn-border);
+  border-radius: 50%;
+  background: var(--side-bg);
+  box-shadow: 0 1px 4px rgba(20, 40, 45, 0.18);
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+#themeToggle.sidebar-btn.is-dark .theme-switch-thumb {
+  border-color: #f2fffc;
+  background: #dff2ed;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+  transform: translateX(26px);
 }
 .sidebar-btn.lang-select {
   flex: 0 0 auto;
@@ -2299,6 +2375,7 @@ body {
   align-items: center;
   justify-content: flex-end;
   gap: 6px;
+  cursor: help;
 }
 
 .bar-track {
@@ -2313,7 +2390,16 @@ body {
   width: 60%;
   border-radius: 8px 8px 4px 4px;
   background: var(--navy);
-  transition: height 0.5s ease;
+  transform-origin: center bottom;
+  transition:
+    height 0.5s ease,
+    filter 0.15s ease,
+    transform 0.15s ease;
+}
+
+.bar-col:hover .bar {
+  filter: brightness(1.12);
+  transform: scaleX(1.12);
 }
 
 .bar-col.today .bar {
@@ -2343,6 +2429,13 @@ body {
   width: 100%;
   height: 100%;
   transform: rotate(-90deg);
+  cursor: help;
+}
+.donut-chart svg circle:last-of-type {
+  transition: stroke-width 0.15s ease;
+}
+.donut-chart svg:hover circle:last-of-type {
+  stroke-width: 16px;
 }
 .donut-chart .donut-center {
   position: absolute;
@@ -2403,6 +2496,12 @@ body {
   border-left: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
+.temperature-wave-area {
+  overflow: visible;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+}
 /* Absolut, damit das SVG nicht über das viewBox-Seitenverhältnis die Höhe bestimmt */
 .wave-area svg {
   position: absolute;
@@ -2410,6 +2509,86 @@ body {
   width: 100%;
   height: 100%;
   display: block;
+}
+.wave-grid-line {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 1;
+  stroke-dasharray: 2 5;
+  opacity: 0.75;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.temp-data-point {
+  fill: var(--orange);
+  stroke: var(--panel-2);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.temperature-wave-area .wave-now-label {
+  color: var(--teal);
+}
+.chart-hover-guide {
+  display: none;
+  stroke: var(--ink-soft);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+  opacity: 0.65;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.wave-area.chart-hover-active .chart-hover-guide {
+  display: block;
+}
+.wave-area .chart-hover-marker {
+  display: none;
+  fill: var(--panel);
+  stroke: var(--orange);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.wave-area.chart-hover-active .chart-hover-marker {
+  display: block;
+}
+.wave-area .chart-hover-target {
+  cursor: crosshair;
+}
+.chart-hover-tooltip {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: max-content;
+  padding: 6px 9px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: 0 4px 12px rgba(20, 30, 40, 0.16);
+  font-size: 11px;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, calc(-100% - 8px));
+  transition: opacity 0.12s ease;
+}
+.chart-hover-tooltip span {
+  color: var(--ink-soft);
+  font-size: 10px;
+}
+.chart-hover-tooltip strong {
+  font-size: 12px;
+  white-space: nowrap;
+}
+.wave-area.chart-hover-active .chart-hover-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+.chart-hover-tooltip.below {
+  transform: translate(-50%, 10px);
 }
 .wave-x {
   grid-column: 2;

@@ -392,10 +392,11 @@ function effectiveTheme() {
   if (stored === "light" || stored === "dark") return stored;
   return systemPrefersDark() ? "dark" : "light";
 }
+themeToggleBtn.innerHTML = `${sunIconSvg}${moonIconSvg}<span class="theme-switch-thumb" aria-hidden="true"></span>`;
 function updateThemeIcon() {
   const eff = effectiveTheme();
-  themeToggleBtn.innerHTML =
-    eff === "dark" ? `${moonIconSvg}<span>${t("theme.dark")}</span>` : `${sunIconSvg}<span>${t("theme.light")}</span>`;
+  themeToggleBtn.classList.toggle("is-dark", eff === "dark");
+  themeToggleBtn.setAttribute("aria-pressed", String(eff === "dark"));
   themeToggleBtn.title = t(eff === "dark" ? "theme.toLight" : "theme.toDark");
 }
 function applyTheme(stored) {
@@ -1901,9 +1902,11 @@ function renderForecastBars(data) {
     .map((dateStr, i) => {
       const d = new Date(dateStr + "T00:00:00");
       const high = Math.round(highs[i]);
+      const low = Math.round(data.daily.temperature_2m_min[i]);
       const heightPct = 22 + ((high - minVal) / span) * 78; // 22%–100%
       const label = i === 0 ? t("common.todayCap") : weekdayShort(d);
-      return `<div class="bar-col${i === 0 ? " today" : ""}">
+      const info = weatherCodeInfo(data.daily.weather_code[i]);
+      return `<div class="bar-col${i === 0 ? " today" : ""}" title="${label}: ${info.text} · ${high}° / ${low}°">
       <div class="bar-value">${high}°</div>
       <div class="bar-track"><div class="bar" style="height:${heightPct.toFixed(0)}%"></div></div>
       <div class="bar-label">${label}</div>
@@ -1921,7 +1924,8 @@ function renderRainDonut(percent, captionText) {
   const circumference = 2 * Math.PI * r;
   const filled = (p / 100) * circumference;
   el.innerHTML = `
-    <svg viewBox="0 0 120 120">
+    <svg viewBox="0 0 120 120" role="img" aria-label="${captionText || t("weather.donutWord")}: ${p}%">
+      <title>${captionText || t("weather.donutWord")}: ${p}%</title>
       <circle cx="60" cy="60" r="${r}" fill="none" style="stroke:var(--line)" stroke-width="14"/>
       <circle cx="60" cy="60" r="${r}" fill="none" style="stroke:var(--orange)" stroke-width="14" transform="rotate(-90 60 60)"
         stroke-linecap="round" stroke-dasharray="${filled.toFixed(1)} ${circumference.toFixed(1)}"/>
@@ -1933,6 +1937,72 @@ function renderRainDonut(percent, captionText) {
   const caption = document.getElementById("donutCaption");
   if (caption) caption.textContent = captionText || "";
 }
+
+const waveHoverCache = new WeakMap();
+let activeWaveHoverArea = null;
+
+function hideWaveHover(area) {
+  area.classList.remove("chart-hover-active");
+  if (activeWaveHoverArea === area) activeWaveHoverArea = null;
+}
+
+document.addEventListener("pointermove", (event) => {
+  if (event.pointerType === "touch") return;
+  const area = event.target instanceof Element ? event.target.closest(".wave-area") : null;
+  const svg = area?.querySelector("svg[data-hover-points]");
+  if (!area || !svg) {
+    if (activeWaveHoverArea) hideWaveHover(activeWaveHoverArea);
+    return;
+  }
+
+  const rect = svg.getBoundingClientRect();
+  if (!rect.width || !rect.height) return;
+  let points = waveHoverCache.get(svg);
+  if (!points) {
+    try {
+      points = JSON.parse(svg.dataset.hoverPoints);
+      waveHoverCache.set(svg, points);
+    } catch {
+      return;
+    }
+  }
+  if (!points.length) return;
+
+  const viewBox = svg.viewBox.baseVal;
+  const chartX = ((event.clientX - rect.left) / rect.width) * viewBox.width;
+  const point = points.reduce((nearest, candidate) =>
+    Math.abs(candidate.x - chartX) < Math.abs(nearest.x - chartX) ? candidate : nearest,
+  );
+  const tooltip = area.querySelector(".chart-hover-tooltip");
+  const marker = svg.querySelector(".chart-hover-marker");
+  if (!tooltip || !marker) return;
+
+  if (activeWaveHoverArea && activeWaveHoverArea !== area) hideWaveHover(activeWaveHoverArea);
+  activeWaveHoverArea = area;
+  area.classList.add("chart-hover-active");
+  tooltip.querySelector("span").textContent = point.label;
+  tooltip.querySelector("strong").textContent = point.value;
+  marker.setAttribute("cx", point.x);
+  marker.setAttribute("cy", point.y);
+  const guide = svg.querySelector(".chart-hover-guide");
+  if (guide) {
+    guide.setAttribute("x1", point.x);
+    guide.setAttribute("x2", point.x);
+  }
+
+  const pointX = (point.x / viewBox.width) * rect.width;
+  const pointY = (point.y / viewBox.height) * rect.height;
+  const halfTooltipWidth = tooltip.offsetWidth / 2;
+  tooltip.style.left = `${Math.max(halfTooltipWidth + 4, Math.min(rect.width - halfTooltipWidth - 4, pointX))}px`;
+  tooltip.style.top = `${pointY}px`;
+  tooltip.classList.toggle("below", pointY < 42);
+});
+
+document.addEventListener("pointerout", (event) => {
+  const area = event.target instanceof Element ? event.target.closest(".wave-area") : null;
+  const nextTarget = event.relatedTarget;
+  if (area && (!(nextTarget instanceof Node) || !area.contains(nextTarget))) hideWaveHover(area);
+});
 
 // ---- NEU: Wellen-/Flächendiagramm (stündlicher Temperaturverlauf) ----
 function renderTempWave(hourIdxForDay, hourly, nowIso) {
@@ -1951,6 +2021,23 @@ function renderTempWave(hourIdxForDay, hourly, nowIso) {
     const y = h - pad - ((t - minT) / span) * (h - pad * 2);
     return [x, y];
   });
+  const hoverPoints = hourIdxForDay.map((idx, i) => ({
+    x: points[i][0],
+    y: points[i][1],
+    label: new Date(hourly.time[idx]).toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" }),
+    value: `${temps[i].toLocaleString(LOCALE, { maximumFractionDigits: 1 })} °C`,
+  }));
+  const yGrid = [pad, h / 2, h - pad]
+    .map((y) => `<line class="wave-grid-line" x1="${pad}" x2="${w - pad}" y1="${y}" y2="${y}"/>`)
+    .join("");
+  const xGrid = hourIdxForDay
+    .map((idx, i) => ({ i, hour: Number(hourly.time[idx].slice(11, 13)) }))
+    .filter(({ hour }) => hour > 0 && hour < 24 && hour % 6 === 0)
+    .map(({ i }) => `<line class="wave-grid-line" x1="${points[i][0]}" x2="${points[i][0]}" y1="${pad}" y2="${h - pad}"/>`)
+    .join("");
+  const dataDots = points
+    .map(([x, y]) => `<circle class="temp-data-point" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.5"/>`)
+    .join("");
   const linePath = points.map((p, i) => (i === 0 ? "M" : "L") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
   const areaPath =
     linePath + ` L${points[points.length - 1][0].toFixed(1)} ${h - pad} L${points[0][0].toFixed(1)} ${h - pad} Z`;
@@ -1974,7 +2061,7 @@ function renderTempWave(hourIdxForDay, hourly, nowIso) {
     const i = hourIdxForDay.findIndex((idx) => hourly.time[idx].startsWith(nowIso.slice(0, 13)));
     if (i >= 0) {
       const x = points[i][0].toFixed(1);
-      nowLine = `<line x1="${x}" y1="0" x2="${x}" y2="${h}" style="stroke:var(--orange)" stroke-width="1.5" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>`;
+      nowLine = `<line x1="${x}" y1="0" x2="${x}" y2="${h}" style="stroke:var(--teal)" stroke-width="1.5" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>`;
       nowLabel = `<span class="wave-now-label" style="left:${xPct(points[i][0])}">${t("weather.now")}</span>`;
     }
   }
@@ -1984,22 +2071,29 @@ function renderTempWave(hourIdxForDay, hourly, nowIso) {
   el.innerHTML = `
     <div class="wave-plot">
       <div class="wave-y">${yLabels}</div>
-      <div class="wave-area">
+      <div class="wave-area temperature-wave-area">
         <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
           <defs>
             <linearGradient id="waveFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" style="stop-color:var(--orange);stop-opacity:0.35"/>
+              <stop offset="0%" style="stop-color:var(--orange);stop-opacity:0.24"/>
               <stop offset="100%" style="stop-color:var(--orange);stop-opacity:0"/>
             </linearGradient>
           </defs>
+          ${yGrid}${xGrid}
           <path d="${areaPath}" fill="url(#waveFill)" stroke="none"/>
-          <path d="${linePath}" fill="none" style="stroke:var(--navy)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+          <path d="${linePath}" fill="none" style="stroke:var(--orange)" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+          ${dataDots}
           ${nowLine}
+          <line class="chart-hover-guide" x1="0" y1="${pad}" x2="0" y2="${h - pad}"/>
+          <circle class="chart-hover-marker" cx="0" cy="0" r="4"/>
+          <rect class="chart-hover-target" x="0" y="0" width="${w}" height="${h}" fill="transparent" pointer-events="all"/>
         </svg>
         ${nowLabel}
+        <div class="chart-hover-tooltip" aria-hidden="true"><span></span><strong></strong></div>
       </div>
       <div class="wave-x">${xLabels}</div>
     </div>`;
+  el.querySelector(".wave-area svg").dataset.hoverPoints = JSON.stringify(hoverPoints);
 }
 
 function renderDayDetail(index) {
@@ -2202,7 +2296,7 @@ async function loadWeatherForPlace(lat, lon, label) {
       `&current=temperature_2m,weather_code,relative_humidity_2m,apparent_temperature,surface_pressure,wind_speed_10m` +
       `&hourly=temperature_2m,weather_code,precipitation_probability,surface_pressure,relative_humidity_2m,wind_speed_10m` +
       `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,uv_index_max,sunrise,sunset` +
-      `&timezone=auto&forecast_days=6&past_days=1`;
+      `&timezone=auto&forecast_days=8&past_days=1`;
     const data = await fetchData(url, { source: "Wetter" });
     if (!data.current || !(data.daily?.time?.length > 1)) throw dataError("Wetter", "unvollständige Wetterdaten");
     const yesterday = splitOffYesterday(data);
@@ -2262,8 +2356,9 @@ async function loadWeatherForPlace(lat, lon, label) {
       const isToday = i === 0;
       const dayEl = document.createElement("div");
       dayEl.className = "day" + (isToday ? " today" : "");
+      dayEl.title = `${isToday ? t("common.todayCap") : weekdayShort(d)} · ${info.text} · ${Math.round(data.daily.temperature_2m_max[i])}° / ${Math.round(data.daily.temperature_2m_min[i])}°`;
       dayEl.innerHTML = `
-        <div class="day-label">${weekdayShort(d)}</div>
+        <div class="day-label">${isToday ? t("common.todayCap") : weekdayShort(d)}</div>
         <svg class="day-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:20px;height:20px;">${weatherIcons[info.icon]}</svg>
         <div class="day-high">${Math.round(data.daily.temperature_2m_max[i])}°</div>
         <div class="day-low">${Math.round(data.daily.temperature_2m_min[i])}°</div>
@@ -2633,6 +2728,7 @@ function renderFire(days) {
   const shareText = share.toLocaleString(LOCALE, { maximumFractionDigits: 1 });
   document.getElementById("fireDonut").innerHTML = `
     <svg viewBox="0 0 120 120" role="img" aria-label="${t("fire.donutAria", { share: shareText })}">
+      <title>${t("fire.donutWord")}: ${shareText}%</title>
       <circle cx="60" cy="60" r="${r}" fill="none" style="stroke:var(--line)" stroke-width="14"/>
       <circle cx="60" cy="60" r="${r}" fill="none" style="stroke:var(--orange)" stroke-width="14" transform="rotate(-90 60 60)"
         stroke-linecap="round" stroke-dasharray="${filled.toFixed(1)} ${circumference.toFixed(1)}"/>
@@ -2899,6 +2995,18 @@ function renderWaterChart(el, measurements, chars) {
   const xOf = (t) => ((t - t0) / (t1 - t0 || 1)) * w;
   const yOf = (v) => h - ((v - minV) / (maxV - minV)) * h;
   const coords = points.map((m) => [xOf(new Date(m.timestamp).getTime()), yOf(m.value)]);
+  const hoverPoints = points.map((measurement, i) => ({
+    x: coords[i][0],
+    y: coords[i][1],
+    label: new Date(measurement.timestamp).toLocaleString(LOCALE, {
+      weekday: "short",
+      day: "2-digit",
+      month: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    value: `${Number(measurement.value).toLocaleString(LOCALE, { maximumFractionDigits: 1 })} cm`,
+  }));
   const line = coords.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
   const area = `${line} L${w} ${h} L0 ${h} Z`;
   const pct = (v, total) => ((v / total) * 100).toFixed(2) + "%";
@@ -2945,11 +3053,16 @@ function renderWaterChart(el, measurements, chars) {
           <path d="${area}" fill="url(#waterFill)" stroke="none"/>
           ${refLines}
           <path d="${line}" fill="none" style="stroke:var(--teal)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+          <line class="chart-hover-guide" x1="0" y1="0" x2="0" y2="${h}"/>
+          <circle class="chart-hover-marker" cx="0" cy="0" r="4"/>
+          <rect class="chart-hover-target" x="0" y="0" width="${w}" height="${h}" fill="transparent" pointer-events="all"/>
         </svg>
         ${refLabels}
+        <div class="chart-hover-tooltip" aria-hidden="true"><span></span><strong></strong></div>
       </div>
       <div class="wave-x">${xLabels.join("")}</div>
     </div>`;
+  el.querySelector(".wave-area svg").dataset.hoverPoints = JSON.stringify(hoverPoints);
 }
 
 function selectWaterStation(id) {
