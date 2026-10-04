@@ -5,8 +5,8 @@
 | Status | **bestanden** |
 | Suite | Dashboard |
 | Testdatei | `tests/dashboard.spec.js` |
-| Dauer | 1.10 s |
-| Lauf | 25.9.2026, 19:50:33 |
+| Dauer | 1.09 s |
+| Lauf | 4.10.2026, 19:11:28 |
 
 ## Zweck
 
@@ -14,7 +14,7 @@ Prüft, dass jeder Navigationspunkt die richtige Seite einblendet.
 
 ## Ablauf
 
-- Nacheinander Übersicht, Wetter, Regenradar, Katastrophenschutz, Feuerwehr und Wasserpegel anklicken.
+- Nacheinander Übersicht, Wetter, Wasserpegel, Feuerwehr und Organisation anklicken.
 
 ## Erwartetes Ergebnis
 

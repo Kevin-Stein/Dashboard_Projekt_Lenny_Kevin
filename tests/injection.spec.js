@@ -31,36 +31,30 @@ async function assertNotExecuted(page, seen) {
 }
 
 test.describe("Code-Injection", () => {
-  test("Treffpunkt, Notizen und Aufgaben speichern Payloads nur als Text", async ({ page }) => {
+  test("Notizen und Aufgaben speichern Payloads nur als Text", async ({ page }) => {
     const seen = await watchDialogs(page);
     await openWithLang(page, "/", "de");
-    await openPage(page, "disasterPage");
 
-    const meeting = page.locator("#meetingPointInput");
-    for (const payload of PAYLOADS) {
-      await meeting.fill(payload);
-      await expect.poll(() => page.evaluate(() => localStorage.getItem("dashboard-meeting-point"))).toBe(payload);
-      await expect(meeting).toHaveValue(payload);
-    }
-    await page.reload({ waitUntil: "domcontentloaded" });
-    await openPage(page, "disasterPage");
-    await expect(meeting).toHaveValue(PAYLOADS[PAYLOADS.length - 1]);
-    await assertNotExecuted(page, seen);
-
-    await openPage(page, "overviewPage");
     await addOverviewWidget(page, "todo");
     const todo = page.locator("#ov-todo");
-    await todo.locator("#todoAddInput").fill(PAYLOADS[1]);
-    await todo.locator("#todoAddForm").press("Enter");
-    await expect(todo.locator(".todo-item span")).toHaveText(PAYLOADS[1]);
+    for (const payload of PAYLOADS) {
+      await todo.locator("#todoAddInput").fill(payload);
+      await todo.locator("#todoAddForm").press("Enter");
+    }
+    await expect(todo.locator(".todo-item span").last()).toHaveText(PAYLOADS[PAYLOADS.length - 1]);
     await expect(todo.locator(".todo-item span img")).toHaveCount(0);
+    await assertNotExecuted(page, seen);
 
     await addOverviewWidget(page, "notes");
     const notes = page.locator("#ov-notes .notes-area");
-    await notes.fill(PAYLOADS[4]);
+    for (const payload of PAYLOADS) {
+      await notes.fill(payload);
+    }
     await expect(page.locator("#ov-notes #notesSaved")).toHaveText("Gespeichert", { timeout: 2000 });
-    await expect(notes).toHaveValue(PAYLOADS[4]);
+    await expect(notes).toHaveValue(PAYLOADS[PAYLOADS.length - 1]);
     await expect(page.locator("#ov-notes script")).toHaveCount(0);
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await expect(page.locator("#ov-notes .notes-area")).toHaveValue(PAYLOADS[PAYLOADS.length - 1]);
     await assertNotExecuted(page, seen);
   });
 
@@ -105,7 +99,7 @@ test.describe("Code-Injection", () => {
     await expect(page.locator("#weatherPlaceName")).toContainText(PAYLOADS[0]);
     await expect(page.locator("#weatherPlace script")).toHaveCount(0);
 
-    await openPage(page, "radarPage");
+    await openPage(page, "weatherPage");
     await page.locator("#radarInput").fill(img);
     await page.locator("#radarForm").press("Enter");
     await expect(page.locator("#toast img, #map script")).toHaveCount(0);

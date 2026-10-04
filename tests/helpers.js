@@ -9,7 +9,7 @@ function fakeWeather() {
     d.setDate(start.getDate() + i);
     return d.toISOString().slice(0, 10);
   });
-  const hourly = { time: [], temperature_2m: [], weather_code: [], precipitation_probability: [], surface_pressure: [], relative_humidity_2m: [], wind_speed_10m: [] };
+  const hourly = { time: [], temperature_2m: [], weather_code: [], precipitation_probability: [], surface_pressure: [], relative_humidity_2m: [], wind_speed_10m: [], wind_direction_10m: [] };
   days.forEach((day) => {
     for (let h = 0; h < 24; h++) {
       hourly.time.push(`${day}T${String(h).padStart(2, "0")}:00`);
@@ -19,6 +19,7 @@ function fakeWeather() {
       hourly.surface_pressure.push(1013);
       hourly.relative_humidity_2m.push(55);
       hourly.wind_speed_10m.push(8);
+      hourly.wind_direction_10m.push(225);
     }
   });
   const today = days[1];
@@ -32,6 +33,7 @@ function fakeWeather() {
       apparent_temperature: 14,
       surface_pressure: 1013,
       wind_speed_10m: 10,
+      wind_direction_10m: 225,
     },
     hourly,
     daily: {
@@ -41,6 +43,7 @@ function fakeWeather() {
       temperature_2m_min: days.map(() => 8),
       precipitation_probability_max: days.map(() => 25),
       wind_speed_10m_max: days.map(() => 18),
+      wind_direction_10m_dominant: days.map(() => 225),
       uv_index_max: days.map(() => 3),
       sunrise: days.map((d) => `${d}T06:30`),
       sunset: days.map((d) => `${d}T18:30`),

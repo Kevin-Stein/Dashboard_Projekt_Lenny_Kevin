@@ -5,8 +5,8 @@
 | Status | **bestanden** |
 | Suite | Dashboard |
 | Testdatei | `tests/dashboard.spec.js` |
-| Dauer | 1.07 s |
-| Lauf | 25.9.2026, 19:50:33 |
+| Dauer | 1.08 s |
+| Lauf | 4.10.2026, 19:11:28 |
 
 ## Zweck
 
@@ -20,7 +20,7 @@ Prüft den Widget-Katalog und dessen Übersetzung.
 
 ## Erwartetes Ergebnis
 
-Deutsch: „Widget hinzufügen“, „Kalender & Organisation“, „Aktuelles Wetter“. Englisch: „Add widget“, „Calendar & organisation“, „Current weather“. Schließen blendet den Overlay aus.
+Deutsch: „Widget hinzufügen“, „Kalender & Organisation“, „Aktuelles Wetter“, Plus statt Haken und Anzahl 1. Englisch: „Add widget“, „Calendar & organisation“, „Current weather“. Schließen blendet den Overlay aus.
 
 ## Fehler
 

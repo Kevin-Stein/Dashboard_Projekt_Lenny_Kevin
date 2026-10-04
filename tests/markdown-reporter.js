@@ -23,16 +23,35 @@ const DOCS = {
       "Titel, Übersichtsüberschrift und Navigationspunkte prüfen.",
       "Im Sprachmenü English wählen und den Reload abwarten.",
     ],
-    erwartet: "html lang wechselt von de auf en. Titel, Navigation und Übersicht erscheinen auf Englisch. Das Sprachmenü bleibt auf en.",
+    erwartet: "html lang wechselt von de auf en. Titel, Navigation, Slogan und Übersicht erscheinen auf Englisch. Das Sprachmenü bleibt auf en.",
   },
   "wechselt alle Seiten in der Navigation": {
     suite: "Dashboard",
     file: "tests/dashboard.spec.js",
     zweck: "Prüft, dass jeder Navigationspunkt die richtige Seite einblendet.",
     schritte: [
-      "Nacheinander Übersicht, Wetter, Regenradar, Katastrophenschutz, Feuerwehr und Wasserpegel anklicken.",
+      "Nacheinander Übersicht, Wetter, Wasserpegel, Feuerwehr und Organisation anklicken.",
     ],
     erwartet: "Die angeklickte Seite hat die Klasse active, ebenso der zugehörige Navigationspunkt.",
+  },
+  "wechselt Seiten mit Tastaturkürzeln 1 bis 5": {
+    suite: "Dashboard",
+    file: "tests/dashboard.spec.js",
+    zweck: "Prüft die Standard-Tastaturkürzel der fünf Hauptseiten.",
+    schritte: [
+      "Taste 2 drücken, Suchfeld auf Wetter fokussieren und 3 drücken, dann 5.",
+    ],
+    erwartet: "2 öffnet Wetter. Im Suchfeld ändert 3 die Seite nicht. 5 öffnet Organisation.",
+  },
+  "lässt Tastaturkürzel unter Einstellungen ändern": {
+    suite: "Dashboard",
+    file: "tests/dashboard.spec.js",
+    zweck: "Prüft, dass Kürzel im Dialog Einstellungen neu belegt werden.",
+    schritte: [
+      "Einstellungen öffnen, Wetter-Kürzel anklicken und W drücken.",
+      "Dialog mit Escape schließen, W und danach 2 drücken.",
+    ],
+    erwartet: "W öffnet Wetter. 2 bleibt auf Wetter, weil 2 nicht mehr belegt ist.",
   },
   "öffnet den Widget-Katalog auf Deutsch und Englisch": {
     suite: "Dashboard",
@@ -43,7 +62,89 @@ const DOCS = {
       "Den Katalog schließen.",
       "Auf Englisch wechseln und den Katalog erneut öffnen.",
     ],
-    erwartet: "Deutsch: „Widget hinzufügen“, „Kalender & Organisation“, „Aktuelles Wetter“. Englisch: „Add widget“, „Calendar & organisation“, „Current weather“. Schließen blendet den Overlay aus.",
+    erwartet: "Deutsch: „Widget hinzufügen“, „Kalender & Organisation“, „Aktuelles Wetter“, Plus statt Haken und Anzahl 1. Englisch: „Add widget“, „Calendar & organisation“, „Current weather“. Schließen blendet den Overlay aus.",
+  },
+  "öffnet Gegen Langeweile mit Spielkacheln": {
+    suite: "Dashboard",
+    file: "tests/dashboard.spec.js",
+    zweck: "Prüft die Spielauswahl unter Gegen Langeweile.",
+    schritte: [
+      "Gegen Langeweile öffnen und die Kacheln Klondike, Tic Tac Toe und Dino Game prüfen.",
+      "Klondike öffnen, zurück, Tic Tac Toe und Dino Game öffnen, Sprache auf Englisch stellen.",
+    ],
+    erwartet: "Auswahlkacheln sind sichtbar. Klondike lädt solitaire-online.com. Tic Tac Toe und Dino Game liegen als Jotform-Widgets. Englisch: Against boredom, ← Games.",
+  },
+  "bindet dasselbe Widget mehrfach zum Vergleich ein": {
+    suite: "Dashboard",
+    file: "tests/dashboard.spec.js",
+    zweck: "Prüft, dass Wetter und Pegel mehrfach mit eigener Suche liegen können.",
+    schritte: [
+      "Auf der Übersicht „Aktuelles Wetter“ ein zweites Mal hinzufügen und Lissabon suchen.",
+      "„Pegelverlauf“ ein zweites Mal hinzufügen und Dresden suchen.",
+    ],
+    erwartet: "Die zweite Wetterkachel zeigt Lissabon, die Wetterseite bleibt Berlin. Die zweite Pegelkachel zeigt Dresden, die Pegel-Quelle nicht.",
+  },
+  "öffnet das Versions-Changelog als Popup": {
+    suite: "Dashboard",
+    file: "tests/dashboard.spec.js",
+    zweck: "Prüft den Navigationspunkt Version unter der Dokumentation und das Changelog der Version 2.",
+    schritte: [
+      "Dashboard auf Deutsch öffnen.",
+      "Prüfen, dass Version unter Dokumentation steht und nicht in der Seiten-Navigation.",
+      "Version anklicken, Changelog lesen, mit Escape schließen.",
+      "Auf Englisch wechseln, erneut öffnen und mit × schließen.",
+    ],
+    erwartet: "In der Seitenleiste steht dauerhaft „Version 2.0.0“. Der Dialog zeigt Version 2.0.0 und den Hinweis zu Änderungen nach dem 28. September 2026. Escape und Schließen blenden das Fenster aus. Englisch: after 28 September 2026.",
+  },
+  "zeigt die Standard-Widgets der Übersicht": {
+    suite: "Dashboard",
+    file: "tests/dashboard.spec.js",
+    zweck: "Prüft die Standard-Auswahl auf der Übersicht.",
+    schritte: [
+      "Die Übersicht ohne gespeichertes Layout öffnen.",
+      "Die Standard-Widgets zählen und ihre Titel prüfen.",
+    ],
+    erwartet: "Genau drei Widgets: Aktuelles Wetter, Brandeinsätze pro Tag und Pegel (Verlauf plus Berliner Liste).",
+  },
+  "hält Notizen und Radar kompakt": {
+    suite: "Dashboard",
+    file: "tests/dashboard.spec.js",
+    zweck: "Prüft, dass Notizen und Regenradar nicht die ganze Seitenbreite nutzen.",
+    schritte: [
+      "Notizen-Widget auf der Übersicht hinzufügen und die Breite messen.",
+      "Wetter-Panel auf Übersicht und Wetterseite vergleichen.",
+      "Wetterseite öffnen und die Radar-Breite messen.",
+    ],
+    erwartet: "Notizen sind schmaler als die halbe Übersicht. Das Wetter-Panel ist auf Übersicht und Wetterseite gleich breit. Der Pegelverlauf ist mindestens 500 Pixel breit, das Diagramm nicht gequetscht. Das Radar ist schmaler als 65 Prozent der Wetterseite.",
+  },
+  "legt Wetter-Kennzahlen im F-Muster aus": {
+    suite: "Dashboard",
+    file: "tests/dashboard.spec.js",
+    zweck: "Prüft, dass die Wetter-Kennzahlen in einer Zeile von links nach rechts stehen und das Wetter-Panel darunter links beginnt.",
+    schritte: [
+      "Wetterseite öffnen und die Positionen von Temperatur, Wind und aktuellem Wetter messen.",
+    ],
+    erwartet: "Temperatur steht links neben Wind auf gleicher Höhe. Das Wetter-Panel beginnt darunter links.",
+  },
+  "lässt den Widget-Platzhalter schmal": {
+    suite: "Dashboard",
+    file: "tests/dashboard.spec.js",
+    zweck: "Prüft, dass die Fläche „Widget hinzufügen“ nicht die Restbreite der Seite ausfüllt.",
+    schritte: [
+      "Auf der Übersicht die Breite des Platzhalters messen.",
+      "Katastrophenschutz öffnen und den Platzhalter in der Widget-Zeile messen.",
+    ],
+    erwartet: "Der Platzhalter ist schmaler als 240 Pixel und nimmt auf Katastrophenschutz weniger als 35 Prozent der Seitenbreite ein.",
+  },
+  "zeigt dasselbe Pegel-Widget auf Übersicht und Wasserseite": {
+    suite: "Dashboard",
+    file: "tests/dashboard.spec.js",
+    zweck: "Prüft, dass Übersicht und Wasserpegel dasselbe kombinierte Pegel-Widget nutzen.",
+    schritte: [
+      "Auf der Übersicht Verlauf und Berliner Liste im Pegel-Widget prüfen.",
+      "Wasserpegel öffnen und dieselbe Struktur prüfen.",
+    ],
+    erwartet: "Beide Seiten zeigen das Panel mit water-combo-grid und der Berliner Pegelliste.",
   },
   "wechselt den Farbmodus": {
     suite: "Dashboard",
@@ -97,20 +198,10 @@ const DOCS = {
     ],
     erwartet: "Hamburg erscheint als Ort in Wetter und Seitenleiste. Unbekannte Namen erzeugen eine klare Meldung. Potsdam landet im Radarfeld.",
   },
-  "Familien-Treffpunkt speichert Text inklusive Sonderzeichen": {
-    suite: "Eingabefelder",
-    file: "tests/inputs.spec.js",
-    zweck: "Prüft Speichern, Reload und dass HTML nicht als Script ausgeführt wird.",
-    schritte: [
-      "Im Treffpunkt `<script>alert(1)</script> bei Oma` eintragen.",
-      "Auf „Gespeichert“ warten und die Seite neu laden.",
-    ],
-    erwartet: "Der Text bleibt unverändert im Feld. Es öffnet sich kein Dialog. Nach dem Reload ist derselbe Text wieder da.",
-  },
   "Warnungsfilter und Checkliste reagieren auf Eingaben": {
     suite: "Eingabefelder",
     file: "tests/inputs.spec.js",
-    zweck: "Prüft Filter der amtlichen Warnungen und das Abhaken der Notfall-Checkliste.",
+    zweck: "Prüft Filter der amtlichen Warnungen und das Abhaken der To-do-Liste.",
     schritte: [
       "Warnungen nach Dresden filtern, danach nach xyzzy.",
       "Den ersten Checklistenpunkt abhaken.",
@@ -142,7 +233,7 @@ const DOCS = {
   "Radar-Anbieter und Auto-Aktualisierung lassen sich umschalten": {
     suite: "Eingabefelder",
     file: "tests/inputs.spec.js",
-    zweck: "Prüft Select und Toggle in der Seitenleiste bzw. auf der Radar-Seite.",
+    zweck: "Prüft Select und Toggle in der Seitenleiste bzw. auf der Wetterseite.",
     schritte: [
       "Niederschlagsquelle auf OpenWeather stellen.",
       "Auto-Aktualisierung ausschalten.",
@@ -152,8 +243,8 @@ const DOCS = {
   "hält schnelles Umschalten aller Seiten aus": {
     suite: "Belastung",
     file: "tests/stress.spec.js",
-    zweck: "Belastet die Navigation durch acht vollständige Durchläufe aller sechs Seiten.",
-    schritte: ["48 Seitenwechsel hintereinander auslösen."],
+    zweck: "Belastet die Navigation durch acht vollständige Durchläufe aller fünf Seiten.",
+    schritte: ["40 Seitenwechsel hintereinander auslösen."],
     erwartet: "Danach ist Wasserpegel aktiv. Sprachmenü und Seitentitel bleiben sichtbar. Die Oberfläche stürzt nicht ab.",
   },
   "hält schnelles Umschalten von Theme, Menü und Widget-Auswahl aus": {
@@ -172,10 +263,10 @@ const DOCS = {
     file: "tests/stress.spec.js",
     zweck: "Prüft leere Absenden und einen 4000-Zeichen-Text mit HTML und Umlauten.",
     schritte: [
-      "Wetter, Radar, Warnungen und Pegel mehrfach leer absenden.",
+      "Wetter, Radar, Warnungen, Notizen und Pegel mehrfach leer absenden bzw. mit langem Text füllen.",
       "Denselben langen Text in die Felder schreiben.",
     ],
-    erwartet: "Unbekannte Orte und Pegel werden gemeldet. Der Treffpunkt speichert. Das Sprachmenü bleibt sichtbar.",
+    erwartet: "Unbekannte Orte und Pegel werden gemeldet. Notizen speichern. Das Sprachmenü bleibt sichtbar.",
   },
   "hält viele Aufgaben und schnelles Hinzufügen/Entfernen von Widgets aus": {
     suite: "Belastung",
@@ -197,14 +288,13 @@ const DOCS = {
     ],
     erwartet: "Die Oberfläche bleibt Deutsch mit der Überschrift „Meine Übersicht“. Der Aktualisieren-Knopf bleibt sichtbar.",
   },
-  "Treffpunkt, Notizen und Aufgaben speichern Payloads nur als Text": {
+  "Notizen und Aufgaben speichern Payloads nur als Text": {
     suite: "Code-Injection",
     file: "tests/injection.spec.js",
-    zweck: "Prüft XSS- und HTML-Payloads in Treffpunkt, Aufgaben und Notizen. Gespeicherter Text darf nicht als Code laufen.",
+    zweck: "Prüft XSS- und HTML-Payloads in Aufgaben und Notizen. Gespeicherter Text darf nicht als Code laufen.",
     schritte: [
-      "Mehrere Payloads (script, img onerror, svg onload, textarea-Breakout, javascript:-URL, Template-Injection) nacheinander in den Treffpunkt schreiben und neu laden.",
-      "Dasselbe img-onerror als Aufgabe anlegen.",
-      "Den textarea-Breakout in die Notizen schreiben.",
+      "Mehrere Payloads (script, img onerror, svg onload, textarea-Breakout, javascript:-URL, Template-Injection) nacheinander als Aufgabe anlegen.",
+      "Dieselben Payloads in die Notizen schreiben, speichern und neu laden.",
     ],
     erwartet: "Kein alert/prompt. Kein eingefügtes img/svg/iframe. Werte stehen unverändert als Text in den Feldern bzw. in der Aufgabenliste.",
   },

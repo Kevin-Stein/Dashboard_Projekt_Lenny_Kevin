@@ -33,10 +33,27 @@
 
     <nav class="sidebar-nav" id="sidebarNav"></nav>
 
-    <a class="nav-item nav-docs" id="docsLink" href="docs.html" target="_blank" rel="noopener">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4.5 4.5A1.5 1.5 0 0 1 6 3h12.5v15.5H6a1.5 1.5 0 0 0-1.5 1.5z"/><path d="M4.5 20A1.5 1.5 0 0 0 6 21h12.5v-2.5M8.5 7.5h6M8.5 11h6" stroke-linecap="round"/></svg>
-      <span data-i18n="nav.docs">Dokumentation</span>
-    </a>
+    <div class="sidebar-links">
+      <button type="button" class="nav-item nav-boredom" id="boredomLink">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="6.5" y="4.5" width="11" height="15" rx="1.6"/><path d="M9.5 8.2h6M9.5 12h6M9.5 15.8h4"/></svg>
+        <span data-i18n="nav.boredom">Gegen Langeweile</span>
+      </button>
+      <a class="nav-item nav-docs" id="docsLink" href="docs.html" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4.5 4.5A1.5 1.5 0 0 1 6 3h12.5v15.5H6a1.5 1.5 0 0 0-1.5 1.5z"/><path d="M4.5 20A1.5 1.5 0 0 0 6 21h12.5v-2.5M8.5 7.5h6M8.5 11h6" stroke-linecap="round"/></svg>
+        <span data-i18n="nav.docs">Dokumentation</span>
+      </a>
+      <button type="button" class="nav-item nav-version" id="versionLink" aria-haspopup="dialog" aria-controls="changelogOverlay" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.5h2.6a2 2 0 0 1 0 4H10v4" stroke-linecap="round"/></svg>
+        <span class="nav-version-label">
+          <span data-i18n="nav.version">Version</span>
+          <span class="nav-version-number" id="versionNumber">2.0.0</span>
+        </span>
+      </button>
+      <button type="button" class="nav-item nav-settings" id="settingsLink" aria-haspopup="dialog" aria-controls="settingsOverlay" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.2M12 18.3v2.2M4.8 6.6l1.6 1.6M17.6 15.8l1.6 1.6M3.5 12h2.2M18.3 12h2.2M4.8 17.4l1.6-1.6M17.6 8.2l1.6-1.6"/></svg>
+        <span data-i18n="nav.settings">Einstellungen</span>
+      </button>
+    </div>
 
     <div class="sidebar-footer">
       <div class="sidebar-row">
@@ -44,8 +61,11 @@
         <select id="langSelect" class="sidebar-btn lang-select" aria-label="Sprache" data-i18n-attr="aria-label=lang.label;title=lang.label"></select>
       </div>
       <button type="button" id="refreshBtn" class="sidebar-btn" aria-label="Dashboard aktualisieren" data-i18n-attr="aria-label=refresh.aria">
-        <svg id="refreshIcon" class="refresh-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 11A8 8 0 0 0 5.5 7.5M4 5v4h4"/><path d="M4 13a8 8 0 0 0 14.5 3.5M20 19v-4h-4"/></svg>
-        <span data-i18n="refresh.button">Aktualisieren</span>
+        <span class="refresh-btn-face" id="refreshBtnFace">
+          <svg id="refreshIcon" class="refresh-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 11A8 8 0 0 0 5.5 7.5M4 5v4h4"/><path d="M4 13a8 8 0 0 0 14.5 3.5M20 19v-4h-4"/></svg>
+          <span data-i18n="refresh.button">Aktualisieren</span>
+        </span>
+        <span class="refresh-done" id="refreshDone" hidden data-i18n="refresh.done">aktualisiert</span>
       </button>
       <button type="button" id="autoRefreshToggle" class="sidebar-btn" aria-label="Automatische Aktualisierung umschalten" data-i18n-attr="aria-label=autoRefresh.aria">
         <span id="autoRefreshLabel"></span>
@@ -68,9 +88,15 @@
     <!-- ÜBERSICHT SEITE: frei zusammenstellbar -->
     <div id="overviewPage" class="page active">
       <div class="overview-bar" data-layout-fixed>
-        <div>
-          <h1 class="overview-title" data-i18n="overview.title">Meine Übersicht</h1>
-          <div class="panel-sub" data-i18n="page.sub">Widgets hinzufügen, entfernen und mit „Anordnen“ verschieben</div>
+        <h1 class="overview-title" data-i18n="overview.title">Meine Übersicht</h1>
+        <div class="overview-banner-host">
+          <div class="warn-banner" id="warnBanner" hidden role="region" aria-label="Warnhinweis" data-i18n-attr="aria-label=banner.aria">
+            <span class="warn-banner-tag" data-i18n="banner.tag">ACHTUNG</span>
+            <div class="warn-banner-viewport">
+              <div class="warn-banner-run" id="warnBannerRun" aria-hidden="true"></div>
+            </div>
+            <span class="warn-banner-tag" data-i18n="banner.tag">ACHTUNG</span>
+          </div>
         </div>
         <div class="overview-actions">
           <button type="button" class="overview-btn layout-reset-btn" data-widget-action="reset" data-i18n="layout.reset">↺ Zurücksetzen</button>
@@ -88,62 +114,76 @@
     <!-- WETTER SEITE -->
     <div id="weatherPage" class="page">
       <div class="overview-bar" data-layout-fixed>
-        <div>
-          <h1 class="overview-title" data-i18n="nav.weather">Wetter</h1>
-          <div class="panel-sub" data-i18n="page.sub">Widgets hinzufügen, entfernen und mit „Anordnen“ verschieben</div>
-        </div>
+        <h1 class="overview-title" data-i18n="nav.weather">Wetter</h1>
+        <div class="overview-banner-host"></div>
         <div class="overview-actions">
           <button type="button" class="overview-btn layout-reset-btn" data-widget-action="reset" data-i18n="layout.reset">↺ Zurücksetzen</button>
           <button type="button" class="overview-btn" data-widget-action="arrange" aria-pressed="false" data-i18n="layout.arrange">✥ Anordnen</button>
           <button type="button" class="overview-btn primary" data-widget-action="add" data-i18n="layout.add">+ Widget</button>
         </div>
       </div>
-      <div class="stat-row" id="weatherKpiRow">
-      <div class="stat-card accent-navy">
-        <div class="stat-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="17" r="3.2"/><path d="M12 13.5V5a2 2 0 1 0-4 0v8.5" opacity="0"/><path d="M13 13.8V5.2a1.8 1.8 0 1 0-3.6 0v8.6a3.2 3.2 0 1 0 3.6 0z"/></svg>
+      <div class="overview-grid" id="weatherPageWidgets">
+      <section class="panel stat-card accent-navy" id="weatherTempCard" aria-label="Temperatur" data-i18n-attr="aria-label=widget.weather-temp.title">
+        <div class="panel-title" data-i18n="widget.weather-temp.title">Temperatur</div>
+        <div class="stat-main">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="17" r="3.2"/><path d="M12 13.5V5a2 2 0 1 0-4 0v8.5" opacity="0"/><path d="M13 13.8V5.2a1.8 1.8 0 1 0-3.6 0v8.6a3.2 3.2 0 1 0 3.6 0z"/></svg>
+          </div>
+          <div class="stat-body">
+            <div class="stat-value" id="statTempNow">–</div>
+            <div class="stat-delta" id="statTempDelta"></div>
+          </div>
         </div>
-        <div class="stat-body">
-          <div class="stat-value" id="statTempNow">–</div>
-          <div class="stat-label" data-i18n="weather.stat.temp">Temperatur</div>
-          <div class="stat-delta" id="statTempDelta"></div>
+      </section>
+      <section class="panel stat-card accent-orange" id="weatherWindCard" aria-label="Wind" data-i18n-attr="aria-label=widget.weather-wind.title">
+        <div class="panel-title" data-i18n="widget.weather-wind.title">Wind</div>
+        <div class="stat-main">
+          <div class="stat-icon wind-compass" id="statWindCompass" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="9.2" opacity="0.4"/>
+              <text x="12" y="6.4" text-anchor="middle">N</text>
+              <g class="wind-arrow">
+                <path d="M12 18.5V6.2" stroke-linecap="round"/>
+                <path d="M8.6 9.6L12 6.2l3.4 3.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </g>
+            </svg>
+          </div>
+          <div class="stat-body">
+            <div class="stat-value-row">
+              <div class="stat-value" id="statWind">–</div>
+              <div class="stat-dir" id="statWindDir"></div>
+            </div>
+            <div class="stat-delta" id="statWindDelta"></div>
+          </div>
         </div>
-      </div>
-      <div class="stat-card accent-orange">
-        <div class="stat-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2.5 9h12a3 3 0 1 0-3-3" stroke-linecap="round"/><path d="M2.5 15h15a3 3 0 1 1-3 3" stroke-linecap="round"/></svg>
+      </section>
+      <section class="panel stat-card accent-light" id="weatherHumidityCard" aria-label="Luftfeuchte" data-i18n-attr="aria-label=widget.weather-humidity.title">
+        <div class="panel-title" data-i18n="widget.weather-humidity.title">Luftfeuchte</div>
+        <div class="stat-main">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2.5S5 11 5 15.8a7 7 0 0 0 14 0C19 11 12 2.5 12 2.5z"/></svg>
+          </div>
+          <div class="stat-body">
+            <div class="stat-value" id="statHumidity">–</div>
+            <div class="stat-delta" id="statHumidityDelta"></div>
+          </div>
         </div>
-        <div class="stat-body">
-          <div class="stat-value" id="statWind">–</div>
-          <div class="stat-label" data-i18n="weather.stat.wind">Wind</div>
-          <div class="stat-delta" id="statWindDelta"></div>
+      </section>
+      <section class="panel stat-card accent-navy2" id="weatherRainCard" aria-label="Regenchance heute" data-i18n-attr="aria-label=widget.weather-rain.title">
+        <div class="panel-title" data-i18n="widget.weather-rain.title">Regenchance heute</div>
+        <div class="stat-main">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 18.5a3.8 3.8 0 0 1 .3-7.6 5.4 5.4 0 0 1 10.4-1.7A4.3 4.3 0 0 1 14.5 18z"/><path d="M6 20.5l-1 2"/></svg>
+          </div>
+          <div class="stat-body">
+            <div class="stat-value" id="statRain">–</div>
+            <div class="stat-delta" id="statRainDelta"></div>
+          </div>
         </div>
-      </div>
-      <div class="stat-card accent-light">
-        <div class="stat-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2.5S5 11 5 15.8a7 7 0 0 0 14 0C19 11 12 2.5 12 2.5z"/></svg>
-        </div>
-        <div class="stat-body">
-          <div class="stat-value" id="statHumidity">–</div>
-          <div class="stat-label" data-i18n="weather.stat.humidity">Luftfeuchte</div>
-          <div class="stat-delta" id="statHumidityDelta"></div>
-        </div>
-      </div>
-      <div class="stat-card accent-navy2">
-        <div class="stat-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 18.5a3.8 3.8 0 0 1 .3-7.6 5.4 5.4 0 0 1 10.4-1.7A4.3 4.3 0 0 1 14.5 18z"/><path d="M6 20.5l-1 2"/></svg>
-        </div>
-        <div class="stat-body">
-          <div class="stat-value" id="statRain">–</div>
-          <div class="stat-label" data-i18n="weather.stat.rain">Regenchance heute</div>
-          <div class="stat-delta" id="statRainDelta"></div>
-        </div>
-      </div>
-    </div>
+      </section>
 
-      <div class="detail-row">
-        <!-- Weather detail panel (full data, forecast strip, search) -->
-        <section class="panel weather" id="weatherPanel" aria-label="Wetter" data-i18n-attr="aria-label=nav.weather">
+        <section class="panel weather" id="weatherPanel" aria-label="Aktuelles Wetter" data-i18n-attr="aria-label=widget.weather-now.title">
+        <div class="panel-title" data-i18n="widget.weather-now.title">Aktuelles Wetter</div>
         <div class="weather-top">
           <div>
             <div class="place" id="weatherPlace">
@@ -200,42 +240,23 @@
         <div class="source-note" id="weatherSourceNote" data-i18n="weather.sourceLoading">Wetterdaten werden geladen … · Quelle: Open-Meteo</div>
       </section>
 
-        <div class="weather-side">
-          <section class="panel chart-card" aria-label="Temperaturvorhersage" data-i18n-attr="aria-label=weather.forecastAria">
+        <section class="panel chart-card" id="weatherForecastPanel" aria-label="Temperaturvorhersage" data-i18n-attr="aria-label=weather.forecastAria">
             <div class="panel-title" data-i18n="widget.forecast-bars.title">Vorhersage · Höchsttemperatur</div>
             <div class="panel-sub" data-i18n="weather.nextDays">Nächste Tage</div>
             <div id="barChart" class="bar-chart"><div class="chart-empty" data-i18n="common.loadingData">Daten werden geladen …</div></div>
           </section>
-          <section class="panel donut-card" aria-label="Regenwahrscheinlichkeit" data-i18n-attr="aria-label=widget.rain-donut.title">
+          <section class="panel donut-card" id="weatherRainPanel" aria-label="Regenwahrscheinlichkeit" data-i18n-attr="aria-label=widget.rain-donut.title">
             <div class="panel-title" data-i18n="widget.rain-donut.title">Regenwahrscheinlichkeit</div>
             <div id="donutChart" class="donut-chart"><div class="chart-empty" data-i18n="common.loadingData">Daten werden geladen …</div></div>
             <div class="donut-caption" id="donutCaption" data-i18n="common.today">heute</div>
           </section>
-          <section class="panel wave-card" aria-label="Temperaturverlauf" data-i18n-attr="aria-label=widget.temp-wave.title">
+          <section class="panel wave-card" id="weatherWavePanel" aria-label="Temperaturverlauf" data-i18n-attr="aria-label=widget.temp-wave.title">
             <div class="panel-title" data-i18n="widget.temp-wave.title">Temperaturverlauf</div>
             <div class="panel-sub" id="waveDayLabel" data-i18n="weather.waveToday">heute, stündlich</div>
             <div id="waveChart" class="wave-chart"><div class="chart-empty" data-i18n="common.loadingData">Daten werden geladen …</div></div>
           </section>
-        </div>
-      </div>
-      <div class="overview-grid" id="weatherPageWidgets" hidden></div>
-    </div> <!-- Ende Wetter Page -->
 
-    <!-- REGENRADAR SEITE -->
-    <div id="radarPage" class="page">
-      <div class="overview-bar" data-layout-fixed>
-        <div>
-          <h1 class="overview-title" data-i18n="nav.radar">Regenradar</h1>
-          <div class="panel-sub" data-i18n="page.sub">Widgets hinzufügen, entfernen und mit „Anordnen“ verschieben</div>
-        </div>
-        <div class="overview-actions">
-          <button type="button" class="overview-btn layout-reset-btn" data-widget-action="reset" data-i18n="layout.reset">↺ Zurücksetzen</button>
-          <button type="button" class="overview-btn" data-widget-action="arrange" aria-pressed="false" data-i18n="layout.arrange">✥ Anordnen</button>
-          <button type="button" class="overview-btn primary" data-widget-action="add" data-i18n="layout.add">+ Widget</button>
-        </div>
-      </div>
-      <!-- Live rain radar -->
-      <section class="panel radar" id="radarPanel" aria-label="Regenradar" data-i18n-attr="aria-label=nav.radar">
+<section class="panel radar" id="radarPanel" aria-label="Regenradar" data-i18n-attr="aria-label=nav.radar">
       <div class="radar-header">
         <div class="radar-icon-wrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 15.5a3.8 3.8 0 0 1 .3-7.6 5.4 5.4 0 0 1 10.4-1.7A4.3 4.3 0 0 1 17 15z"/><path d="M8 18.5l-1 2M12 18.5l-1 2M16 18.5l-1 2"/></svg>
@@ -285,23 +306,29 @@
 
       <div class="radar-note" data-i18n="radar.credits">Kartenbasis © Esri · Radar © RainViewer · Niederschlagskarte © OpenWeather · Ortssuche: Open-Meteo.</div>
     </section>
-      <div class="overview-grid" id="radarPageWidgets" hidden></div>
-    </div> <!-- Ende Regenradar Page -->
+      </div>
+    </div> <!-- Ende Wetter Page -->
 
-    <!-- KATASTROPHENSCHUTZ SEITE -->
+
+    <!-- ORGANISATION SEITE -->
     <div id="disasterPage" class="page">
       <div class="overview-bar" data-layout-fixed>
-        <div>
-          <h1 class="overview-title" data-i18n="nav.disaster">Katastrophenschutz</h1>
-          <div class="panel-sub" data-i18n="page.sub">Widgets hinzufügen, entfernen und mit „Anordnen“ verschieben</div>
-        </div>
+        <h1 class="overview-title" data-i18n="nav.disaster">Organisation</h1>
+        <div class="overview-banner-host"></div>
         <div class="overview-actions">
           <button type="button" class="overview-btn layout-reset-btn" data-widget-action="reset" data-i18n="layout.reset">↺ Zurücksetzen</button>
           <button type="button" class="overview-btn" data-widget-action="arrange" aria-pressed="false" data-i18n="layout.arrange">✥ Anordnen</button>
           <button type="button" class="overview-btn primary" data-widget-action="add" data-i18n="layout.add">+ Widget</button>
         </div>
       </div>
-      <div class="disaster-row">
+      <div class="overview-grid" id="disasterPageWidgets">
+        <section class="panel banner-config" id="bannerConfigPanel" aria-label="Warn-Banner" data-i18n-attr="aria-label=widget.banner-config.title">
+          <div class="panel-title" data-i18n="widget.banner-config.title">Warn-Banner</div>
+          <div class="panel-sub" data-i18n="banner.configSub">Text läuft in der Kopfzeile zwischen Seitentitel und den Schaltflächen</div>
+          <label class="banner-config-label" for="bannerConfigInput" data-i18n="banner.configLabel">Bannertext</label>
+          <textarea class="notes-area banner-config-input" id="bannerConfigInput" rows="2" placeholder="Hinweis für alle Seiten …" data-i18n-attr="placeholder=banner.placeholder"></textarea>
+          <div class="notes-saved" id="bannerConfigSaved"></div>
+        </section>
         <section class="panel disaster-warn" id="disasterWarnPanel" aria-label="Amtliche Warnungen" data-i18n-attr="aria-label=disaster.warnTitle">
           <div class="panel-title" data-i18n="disaster.warnTitle">Amtliche Warnungen</div>
           <div class="panel-sub" data-i18n="disaster.warnSub">MoWaS, KATWARN, BIWAPP, DWD &amp; Hochwasser — bundesweit</div>
@@ -314,100 +341,109 @@
           <div class="warn-note" data-i18n="warn.source">Quelle: warnung.bund.de (BBK/NINA)</div>
         </section>
 
-        <div class="disaster-side">
           <section class="panel" id="disasterNumbersPanel" aria-label="Notrufnummern" data-i18n-attr="aria-label=widget.emergencynumbers.title">
             <div class="panel-title" data-i18n="widget.emergencynumbers.title">Notrufnummern</div>
             <div class="clock-list" id="disasterNumbersList"></div>
             <div class="warn-note" data-i18n="numbers.note">Außerhalb von Berlin und Brandenburg gelten andere Giftnotruf-Nummern.</div>
           </section>
 
-          <section class="panel" id="disasterMeetingPanel" aria-label="Familien-Treffpunkt" data-i18n-attr="aria-label=widget.meeting.title">
-            <div class="panel-title" data-i18n="widget.meeting.title">Familien-Treffpunkt</div>
-            <div class="panel-sub" data-i18n="meeting.sub">Falls Netz oder Strom ausfallen</div>
-            <input type="text" id="meetingPointInput" class="meeting-input" placeholder="z. B. bei Oma, Nachbarschaftstreff …" data-i18n-attr="placeholder=meeting.placeholder" autocomplete="off">
-            <div class="notes-saved" id="meetingSaved">&nbsp;</div>
-          </section>
-        </div>
-      </div>
-
       <section class="panel disaster-checklist" id="disasterChecklistPanel" aria-label="Notfall-Checkliste" data-i18n-attr="aria-label=widget.checklist.title">
         <div class="panel-title" data-i18n="widget.checklist.title">Notfall-Checkliste</div>
         <div class="panel-sub" data-i18n="checklist.sub">Vorrat &amp; Ausrüstung — orientiert an den Empfehlungen des BBK</div>
-        <div class="todo-list scroll-list" id="disasterChecklistList"></div>
+        <form class="todo-add" data-checklist-add>
+          <input type="text" id="disasterChecklistInput" placeholder="Eintrag hinzufügen …" autocomplete="off" data-i18n-attr="placeholder=checklist.placeholder" aria-label="Eintrag hinzufügen">
+          <button type="submit" id="disasterChecklistAdd" aria-label="Hinzufügen">+</button>
+        </form>
+        <div class="todo-list scroll-list" id="disasterChecklistList" data-checklist></div>
       </section>
-      <div class="overview-grid" id="disasterPageWidgets" hidden></div>
-    </div> <!-- Ende Katastrophenschutz Page -->
+      </div>
+    </div> <!-- Ende Organisation Page -->
 
     <!-- FEUERWEHR SEITE -->
     <div id="firePage" class="page">
       <div class="overview-bar" data-layout-fixed>
-        <div>
-          <h1 class="overview-title" data-i18n="nav.fire">Feuerwehr</h1>
-          <div class="panel-sub" data-i18n="page.sub">Widgets hinzufügen, entfernen und mit „Anordnen“ verschieben</div>
-        </div>
+        <h1 class="overview-title" data-i18n="nav.fire">Feuerwehr</h1>
+        <div class="overview-banner-host"></div>
         <div class="overview-actions">
           <button type="button" class="overview-btn layout-reset-btn" data-widget-action="reset" data-i18n="layout.reset">↺ Zurücksetzen</button>
           <button type="button" class="overview-btn" data-widget-action="arrange" aria-pressed="false" data-i18n="layout.arrange">✥ Anordnen</button>
           <button type="button" class="overview-btn primary" data-widget-action="add" data-i18n="layout.add">+ Widget</button>
         </div>
       </div>
-      <div class="stat-row" id="fireStats">
-        <div class="stat-card accent-orange">
+      <div class="overview-grid" id="firePageWidgets">
+      <section class="panel stat-card accent-orange" id="fireYesterdayCard" aria-label="Brände vom Vortag" data-i18n-attr="aria-label=widget.fire-yesterday.title">
+        <div class="panel-title" data-i18n="widget.fire-yesterday.title">Brände vom Vortag</div>
+        <div class="stat-main">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21c-3.9 0-6.5-2.6-6.5-6.2 0-3.3 2.3-5.4 3.6-7.6.3 1.6 1.1 2.8 2.2 3.4.2-2.9 1.4-5.6 3.7-7.6.3 2.7 1.3 4.6 2.6 6.4 1 1.4.9 2.9.9 5.4 0 3.6-2.6 6.2-6.5 6.2z"/></svg>
+          </div>
+          <div class="stat-body">
+            <div class="stat-value" id="fireYesterday">–</div>
+            <div class="stat-label" id="fireYesterdayLabel"></div>
+            <div class="stat-delta" id="fireYesterdayDelta"></div>
+          </div>
+        </div>
+      </section>
+      <section class="panel stat-card accent-orange" id="fireTotalCard" aria-label="Brandeinsätze (7 Tage)" data-i18n-attr="aria-label=widget.fire-total.title">
+        <div class="panel-title" data-i18n="widget.fire-total.title">Brandeinsätze (7 Tage)</div>
+        <div class="stat-main">
           <div class="stat-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21c-3.9 0-6.5-2.6-6.5-6.2 0-3.3 2.3-5.4 3.6-7.6.3 1.6 1.1 2.8 2.2 3.4.2-2.9 1.4-5.6 3.7-7.6.3 2.7 1.3 4.6 2.6 6.4 1 1.4.9 2.9.9 5.4 0 3.6-2.6 6.2-6.5 6.2z"/></svg>
           </div>
           <div class="stat-body">
             <div class="stat-value" id="fireTotal">–</div>
-            <div class="stat-label" data-i18n="fire.stat.total">Brandeinsätze (7 Tage)</div>
             <div class="stat-delta" id="fireTotalDelta"></div>
           </div>
         </div>
-        <div class="stat-card accent-navy">
+      </section>
+      <section class="panel stat-card accent-navy" id="fireAvgCard" aria-label="Ø pro Tag" data-i18n-attr="aria-label=widget.fire-avg.title">
+        <div class="panel-title" data-i18n="widget.fire-avg.title">Ø pro Tag</div>
+        <div class="stat-main">
           <div class="stat-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 9.5h17M8 3v3.5M16 3v3.5"/></svg>
           </div>
           <div class="stat-body">
             <div class="stat-value" id="fireAvg">–</div>
-            <div class="stat-label" data-i18n="fire.stat.avg">Ø pro Tag</div>
             <div class="stat-delta" id="fireAvgDelta"></div>
           </div>
         </div>
-        <div class="stat-card accent-light">
+      </section>
+      <section class="panel stat-card accent-light" id="firePeakCard" aria-label="Spitzentag" data-i18n-attr="aria-label=widget.fire-peak.title">
+        <div class="panel-title" data-i18n="widget.fire-peak.title">Spitzentag</div>
+        <div class="stat-main">
           <div class="stat-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
           </div>
           <div class="stat-body">
             <div class="stat-value" id="firePeak">–</div>
-            <div class="stat-label" data-i18n="fire.stat.peak">Spitzentag</div>
             <div class="stat-delta" id="firePeakDelta"></div>
           </div>
         </div>
-        <div class="stat-card accent-navy2">
+      </section>
+      <section class="panel stat-card accent-navy2" id="fireResponseCard" aria-label="Eintreffzeit 1. Löschfahrzeug" data-i18n-attr="aria-label=widget.fire-response.title">
+        <div class="panel-title" data-i18n="widget.fire-response.title">Eintreffzeit 1. Löschfahrzeug</div>
+        <div class="stat-main">
           <div class="stat-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9.5 2.5h5"/></svg>
           </div>
           <div class="stat-body">
             <div class="stat-value" id="fireResponse">–</div>
-            <div class="stat-label" data-i18n="fire.stat.response">Eintreffzeit 1. Löschfahrzeug</div>
             <div class="stat-delta" id="fireResponseDelta"></div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div class="charts-row">
-        <section class="panel chart-card" aria-label="Brandeinsätze pro Tag" data-i18n-attr="aria-label=widget.fire-chart.title">
+        <section class="panel chart-card" id="fireChartPanel" aria-label="Brandeinsätze pro Tag" data-i18n-attr="aria-label=widget.fire-chart.title">
           <div class="panel-title" data-i18n="widget.fire-chart.title">Brandeinsätze pro Tag</div>
           <div class="panel-sub" id="fireChartSub" data-i18n="fire.chartSub">Berliner Feuerwehr · orange = Spitzentag</div>
           <div id="fireBarChart" class="bar-chart"><div class="chart-empty" data-i18n="common.loadingData">Daten werden geladen …</div></div>
         </section>
-        <section class="panel donut-card" aria-label="Anteil an allen Einsätzen" data-i18n-attr="aria-label=fire.shareTitle">
+        <section class="panel donut-card" id="fireSharePanel" aria-label="Anteil an allen Einsätzen" data-i18n-attr="aria-label=fire.shareTitle">
           <div class="panel-title" data-i18n="fire.shareTitle">Anteil an allen Einsätzen</div>
           <div id="fireDonut" class="donut-chart"><div class="chart-empty" data-i18n="common.loadingData">Daten werden geladen …</div></div>
           <div class="donut-caption" id="fireDonutCaption"></div>
         </section>
-      </div>
 
-      <div class="lower-row">
         <section class="panel fire-table-card" id="fireTablePanel" aria-label="Tagesübersicht Feuerwehr" data-i18n-attr="aria-label=fire.tableAria">
           <div class="panel-title" data-i18n="fire.tableTitle">Tagesübersicht</div>
           <button type="button" class="fire-export" id="fireExportBtn" disabled data-i18n="fire.export">CSV exportieren</button>
@@ -422,67 +458,71 @@
           <div class="warn-note" id="fireSourceNote" data-i18n="fire.sourceInitial">Quelle: Berliner Feuerwehr Open Data · Tage nach Berliner Ortszeit</div>
         </section>
       </div>
-      <div class="overview-grid" id="firePageWidgets" hidden></div>
     </div> <!-- Ende Feuerwehr Page -->
 
     <!-- WASSERPEGEL SEITE -->
     <div id="waterPage" class="page">
       <div class="overview-bar" data-layout-fixed>
-        <div>
-          <h1 class="overview-title" data-i18n="nav.water">Wasserpegel</h1>
-          <div class="panel-sub" data-i18n="page.sub">Widgets hinzufügen, entfernen und mit „Anordnen“ verschieben</div>
-        </div>
+        <h1 class="overview-title" data-i18n="nav.water">Wasserpegel</h1>
+        <div class="overview-banner-host"></div>
         <div class="overview-actions">
           <button type="button" class="overview-btn layout-reset-btn" data-widget-action="reset" data-i18n="layout.reset">↺ Zurücksetzen</button>
           <button type="button" class="overview-btn" data-widget-action="arrange" aria-pressed="false" data-i18n="layout.arrange">✥ Anordnen</button>
           <button type="button" class="overview-btn primary" data-widget-action="add" data-i18n="layout.add">+ Widget</button>
         </div>
       </div>
-      <div class="stat-row" id="waterStats">
-        <div class="stat-card accent-navy">
+      <div class="overview-grid" id="waterPageWidgets">
+      <section class="panel stat-card accent-navy" id="waterLevelCard" aria-label="Wasserstand" data-i18n-attr="aria-label=widget.water-level.title">
+        <div class="panel-title" data-i18n="widget.water-level.title">Wasserstand</div>
+        <div class="stat-main">
           <div class="stat-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0M3 13c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0M3 18c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0"/></svg>
           </div>
           <div class="stat-body">
             <div class="stat-value" id="waterLevel">–</div>
-            <div class="stat-label" id="waterLevelLabel" data-i18n="water.stat.level">Wasserstand</div>
+            <div class="stat-label" id="waterLevelLabel"></div>
             <div class="stat-delta" id="waterLevelDelta"></div>
           </div>
         </div>
-        <div class="stat-card accent-orange">
+      </section>
+      <section class="panel stat-card accent-orange" id="waterStateCard" aria-label="Einordnung" data-i18n-attr="aria-label=widget.water-state.title">
+        <div class="panel-title" data-i18n="widget.water-state.title">Einordnung</div>
+        <div class="stat-main">
           <div class="stat-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
           </div>
           <div class="stat-body">
             <div class="stat-value" id="waterState">–</div>
-            <div class="stat-label" data-i18n="water.stat.state">Einordnung</div>
             <div class="stat-delta" id="waterStateDelta"></div>
           </div>
         </div>
-        <div class="stat-card accent-light">
+      </section>
+      <section class="panel stat-card accent-light" id="waterRangeCard" aria-label="Spanne 7 Tage" data-i18n-attr="aria-label=widget.water-range.title">
+        <div class="panel-title" data-i18n="widget.water-range.title">Spanne 7 Tage</div>
+        <div class="stat-main">
           <div class="stat-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18M7 8l5-5 5 5M7 16l5 5 5-5"/></svg>
           </div>
           <div class="stat-body">
             <div class="stat-value" id="waterRange">–</div>
-            <div class="stat-label" data-i18n="water.stat.range">Spanne 7 Tage</div>
             <div class="stat-delta" id="waterRangeDelta"></div>
           </div>
         </div>
-        <div class="stat-card accent-navy2">
+      </section>
+      <section class="panel stat-card accent-navy2" id="waterTimeCard" aria-label="Letzte Messung" data-i18n-attr="aria-label=widget.water-time.title">
+        <div class="panel-title" data-i18n="widget.water-time.title">Letzte Messung</div>
+        <div class="stat-main">
           <div class="stat-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9.5 2.5h5"/></svg>
           </div>
           <div class="stat-body">
             <div class="stat-value" id="waterTime">–</div>
-            <div class="stat-label" data-i18n="water.stat.time">Letzte Messung</div>
             <div class="stat-delta" id="waterTimeDelta"></div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div class="charts-row">
-        <section class="panel chart-card" id="waterChartPanel" aria-label="Pegelverlauf" data-i18n-attr="aria-label=widget.water-chart.title">
+        <section class="panel chart-card water-combo" id="waterChartPanel" aria-label="Pegelverlauf" data-i18n-attr="aria-label=widget.water-chart.title">
           <div class="panel-title" id="waterChartTitle" data-i18n="widget.water-chart.title">Pegelverlauf</div>
           <div class="panel-sub" id="waterChartSub" data-i18n="water.chartSubInitial">Letzte 7 Tage · Wasserstand in cm</div>
           <form class="warn-search water-search" id="waterSearchForm">
@@ -490,19 +530,132 @@
             <datalist id="waterStationList"></datalist>
             <button type="submit" data-i18n="water.show">Anzeigen</button>
           </form>
-          <div id="waterChart" class="wave-chart water-chart"><div class="chart-empty" data-i18n="common.loadingData">Daten werden geladen …</div></div>
-          <div class="warn-note" id="waterSourceNote" data-i18n="water.source">Quelle: PEGELONLINE (WSV) · ungeprüfte Rohdaten</div>
-        </section>
-        <section class="panel" id="waterBerlinPanel" aria-label="Pegel in Berlin" data-i18n-attr="aria-label=water.berlinTitle">
-          <div class="panel-title" data-i18n="water.berlinTitle">Pegel in Berlin</div>
-          <div class="panel-sub" data-i18n="water.berlinSub">Aktuelle Wasserstände · anklicken zum Anzeigen</div>
-          <div class="water-list" id="waterBerlinList"><div class="chart-empty" data-i18n="common.loadingData">Daten werden geladen …</div></div>
+          <div class="water-combo-grid">
+            <div class="water-combo-main">
+              <div id="waterChart" class="wave-chart water-chart"><div class="chart-empty" data-i18n="common.loadingData">Daten werden geladen …</div></div>
+              <div class="warn-note" id="waterSourceNote" data-i18n="water.source">Quelle: PEGELONLINE (WSV) · ungeprüfte Rohdaten</div>
+            </div>
+            <section class="water-combo-berlin" id="waterBerlinPanel" aria-label="Pegel in Berlin" data-i18n-attr="aria-label=water.berlinTitle">
+              <div class="panel-title" data-i18n="water.berlinTitle">Pegel in Berlin</div>
+              <div class="panel-sub" data-i18n="water.berlinSub">Aktuelle Wasserstände · anklicken zum Anzeigen</div>
+              <div class="water-list" id="waterBerlinList"><div class="chart-empty" data-i18n="common.loadingData">Daten werden geladen …</div></div>
+            </section>
+          </div>
         </section>
       </div>
-      <div class="overview-grid" id="waterPageWidgets" hidden></div>
     </div> <!-- Ende Wasserpegel Page -->
 
+    <div id="boredomPage" class="page">
+      <div class="overview-bar" data-layout-fixed>
+        <h1 class="overview-title" data-i18n="nav.boredom">Gegen Langeweile</h1>
+        <div class="overview-banner-host"></div>
+        <div class="overview-actions">
+          <button type="button" class="overview-btn" id="boredomBack" hidden data-i18n="boredom.back">← Spiele</button>
+        </div>
+      </div>
+      <div id="boredomPicker" class="boredom-picker">
+        <button type="button" class="panel boredom-pick" data-game="boredomKlondike">
+          <span class="boredom-pick-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+              <rect x="4" y="3.5" width="11" height="15" rx="1.5"/>
+              <rect x="9" y="5.5" width="11" height="15" rx="1.5"/>
+            </svg>
+          </span>
+          <span class="panel-title" data-i18n="boredom.klondike.title">Klondike Solitaire</span>
+          <span class="panel-sub" data-i18n="boredom.klondike.desc">Karten aufdecken und ablegen</span>
+        </button>
+        <button type="button" class="panel boredom-pick" data-game="boredomTictactoe">
+          <span class="boredom-pick-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+              <path d="M8 4v16M16 4v16M4 8h16M4 16h16"/>
+            </svg>
+          </span>
+          <span class="panel-title" data-i18n="boredom.tictactoe.title">Tic Tac Toe</span>
+          <span class="panel-sub" data-i18n="boredom.tictactoe.desc">Drei in einer Reihe, gegen den Computer</span>
+        </button>
+        <button type="button" class="panel boredom-pick" data-game="boredomDino">
+          <span class="boredom-pick-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+              <path d="M5 18v-6l3-1 1-4h6l2 3h3"/>
+              <path d="M9 18l2-3h4l2 3"/>
+              <path d="M16 8h.01"/>
+            </svg>
+          </span>
+          <span class="panel-title" data-i18n="boredom.dino.title">Dino Game</span>
+          <span class="panel-sub" data-i18n="boredom.dino.desc">Springen und ducken, endloser Lauf</span>
+        </button>
+      </div>
+      <section id="boredomKlondike" class="panel boredom-game" hidden aria-label="Klondike Solitaire" data-i18n-attr="aria-label=boredom.klondike.title">
+        <div class="panel-title" data-i18n="boredom.klondike.title">Klondike Solitaire</div>
+        <div class="boredom-frame-wrap">
+          <iframe
+            id="boredomGame"
+            src="https://solitaire-online.com/embed/klondike.html?draw=1&amp;theme=navy&amp;v=embedauto1"
+            title="Free Klondike Solitaire — Solitaire Online"
+            loading="lazy"
+            referrerpolicy="strict-origin-when-cross-origin"
+            sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+          ></iframe>
+        </div>
+        <p class="boredom-credit">
+          <span data-i18n="boredom.playedOn">Gespielt auf</span>
+          <a href="https://solitaire-online.com/?utm_source=solitaire_widget&amp;utm_medium=referral&amp;utm_campaign=embed" target="_blank" rel="nofollow noopener">solitaire-online.com</a>
+        </p>
+      </section>
+      <section id="boredomTictactoe" class="panel boredom-game boredom-jotform" hidden aria-label="Tic Tac Toe" data-i18n-attr="aria-label=boredom.tictactoe.title">
+        <div class="panel-title" data-i18n="boredom.tictactoe.title">Tic Tac Toe</div>
+        <div class="boredom-frame-wrap">
+          <div class="boredom-embed">
+            <div id="JFWebsiteWidget-01a1079cec1870008d80ca784681b127ad71"></div>
+          </div>
+        </div>
+        <p class="boredom-credit">
+          <span data-i18n="boredom.playedOn">Gespielt auf</span>
+          <a href="https://www.jotform.com/website-widgets/tic-tac-toe/" target="_blank" rel="nofollow noopener">jotform.com</a>
+        </p>
+      </section>
+      <section id="boredomDino" class="panel boredom-game boredom-jotform boredom-jotform-wide" hidden aria-label="Dino Game" data-i18n-attr="aria-label=boredom.dino.title">
+        <div class="panel-title" data-i18n="boredom.dino.title">Dino Game</div>
+        <div class="boredom-frame-wrap">
+          <div class="boredom-embed">
+            <div id="JFWebsiteWidget-01a107c6ab9870008b2c9d7ab54f89a22bc3"></div>
+          </div>
+        </div>
+        <p class="boredom-credit">
+          <span data-i18n="boredom.playedOn">Gespielt auf</span>
+          <a href="https://www.jotform.com/website-widgets/dino-game/" target="_blank" rel="nofollow noopener">jotform.com</a>
+        </p>
+      </section>
+    </div>
+
   </main>
+</div>
+
+<div class="widget-picker-overlay" id="changelogOverlay">
+  <div class="widget-picker changelog-dialog" role="dialog" aria-modal="true" aria-labelledby="changelogTitle" aria-describedby="changelogLead">
+    <div class="widget-picker-header">
+      <div class="panel-title" id="changelogTitle">Version 2.0.0</div>
+      <button type="button" class="widget-picker-close" id="changelogClose" aria-label="Schließen" data-i18n-attr="aria-label=common.close">×</button>
+    </div>
+    <div class="widget-picker-body changelog-body">
+      <p class="changelog-lead" id="changelogLead" data-i18n="changelog.lead">Alle Änderungen nach dem 28. September 2026 gehören zur Version 2 des Dashboards.</p>
+      <div id="changelogBody"></div>
+    </div>
+  </div>
+</div>
+
+<div class="widget-picker-overlay" id="settingsOverlay">
+  <div class="widget-picker settings-dialog" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" aria-describedby="settingsLead">
+    <div class="widget-picker-header">
+      <div class="panel-title" id="settingsTitle" data-i18n="settings.title">Einstellungen</div>
+      <button type="button" class="widget-picker-close" id="settingsClose" aria-label="Schließen" data-i18n-attr="aria-label=common.close">×</button>
+    </div>
+    <div class="widget-picker-body">
+      <p class="settings-lead" id="settingsLead" data-i18n="settings.lead">Mit einer Taste zur Seite springen. Die Taste in der Liste anklicken und dann die neue Taste drücken. Rücktaste entfernt das Kürzel.</p>
+      <div class="settings-list" id="settingsShortcuts"></div>
+      <button type="button" class="overview-btn" id="settingsShortcutReset" data-i18n="settings.reset">Auf 1–5 zurücksetzen</button>
+    </div>
+  </div>
 </div>
 
 <div class="widget-picker-overlay" id="widgetPickerOverlay">
@@ -536,6 +689,8 @@
 <script src="js/i18n.js"></script>
 <script src="js/lang/de.js"></script>
 <script src="js/lang/en.js"></script>
+<script src="js/changelog.js"></script>
+<script src="js/widgets.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

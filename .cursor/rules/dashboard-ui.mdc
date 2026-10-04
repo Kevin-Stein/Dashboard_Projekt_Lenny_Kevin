@@ -1,0 +1,13 @@
+---
+description: Kein Scrollen zwischen Widgets; Kacheln umschließen den Inhalt
+alwaysApply: true
+---
+
+# Dashboard-UI
+
+- **Kein Scrollen zwischen Widgets.** Auf dem Desktop scrollt weder das Fenster noch `.page`, `.main-content` oder `.overview-grid`. Kein `overflow: auto` auf Seiten, Rasterzeilen oder dem Übersichts-Raster. Nur Listen **innerhalb** einer Kachel (Warnungen, To-dos, Pegel, Stundenstreifen) dürfen scrollen. Handy (`max-width: 760px`) darf die Seite scrollen.
+- **Kacheln folgen dem Inhalt.** Standard ist `width: max-content` mit sinnvoller Mindestbreite (Diagramme z. B. ~360px). Kein `flex: 1`, kein `ov-full`, kein `1fr`-Strecken, kein `container-type: inline-size` auf der Kachel (sonst ignoriert die Breite den Inhalt). Volle Breite oder andere Größe nur, wenn der Nutzer sie unter **Anordnen** zieht (`data-layout-w` / `data-layout-h`). Leerraum bleibt leer (kleiner `+ Widget`-Platzhalter).
+- **F-Pattern.** Auf jeder Seite laufen Kacheln von **oben links nach rechts**, die nächste Zeile beginnt wieder links. `justify-content: flex-start`, kein Zentrieren, kein Umordnen gegen die Leserichtung.
+- **Kacheln bleiben im Sichtbereich.** Was aus `.page` ragt (auch nach manuellem **Anordnen**), wird eingeklemmt und wieder davor in die sichtbare Fläche gelegt. Zeilen umbrechen statt zu beschneiden. Handy darf weiter scrollen.
+- **Widgets sind Komponenten.** Eine Kachel hat eine Quelle (`source`) oder eine `mount`-Funktion. Auf anderen Seiten wird die Quelle **geklont**, nicht neu gebaut und nicht in eine zweite Hülle mit extra Überschrift gesteckt. Übersicht und Unterseite zeigen dieselbe Kachel.
+- Widgets auf der Übersicht nur im Modus **Anordnen** entfernen.

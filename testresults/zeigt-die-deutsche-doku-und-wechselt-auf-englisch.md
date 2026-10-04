@@ -5,8 +5,8 @@
 | Status | **bestanden** |
 | Suite | Dokumentation |
 | Testdatei | `tests/dashboard.spec.js` |
-| Dauer | 1.00 s |
-| Lauf | 25.9.2026, 19:50:33 |
+| Dauer | 0.59 s |
+| Lauf | 4.10.2026, 19:11:28 |
 
 ## Zweck
 

@@ -1,6 +1,6 @@
 # Testergebnisse
 
-Letzter Lauf: **25.9.2026, 19:50:33** · 22 Tests in 8.2 s · 22 bestanden, 0 fehlgeschlagen, 0 übersprungen.
+Letzter Lauf: **4.10.2026, 19:11:28** · 27 Tests in 2.9 s · 27 bestanden, 0 fehlgeschlagen, 0 übersprungen.
 
 Die Dateien in diesem Ordner werden bei jedem `npm test` neu geschrieben: Übersicht plus eine Markdown-Datei je Test mit Zweck, Ablauf und Ergebnis.
 
@@ -8,45 +8,54 @@ Die Dateien in diesem Ordner werden bei jedem `npm test` neu geschrieben: Übers
 
 | Test | Status | Dauer |
 | --- | --- | --- |
-| [zeigt den Sprachwechsler neben dem Farbmodus](zeigt-den-sprachwechsler-neben-dem-farbmodus.md) | bestanden | 0.47 s |
-| [öffnet das Menü auf dem Smartphone](oeffnet-das-menue-auf-dem-smartphone.md) | bestanden | 0.52 s |
-| [wechselt den Farbmodus](wechselt-den-farbmodus.md) | bestanden | 0.64 s |
-| [startet auf Deutsch und wechselt auf Englisch](startet-auf-deutsch-und-wechselt-auf-englisch.md) | bestanden | 0.69 s |
-| [öffnet den Widget-Katalog auf Deutsch und Englisch](oeffnet-den-widget-katalog-auf-deutsch-und-englisch.md) | bestanden | 1.07 s |
-| [wechselt alle Seiten in der Navigation](wechselt-alle-seiten-in-der-navigation.md) | bestanden | 1.10 s |
-## Eingabefelder
+| [zeigt den Sprachwechsler neben dem Farbmodus](zeigt-den-sprachwechsler-neben-dem-farbmodus.md) | bestanden | 0.54 s |
+| [wechselt Seiten mit Tastaturkürzeln 1 bis 5](wechselt-seiten-mit-tastaturkuerzeln-1-bis-5.md) | bestanden | 0.72 s |
+| [lässt Tastaturkürzel unter Einstellungen ändern](laesst-tastaturkuerzel-unter-einstellungen-aendern.md) | bestanden | 0.82 s |
+| [startet auf Deutsch und wechselt auf Englisch](startet-auf-deutsch-und-wechselt-auf-englisch.md) | bestanden | 0.82 s |
+| [öffnet das Versions-Changelog als Popup](oeffnet-das-versions-changelog-als-popup.md) | bestanden | 1.05 s |
+| [öffnet den Widget-Katalog auf Deutsch und Englisch](oeffnet-den-widget-katalog-auf-deutsch-und-englisch.md) | bestanden | 1.08 s |
+| [zeigt die Standard-Widgets der Übersicht](zeigt-die-standard-widgets-der-uebersicht.md) | bestanden | 1.05 s |
+| [wechselt alle Seiten in der Navigation](wechselt-alle-seiten-in-der-navigation.md) | bestanden | 1.09 s |
+| [bindet dasselbe Widget mehrfach zum Vergleich ein](bindet-dasselbe-widget-mehrfach-zum-vergleich-ein.md) | bestanden | 1.49 s |
+| [öffnet Gegen Langeweile mit Spielkacheln](oeffnet-gegen-langeweile-mit-spielkacheln.md) | bestanden | 1.50 s |
+| [legt Wetter-Kennzahlen im F-Muster aus](legt-wetter-kennzahlen-im-f-muster-aus.md) | bestanden | 0.80 s |
+| [hält Notizen und Radar kompakt](haelt-notizen-und-radar-kompakt.md) | bestanden | 0.91 s |
+| [lässt den Widget-Platzhalter schmal](laesst-den-widget-platzhalter-schmal.md) | bestanden | 0.70 s |
+| [öffnet das Menü auf dem Smartphone](oeffnet-das-menue-auf-dem-smartphone.md) | bestanden | 0.50 s |
+| [zeigt dasselbe Pegel-Widget auf Übersicht und Wasserseite](zeigt-dasselbe-pegel-widget-auf-uebersicht-und-wasserseite.md) | bestanden | 0.65 s |
+| [wechselt den Farbmodus](wechselt-den-farbmodus.md) | bestanden | 0.68 s |
+## Sonstiges
 
 | Test | Status | Dauer |
 | --- | --- | --- |
-| [leeres Absenden ändert Wetter, Radar und Pegel nicht](leeres-absenden-aendert-wetter-radar-und-pegel-nicht.md) | bestanden | 0.86 s |
-| [Wetter- und Radarsuche finden einen Ort und melden unbekannte Namen](wetter-und-radarsuche-finden-einen-ort-und-melden-unbekannte-namen.md) | bestanden | 1.01 s |
-| [Warnungsfilter und Checkliste reagieren auf Eingaben](warnungsfilter-und-checkliste-reagieren-auf-eingaben.md) | bestanden | 0.64 s |
-| [Radar-Anbieter und Auto-Aktualisierung lassen sich umschalten](radar-anbieter-und-auto-aktualisierung-lassen-sich-umschalten.md) | bestanden | 0.49 s |
-| [Pegel-Suche zeigt bekannten Pegel und weist unbekannte Namen zurück](pegel-suche-zeigt-bekannten-pegel-und-weist-unbekannte-namen-zurueck.md) | bestanden | 0.86 s |
-| [Familien-Treffpunkt speichert Text inklusive Sonderzeichen](familien-treffpunkt-speichert-text-inklusive-sonderzeichen.md) | bestanden | 1.13 s |
-| [Aufgaben, Notizen, Kalender und Countdown nehmen Eingaben an](aufgaben-notizen-kalender-und-countdown-nehmen-eingaben-an.md) | bestanden | 1.66 s |
+| [zeigt ein Warn-Banner mit konfigurierbarem Lauftext](zeigt-ein-warn-banner-mit-konfigurierbarem-lauftext.md) | bestanden | 0.97 s |
+| [lädt die Kacheln und bestätigt Aktualisieren danach](laedt-die-kacheln-und-bestaetigt-aktualisieren-danach.md) | bestanden | 1.23 s |
+| [setzt die Übersicht auf die Standard-Widgets zurück](setzt-die-uebersicht-auf-die-standard-widgets-zurueck.md) | bestanden | 1.01 s |
+| [packt kleine Kacheln in den Raum neben großen Widgets](packt-kleine-kacheln-in-den-raum-neben-grossen-widgets.md) | bestanden | 0.76 s |
+| [lässt nach Zurücksetzen der Wetterseite die Breite ändern](laesst-nach-zuruecksetzen-der-wetterseite-die-breite-aendern.md) | bestanden | 0.93 s |
+| [holt Kacheln zurück in den Sichtbereich](holt-kacheln-zurueck-in-den-sichtbereich.md) | bestanden | 0.73 s |
+| [packt Wetter, Vorhersage und Radar ohne Lücke](packt-wetter-vorhersage-und-radar-ohne-luecke.md) | bestanden | 0.91 s |
+| [nutzt kompakte Schrift bis Full HD und große Schrift darüber](nutzt-kompakte-schrift-bis-full-hd-und-grosse-schrift-darueber.md) | bestanden | 0.55 s |
+| [skaliert Widgets in Breite und Höhe](skaliert-widgets-in-breite-und-hoehe.md) | bestanden | 1.34 s |
+| [zeigt Kennzahlen als einzelne Widgets mit Überschrift](zeigt-kennzahlen-als-einzelne-widgets-mit-ueberschrift.md) | bestanden | 1.15 s |
 ## Dokumentation
 
 | Test | Status | Dauer |
 | --- | --- | --- |
-| [zeigt die deutsche Doku und wechselt auf Englisch](zeigt-die-deutsche-doku-und-wechselt-auf-englisch.md) | bestanden | 1.00 s |
-## Code-Injection
+| [zeigt die deutsche Doku und wechselt auf Englisch](zeigt-die-deutsche-doku-und-wechselt-auf-englisch.md) | bestanden | 0.59 s |
 
-| Test | Status | Dauer |
-| --- | --- | --- |
-| [Kalender und Countdown rendern Payloads nicht als HTML](kalender-und-countdown-rendern-payloads-nicht-als-html.md) | bestanden | 1.07 s |
-| [Suchfelder und Warnungsfilter führen Payloads nicht aus](suchfelder-und-warnungsfilter-fuehren-payloads-nicht-aus.md) | bestanden | 1.29 s |
-| [Treffpunkt, Notizen und Aufgaben speichern Payloads nur als Text](treffpunkt-notizen-und-aufgaben-speichern-payloads-nur-als-text.md) | bestanden | 7.50 s |
-## Belastung
+## Ohne Beschreibung
 
-| Test | Status | Dauer |
-| --- | --- | --- |
-| [leere Formulare und lange Texte bringen die Oberfläche nicht zum Absturz](leere-formulare-und-lange-texte-bringen-die-oberflaeche-nicht-zum-absturz.md) | bestanden | 1.30 s |
-| [hält viele Aufgaben und schnelles Hinzufügen/Entfernen von Widgets aus](haelt-viele-aufgaben-und-schnelles-hinzufuegen-entfernen-von-widgets-aus.md) | bestanden | 1.69 s |
-| [hält schnelles Umschalten aller Seiten aus](haelt-schnelles-umschalten-aller-seiten-aus.md) | bestanden | 1.95 s |
-| [hält wiederholtes Aktualisieren und Sprachwechsel aus](haelt-wiederholtes-aktualisieren-und-sprachwechsel-aus.md) | bestanden | 1.97 s |
-| [hält schnelles Umschalten von Theme, Menü und Widget-Auswahl aus](haelt-schnelles-umschalten-von-theme-menue-und-widget-auswahl-aus.md) | bestanden | 2.37 s |
-
+- zeigt ein Warn-Banner mit konfigurierbarem Lauftext
+- lädt die Kacheln und bestätigt Aktualisieren danach
+- setzt die Übersicht auf die Standard-Widgets zurück
+- packt kleine Kacheln in den Raum neben großen Widgets
+- lässt nach Zurücksetzen der Wetterseite die Breite ändern
+- holt Kacheln zurück in den Sichtbereich
+- packt Wetter, Vorhersage und Radar ohne Lücke
+- nutzt kompakte Schrift bis Full HD und große Schrift darüber
+- skaliert Widgets in Breite und Höhe
+- zeigt Kennzahlen als einzelne Widgets mit Überschrift
 
 ## Start
 
