@@ -23,7 +23,7 @@ const DOCS = {
       "Titel, Übersichtsüberschrift und Navigationspunkte prüfen.",
       "Im Sprachmenü English wählen und den Reload abwarten.",
     ],
-    erwartet: "html lang wechselt von de auf en. Titel, Navigation und Übersicht erscheinen auf Englisch. Das Sprachmenü bleibt auf en.",
+    erwartet: "html lang wechselt von de auf en. Titel, Navigation, Slogan und Übersicht erscheinen auf Englisch. Das Sprachmenü bleibt auf en.",
   },
   "wechselt alle Seiten in der Navigation": {
     suite: "Dashboard",
@@ -33,6 +33,25 @@ const DOCS = {
       "Nacheinander Übersicht, Wetter, Wasserpegel, Feuerwehr und Organisation anklicken.",
     ],
     erwartet: "Die angeklickte Seite hat die Klasse active, ebenso der zugehörige Navigationspunkt.",
+  },
+  "wechselt Seiten mit Tastaturkürzeln 1 bis 5": {
+    suite: "Dashboard",
+    file: "tests/dashboard.spec.js",
+    zweck: "Prüft die Standard-Tastaturkürzel der fünf Hauptseiten.",
+    schritte: [
+      "Taste 2 drücken, Suchfeld auf Wetter fokussieren und 3 drücken, dann 5.",
+    ],
+    erwartet: "2 öffnet Wetter. Im Suchfeld ändert 3 die Seite nicht. 5 öffnet Organisation.",
+  },
+  "lässt Tastaturkürzel unter Einstellungen ändern": {
+    suite: "Dashboard",
+    file: "tests/dashboard.spec.js",
+    zweck: "Prüft, dass Kürzel im Dialog Einstellungen neu belegt werden.",
+    schritte: [
+      "Einstellungen öffnen, Wetter-Kürzel anklicken und W drücken.",
+      "Dialog mit Escape schließen, W und danach 2 drücken.",
+    ],
+    erwartet: "W öffnet Wetter. 2 bleibt auf Wetter, weil 2 nicht mehr belegt ist.",
   },
   "öffnet den Widget-Katalog auf Deutsch und Englisch": {
     suite: "Dashboard",
@@ -50,10 +69,10 @@ const DOCS = {
     file: "tests/dashboard.spec.js",
     zweck: "Prüft die Spielauswahl unter Gegen Langeweile.",
     schritte: [
-      "Gegen Langeweile öffnen und die Kacheln Klondike und Tic Tac Toe prüfen.",
-      "Klondike öffnen, zurück, Tic Tac Toe öffnen, Sprache auf Englisch stellen.",
+      "Gegen Langeweile öffnen und die Kacheln Klondike, Tic Tac Toe und Dino Game prüfen.",
+      "Klondike öffnen, zurück, Tic Tac Toe und Dino Game öffnen, Sprache auf Englisch stellen.",
     ],
-    erwartet: "Auswahlkacheln sind sichtbar. Klondike lädt solitaire-online.com. Tic Tac Toe zeigt das Jotform-Widget. Englisch: Against boredom, ← Games.",
+    erwartet: "Auswahlkacheln sind sichtbar. Klondike lädt solitaire-online.com. Tic Tac Toe und Dino Game liegen als Jotform-Widgets. Englisch: Against boredom, ← Games.",
   },
   "bindet dasselbe Widget mehrfach zum Vergleich ein": {
     suite: "Dashboard",
@@ -97,6 +116,15 @@ const DOCS = {
       "Wetterseite öffnen und die Radar-Breite messen.",
     ],
     erwartet: "Notizen sind schmaler als die halbe Übersicht. Das Wetter-Panel ist auf Übersicht und Wetterseite gleich breit. Der Pegelverlauf ist mindestens 500 Pixel breit, das Diagramm nicht gequetscht. Das Radar ist schmaler als 65 Prozent der Wetterseite.",
+  },
+  "legt Wetter-Kennzahlen im F-Muster aus": {
+    suite: "Dashboard",
+    file: "tests/dashboard.spec.js",
+    zweck: "Prüft, dass die Wetter-Kennzahlen in einer Zeile von links nach rechts stehen und das Wetter-Panel darunter links beginnt.",
+    schritte: [
+      "Wetterseite öffnen und die Positionen von Temperatur, Wind und aktuellem Wetter messen.",
+    ],
+    erwartet: "Temperatur steht links neben Wind auf gleicher Höhe. Das Wetter-Panel beginnt darunter links.",
   },
   "lässt den Widget-Platzhalter schmal": {
     suite: "Dashboard",

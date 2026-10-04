@@ -236,6 +236,7 @@ function updateNavigation() {
   const navContainer = document.getElementById("sidebarNav");
   if (!navContainer) return;
   navContainer.innerHTML = "";
+  const shortcuts = loadShortcuts();
 
   Object.keys(NAV_CATEGORIES).forEach((key) => {
     const category = NAV_CATEGORIES[key];
@@ -245,7 +246,15 @@ function updateNavigation() {
     btn.dataset.target = category.target;
     btn.innerHTML = category.html;
 
-    // Aktuell sichtbare Seite in der Navigation markieren
+    const shortcut = shortcuts[key];
+    if (shortcut) {
+      const kbd = document.createElement("kbd");
+      kbd.className = "nav-shortcut";
+      kbd.textContent = displayShortcut(shortcut);
+      btn.appendChild(kbd);
+      btn.setAttribute("aria-keyshortcuts", shortcut);
+    }
+
     const activePage = document.querySelector(".page.active");
     if (activePage && activePage.id === category.target) {
       btn.classList.add("active");
@@ -258,6 +267,168 @@ function updateNavigation() {
     navContainer.appendChild(btn);
   });
 }
+
+const SHORTCUT_STORAGE_KEY = "dashboard-shortcuts";
+const SHORTCUT_DEFAULTS = { overview: "1", weather: "2", water: "3", fire: "4", disaster: "5" };
+let shortcutListening = null;
+
+function loadShortcuts() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(SHORTCUT_STORAGE_KEY) || "null");
+    if (saved && typeof saved === "object") {
+      const next = { ...SHORTCUT_DEFAULTS };
+      Object.keys(SHORTCUT_DEFAULTS).forEach((id) => {
+        if (typeof saved[id] === "string") next[id] = saved[id];
+      });
+      return next;
+    }
+  } catch (err) {}
+  return { ...SHORTCUT_DEFAULTS };
+}
+
+function displayShortcut(key) {
+  if (!key) return t("settings.none");
+  return /^[a-z]$/.test(key) ? key.toUpperCase() : key;
+}
+
+function normalizeShortcutKey(key) {
+  if (!key || key.length !== 1) return "";
+  if (key === " ") return "";
+  const lower = key.toLowerCase();
+  return /^[0-9a-z]$/.test(lower) ? lower : "";
+}
+
+function isTypingTarget(el) {
+  if (!el || el === document.body) return false;
+  const tag = el.tagName;
+  if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
+  if (el.isContentEditable) return true;
+  return Boolean(el.closest("input, textarea, select, [contenteditable='true']"));
+}
+
+function overlayIsOpen() {
+  return Boolean(document.querySelector(".widget-picker-overlay.show"));
+}
+
+function goToNavPage(pageId) {
+  const btn = document.querySelector(`#sidebarNav .nav-item[data-target="${pageId}"]`);
+  showDashboardPage(pageId, btn);
+  setMenuOpen(false);
+}
+
+function assignShortcut(pageId, key) {
+  const map = loadShortcuts();
+  if (key) {
+    Object.keys(map).forEach((id) => {
+      if (id !== pageId && map[id] === key) map[id] = "";
+    });
+  }
+  map[pageId] = key;
+  storageSet(SHORTCUT_STORAGE_KEY, JSON.stringify(map));
+  shortcutListening = null;
+  updateNavigation();
+  renderShortcutSettings();
+}
+
+function renderShortcutSettings() {
+  const list = document.getElementById("settingsShortcuts");
+  if (!list) return;
+  const map = loadShortcuts();
+  list.replaceChildren();
+  Object.keys(NAV_CATEGORIES).forEach((id) => {
+    const row = document.createElement("div");
+    row.className = "settings-row";
+    const name = document.createElement("span");
+    name.className = "settings-row-label";
+    name.textContent = NAV_CATEGORIES[id].label;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "settings-key" + (shortcutListening === id ? " listening" : "");
+    btn.dataset.page = id;
+    btn.setAttribute("aria-label", NAV_CATEGORIES[id].label);
+    btn.textContent = shortcutListening === id ? t("settings.press") : displayShortcut(map[id]);
+    btn.addEventListener("click", () => {
+      shortcutListening = shortcutListening === id ? null : id;
+      renderShortcutSettings();
+      list.querySelector(`[data-page="${id}"]`)?.focus();
+    });
+    row.append(name, btn);
+    list.append(row);
+  });
+}
+
+const settingsOverlay = document.getElementById("settingsOverlay");
+const settingsLink = document.getElementById("settingsLink");
+
+function openSettings() {
+  setMenuOpen(false);
+  shortcutListening = null;
+  renderShortcutSettings();
+  settingsOverlay.classList.add("show");
+  settingsLink.setAttribute("aria-expanded", "true");
+  document.getElementById("settingsClose").focus();
+}
+
+function closeSettings() {
+  shortcutListening = null;
+  settingsOverlay.classList.remove("show");
+  settingsLink.setAttribute("aria-expanded", "false");
+}
+
+settingsLink.addEventListener("click", openSettings);
+document.getElementById("settingsClose").addEventListener("click", closeSettings);
+settingsOverlay.addEventListener("click", (e) => {
+  if (e.target === settingsOverlay) closeSettings();
+});
+document.getElementById("settingsShortcutReset").addEventListener("click", () => {
+  storageSet(SHORTCUT_STORAGE_KEY, JSON.stringify({ ...SHORTCUT_DEFAULTS }));
+  shortcutListening = null;
+  updateNavigation();
+  renderShortcutSettings();
+});
+
+document.addEventListener(
+  "keydown",
+  (e) => {
+    if (shortcutListening) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        shortcutListening = null;
+        renderShortcutSettings();
+        return;
+      }
+      if (e.key === "Backspace" || e.key === "Delete") {
+        e.preventDefault();
+        assignShortcut(shortcutListening, "");
+        return;
+      }
+      const key = normalizeShortcutKey(e.key);
+      if (!key) return;
+      e.preventDefault();
+      assignShortcut(shortcutListening, key);
+      return;
+    }
+    if (e.key === "Escape" && settingsOverlay.classList.contains("show")) {
+      e.stopImmediatePropagation();
+      closeSettings();
+    }
+  },
+  true,
+);
+
+document.addEventListener("keydown", (e) => {
+  if (e.defaultPrevented || e.repeat) return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (isTypingTarget(e.target)) return;
+  if (overlayIsOpen()) return;
+  const key = normalizeShortcutKey(e.key);
+  if (!key) return;
+  const map = loadShortcuts();
+  const pageKey = Object.keys(NAV_CATEGORIES).find((id) => map[id] === key);
+  if (!pageKey) return;
+  e.preventDefault();
+  goToNavPage(NAV_CATEGORIES[pageKey].target);
+});
 
 // ---- Toast-Nachrichten ----
 const toast = document.getElementById("toast");
@@ -347,14 +518,23 @@ document.getElementById("boredomLink").addEventListener("click", () => {
 
 const boredomPicker = document.getElementById("boredomPicker");
 const boredomBack = document.getElementById("boredomBack");
-const JOTFORM_TICTACTOE_SRC =
-  "https://www.jotform.com/website-widgets/embed/01a1079cec1870008d80ca784681b127ad71";
+const BOREDOM_JOTFORM = {
+  boredomTictactoe: {
+    scriptId: "boredomTictactoeScript",
+    src: "https://www.jotform.com/website-widgets/embed/01a1079cec1870008d80ca784681b127ad71",
+  },
+  boredomDino: {
+    scriptId: "boredomDinoScript",
+    src: "https://www.jotform.com/website-widgets/embed/01a107c6ab9870008b2c9d7ab54f89a22bc3",
+  },
+};
 
-function loadTictactoeWidget() {
-  if (document.getElementById("boredomTictactoeScript")) return;
+function loadJotformWidget(gameId) {
+  const def = BOREDOM_JOTFORM[gameId];
+  if (!def || document.getElementById(def.scriptId)) return;
   const script = document.createElement("script");
-  script.id = "boredomTictactoeScript";
-  script.src = JOTFORM_TICTACTOE_SRC;
+  script.id = def.scriptId;
+  script.src = def.src;
   script.defer = true;
   document.body.appendChild(script);
 }
@@ -366,7 +546,7 @@ function showBoredomGame(id) {
   document.querySelectorAll("#boredomPage .boredom-game").forEach((el) => {
     el.hidden = el.id !== id;
   });
-  if (id === "boredomTictactoe") loadTictactoeWidget();
+  if (BOREDOM_JOTFORM[id]) loadJotformWidget(id);
 }
 
 boredomPicker.addEventListener("click", (e) => {
@@ -1364,15 +1544,27 @@ function layoutContainerKey(container) {
 function layoutItemId(item) {
   return item.id || item.dataset.layoutId;
 }
-function layoutItems(container, includeHidden = false) {
-  return [...container.children].filter(
-    (c) =>
-      !c.classList.contains("layout-handle") &&
-      !c.classList.contains("layout-resize") &&
-      !c.classList.contains("widget-slot") &&
-      !c.hasAttribute("data-layout-fixed") &&
-      (includeHidden || !c.hidden),
+function isPackShell(el) {
+  return Boolean(el && (el.classList.contains("pack-lead") || el.classList.contains("pack-cluster")));
+}
+
+function isLayoutChild(c, includeHidden = false) {
+  return (
+    !c.classList.contains("layout-handle") &&
+    !c.classList.contains("layout-resize") &&
+    !c.classList.contains("widget-slot") &&
+    !c.hasAttribute("data-layout-fixed") &&
+    (includeHidden || !c.hidden)
   );
+}
+
+function layoutItems(container, includeHidden = false) {
+  const out = [];
+  for (const c of container.children) {
+    if (isPackShell(c)) out.push(...layoutItems(c, includeHidden));
+    else if (isLayoutChild(c, includeHidden)) out.push(c);
+  }
+  return out;
 }
 
 function saveLayoutOrder(container) {
@@ -1602,8 +1794,35 @@ function clearLayoutBox(el) {
   clearClampStyles(el);
 }
 
+function unwrapPackShells(grid) {
+  if (!grid) return;
+  grid.querySelectorAll("[data-pack-flex]").forEach((el) => {
+    el.style.flex = "";
+    el.style.flexBasis = "";
+    delete el.dataset.packFlex;
+  });
+  grid.querySelectorAll(":scope > .pack-lead, :scope > .pack-cluster").forEach((shell) => {
+    while (shell.firstChild) shell.parentNode.insertBefore(shell.firstChild, shell);
+    shell.remove();
+  });
+}
+
+function wrapPackGroup(grid, items, className, afterNode) {
+  const shell = document.createElement("div");
+  shell.className = className;
+  items.forEach((el) => shell.appendChild(el));
+  if (afterNode) afterNode.after(shell);
+  else {
+    const slot = grid.querySelector(":scope > .widget-slot");
+    if (slot) grid.insertBefore(shell, slot);
+    else grid.appendChild(shell);
+  }
+  return shell;
+}
+
 function clearGridPack(grid) {
   if (!grid) return;
+  unwrapPackShells(grid);
   grid.style.flexDirection = "";
   grid.style.height = "";
   grid.querySelectorAll(":scope > .widget-slot").forEach((slot) => {
@@ -1658,6 +1877,7 @@ function clampTileToView(el, view) {
   const top = Math.max(r.top, view.top);
   const maxW = Math.max(LAYOUT_MIN_WIDTH, Math.floor(view.right - left - 4));
   const maxH = Math.max(LAYOUT_MIN_HEIGHT, Math.floor(view.bottom - top - 4));
+  const packed = Boolean(el.closest(".pack-cluster, .pack-lead"));
   if (r.width > maxW + 2 || r.right > view.right + 2) {
     if (!el.classList.contains("water-combo")) {
       clearClampStyles(el);
@@ -1665,7 +1885,7 @@ function clampTileToView(el, view) {
       el.classList.add("tile-in-view");
     }
   }
-  if (r.height > maxH + 2 || r.bottom > view.bottom + 2) {
+  if (!packed && el.dataset.packFlex == null && (r.height > maxH + 2 || r.bottom > view.bottom + 2)) {
     if (!el.classList.contains("water-combo")) {
       applyLayoutHeight(el, maxH);
       el.classList.add("tile-in-view");
@@ -1677,7 +1897,7 @@ const RADAR_MAP_MIN = 260;
 
 function placeOverflowingTileBeside(page, el, view) {
   const row = el.parentElement;
-  if (!row || !row.classList.contains("overview-grid")) return;
+  if (!row || (!row.classList.contains("overview-grid") && !isPackShell(row))) return;
   const map = el.querySelector(".map-wrap");
   const mapBox = map ? map.getBoundingClientRect() : null;
   const squeezed = mapBox && mapBox.height > 0 && mapBox.height < RADAR_MAP_MIN;
@@ -1687,6 +1907,13 @@ function placeOverflowingTileBeside(page, el, view) {
   if (map) map.style.maxHeight = "";
   const items = layoutItems(row).filter((item) => item !== el);
   const weather = items.find((c) => c.classList.contains("weather") || c.id === "weatherPanel");
+  if (weather && (squeezed || belowFold) && isPackShell(row)) {
+    const clusterH = Math.floor(row.getBoundingClientRect().height);
+    if (clusterH > RADAR_MAP_MIN) {
+      weather.style.flex = `0 0 ${clusterH}px`;
+      weather.dataset.packFlex = "";
+    }
+  }
   const inView = items.filter((item) => item.getBoundingClientRect().bottom <= view.bottom + 4);
   const anchor = (el.classList.contains("radar") && weather) || inView[inView.length - 1] || items[0];
   if (anchor && anchor.nextElementSibling !== el) anchor.after(el);
@@ -1695,6 +1922,7 @@ function placeOverflowingTileBeside(page, el, view) {
 function packOverflowingGrid(page) {
   const grid = page.querySelector(":scope > .overview-grid");
   if (!grid || MOBILE_SCROLL_QUERY.matches) return;
+  unwrapPackShells(grid);
   const view = pageViewBox(page);
   const bar = page.querySelector(":scope > .overview-bar");
   const top = bar ? bar.getBoundingClientRect().bottom : view.top;
@@ -1732,6 +1960,24 @@ function packOverflowingGrid(page) {
   grid.querySelectorAll(":scope > .widget-slot").forEach((slot) => {
     slot.hidden = true;
   });
+  const lead = [];
+  for (const el of items) {
+    if (el.classList.contains("stat-card")) lead.push(el);
+    else break;
+  }
+  const rest = items.filter((el) => !lead.includes(el));
+  if (lead.length && rest.length) {
+    const leadShell = wrapPackGroup(grid, lead, "pack-lead");
+    const cluster = wrapPackGroup(grid, rest, "pack-cluster", leadShell);
+    const clusterH = Math.max(160, Math.floor(view.bottom - cluster.getBoundingClientRect().top - 8));
+    cluster.style.height = `${clusterH}px`;
+    const weatherEl = rest.find((el) => el.classList.contains("weather"));
+    if (weatherEl) {
+      weatherEl.style.flex = `0 0 ${clusterH}px`;
+      weatherEl.dataset.packFlex = "";
+    }
+    return;
+  }
   grid.style.flexDirection = "column";
   grid.style.flexWrap = "wrap";
   grid.style.height = `${height}px`;
@@ -1739,7 +1985,11 @@ function packOverflowingGrid(page) {
 
 function keepTilesInView(page) {
   if (!page || !page.classList.contains("active") || MOBILE_SCROLL_QUERY.matches) return;
-  if (document.body.classList.contains("layout-dragging") || document.body.classList.contains("layout-resize-active"))
+  if (
+    document.body.classList.contains("layout-editing") ||
+    document.body.classList.contains("layout-dragging") ||
+    document.body.classList.contains("layout-resize-active")
+  )
     return;
   const view = pageViewBox(page);
   if (view.width < 80 || view.height < 80) return;
@@ -1782,7 +2032,7 @@ function keepTilesInView(page) {
       .filter((el) => el.isConnected && tileOutOfView(el, box))
       .forEach((el) => {
         const parent = el.parentElement;
-        if (!parent || !parent.classList.contains("overview-grid")) return;
+        if (!parent || (!parent.classList.contains("overview-grid") && !isPackShell(parent))) return;
         if (getComputedStyle(parent).flexDirection !== "column") {
           parent.style.flexWrap = "wrap";
           parent.style.justifyContent = "flex-start";
@@ -1917,7 +2167,9 @@ function setLayoutEditing(editing) {
     btn.setAttribute("aria-pressed", String(editing));
     btn.textContent = t(editing ? "layout.done" : "layout.arrange");
   });
+  if (editing) document.querySelectorAll(".overview-grid").forEach(clearGridPack);
   refreshLayoutHandles();
+  if (!editing) document.querySelectorAll(".page.active").forEach(keepTilesInView);
 }
 
 function initLayout() {
@@ -2267,6 +2519,49 @@ const iconPressure =
 const iconHumidity = '<path d="M8 1.5S3 7 3 10.5a5 5 0 0 0 10 0C13 7 8 1.5 8 1.5z"/>';
 const iconWind =
   '<path d="M1.5 6h8a2 2 0 1 0-2-2" stroke-linecap="round"/><path d="M1.5 10h10a2 2 0 1 1-2 2" stroke-linecap="round"/>';
+const COMPASS_POINTS = ["N", "NO", "O", "SO", "S", "SW", "W", "NW"];
+
+function compassKey(deg) {
+  if (deg == null || Number.isNaN(Number(deg))) return null;
+  const heading = ((Number(deg) % 360) + 360) % 360;
+  return COMPASS_POINTS[Math.round(heading / 45) % 8];
+}
+
+function compassName(deg) {
+  const key = compassKey(deg);
+  return key ? t(`weather.wind.${key}`) : "";
+}
+
+function formatWindChip(speed, deg) {
+  const kmh = `${Math.round(speed)} km/h`;
+  const name = compassName(deg);
+  return name ? `${kmh} · ${name}` : kmh;
+}
+
+function windArrowIcon(deg) {
+  const rot = deg == null || Number.isNaN(Number(deg)) ? 180 : Number(deg) + 180;
+  return `<g transform="rotate(${rot} 8 8)"><path d="M8 13.5V2.8" stroke-linecap="round"/><path d="M5.4 5.6L8 2.8l2.6 2.8" stroke-linecap="round" stroke-linejoin="round"/></g><circle cx="8" cy="8" r="6.6" opacity="0.35"/>`;
+}
+
+function windChip(speed, deg, max = false) {
+  return statChip(windArrowIcon(deg), t(max ? "weather.chip.windMax" : "weather.chip.wind"), formatWindChip(speed, deg));
+}
+
+function setWindCompass(deg) {
+  const arrow = document.querySelector("#statWindCompass .wind-arrow");
+  const dirEl = document.getElementById("statWindDir");
+  const card = document.getElementById("weatherWindCard");
+  const name = compassName(deg);
+  if (arrow) {
+    if (deg == null || Number.isNaN(Number(deg))) arrow.removeAttribute("transform");
+    else arrow.setAttribute("transform", `rotate(${Number(deg) + 180} 12 12)`);
+  }
+  if (dirEl) dirEl.textContent = name;
+  if (card) {
+    const speed = document.getElementById("statWind")?.textContent || "";
+    card.setAttribute("aria-label", name ? t("weather.wind.aria", { speed, dir: name }) : t("widget.weather-wind.title"));
+  }
+}
 const iconFeels = '<circle cx="8" cy="11" r="3.5"/><path d="M8 8V2a1.5 1.5 0 0 1 3 0v6a4 4 0 1 1-3 0z"/>';
 const iconUv =
   '<circle cx="8" cy="8" r="3.2"/><path d="M8 1.3v1.6M8 13.1v1.6M1.3 8h1.6M13.1 8h1.6M3.2 3.2l1.1 1.1M11.7 11.7l1.1 1.1M3.2 12.8l1.1-1.1M11.7 4.3l1.1-1.1"/>';
@@ -2558,7 +2853,7 @@ function renderDayDetail(index) {
     statsEl.innerHTML =
       statChip(iconPressure, t("weather.chip.pressure"), `${Math.round(c.surface_pressure)} hPa`) +
       statChip(iconHumidity, t("weather.chip.humidity"), `${c.relative_humidity_2m} %`) +
-      statChip(iconWind, t("weather.chip.wind"), `${Math.round(c.wind_speed_10m)} km/h`) +
+      windChip(c.wind_speed_10m, c.wind_direction_10m) +
       statChip(iconFeels, t("weather.chip.feels"), `${Math.round(c.apparent_temperature)}°`) +
       statChip(iconUv, t("weather.chip.uv"), `${Math.round(d.uv_index_max[0])}`) +
       statChip(iconSun, t("weather.chip.sun"), `${sunrise} – ${sunset}`);
@@ -2574,7 +2869,7 @@ function renderDayDetail(index) {
     statsEl.innerHTML =
       statChip(iconPressure, t("weather.chip.pressureAvg"), `${avgPressure} hPa`) +
       statChip(iconHumidity, t("weather.chip.humidityAvg"), `${avgHumidity} %`) +
-      statChip(iconWind, t("weather.chip.windMax"), `${Math.round(d.wind_speed_10m_max[index])} km/h`) +
+      windChip(d.wind_speed_10m_max[index], d.wind_direction_10m_dominant?.[index], true) +
       statChip(iconUv, t("weather.chip.uv"), `${Math.round(d.uv_index_max[index])}`) +
       statChip(iconSun, t("weather.chip.sun"), `${sunrise} – ${sunset}`);
   }
@@ -2681,9 +2976,9 @@ function renderWeatherNoData() {
 function weatherForecastUrl(lat, lon) {
   return (
     `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
-    `&current=temperature_2m,weather_code,relative_humidity_2m,apparent_temperature,surface_pressure,wind_speed_10m` +
-    `&hourly=temperature_2m,weather_code,precipitation_probability,surface_pressure,relative_humidity_2m,wind_speed_10m` +
-    `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,uv_index_max,sunrise,sunset` +
+    `&current=temperature_2m,weather_code,relative_humidity_2m,apparent_temperature,surface_pressure,wind_speed_10m,wind_direction_10m` +
+    `&hourly=temperature_2m,weather_code,precipitation_probability,surface_pressure,relative_humidity_2m,wind_speed_10m,wind_direction_10m` +
+    `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant,uv_index_max,sunrise,sunset` +
     `&timezone=auto&forecast_days=8&past_days=1`
   );
 }
@@ -2721,6 +3016,7 @@ async function loadWeatherForPlace(lat, lon, label) {
     const statRainEl = document.getElementById("statRain");
     if (statTempEl) statTempEl.textContent = `${Math.round(data.current.temperature_2m)}°`;
     if (statWindEl) statWindEl.textContent = `${Math.round(data.current.wind_speed_10m)} km/h`;
+    setWindCompass(data.current.wind_direction_10m);
     if (statHumEl) statHumEl.textContent = `${data.current.relative_humidity_2m}%`;
     if (statRainEl) statRainEl.textContent = `${pop ?? 0}%`;
 
@@ -3912,7 +4208,7 @@ function paintWeatherDayDetail(root, data, index, tzShort) {
     statsEl.innerHTML =
       statChip(iconPressure, t("weather.chip.pressure"), `${Math.round(c.surface_pressure)} hPa`) +
       statChip(iconHumidity, t("weather.chip.humidity"), `${c.relative_humidity_2m} %`) +
-      statChip(iconWind, t("weather.chip.wind"), `${Math.round(c.wind_speed_10m)} km/h`) +
+      windChip(c.wind_speed_10m, c.wind_direction_10m) +
       statChip(iconFeels, t("weather.chip.feels"), `${Math.round(c.apparent_temperature)}°`) +
       statChip(iconUv, t("weather.chip.uv"), `${Math.round(d.uv_index_max[0])}`) +
       statChip(iconSun, t("weather.chip.sun"), `${sunrise} – ${sunset}`);
@@ -3928,7 +4224,7 @@ function paintWeatherDayDetail(root, data, index, tzShort) {
     statsEl.innerHTML =
       statChip(iconPressure, t("weather.chip.pressureAvg"), `${avgPressure} hPa`) +
       statChip(iconHumidity, t("weather.chip.humidityAvg"), `${avgHumidity} %`) +
-      statChip(iconWind, t("weather.chip.windMax"), `${Math.round(d.wind_speed_10m_max[index])} km/h`) +
+      windChip(d.wind_speed_10m_max[index], d.wind_direction_10m_dominant?.[index], true) +
       statChip(iconUv, t("weather.chip.uv"), `${Math.round(d.uv_index_max[index])}`) +
       statChip(iconSun, t("weather.chip.sun"), `${sunrise} – ${sunset}`);
   }

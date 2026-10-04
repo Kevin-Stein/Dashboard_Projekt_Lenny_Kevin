@@ -11,7 +11,8 @@ window.DASHBOARD_CHANGELOG = {
       "Kachellayout im F-Muster von links nach rechts, Zeile für Zeile",
       "Kacheln bleiben im sichtbaren Bereich, auch nach manuellem Anordnen",
       "Warn-Banner oben auf allen Seiten mit Lauftext, konfigurierbar unter Organisation",
-      "Seitenleistenpunkt „Gegen Langeweile“ mit Spielkacheln (Klondike-Solitaire und Tic Tac Toe)",
+      "Seitenleistenpunkt „Gegen Langeweile“ mit Spielkacheln (Klondike, Tic Tac Toe und Dino Game)",
+      "Seitenleistenpunkt „Einstellungen“ mit Tastaturkürzeln 1–5 für die fünf Hauptseiten",
     ],
     changed: [
       "Schriften größer als Full HD (über 1920 px Breite, typisch >27\"): aus etwa 1,4–2 m lesbar; darunter, Tablet und Mobil die kompakte Größe",
@@ -38,7 +39,10 @@ window.DASHBOARD_CHANGELOG = {
       "Pegelverlauf füllt die Kachel beim Skalieren",
       "Pegel-Buttons so breit wie ihr Text",
       "Kennzahlen (Wetter, Feuerwehr, Pegel) als einzelne Widgets mit eigener Überschrift",
+      "Wind-Kachel zeigt Richtung als Kompass und Himmelsrichtung",
       "Nach Zurücksetzen der Wetterseite lässt sich die Breite wieder anpassen",
+      "Wetter-Kennzahlen bleiben im F-Muster in einer Zeile",
+      "Slogan „Wir helfen Berlin“ in der Seitenleiste",
     ],
   },
   en: {
@@ -50,7 +54,8 @@ window.DASHBOARD_CHANGELOG = {
       "F-pattern tile layout from left to right, row by row",
       "Tiles stay in view even after manual Arrange",
       "Warning banner at the top of every page with scrolling text, configured under Organisation",
-      "Sidebar item “Against boredom” with game tiles (Klondike solitaire and tic-tac-toe)",
+      "Sidebar item “Against boredom” with game tiles (Klondike, tic-tac-toe and dino game)",
+      "Sidebar item “Settings” with keyboard shortcuts 1–5 for the five main pages",
     ],
     changed: [
       "Larger type above Full HD (over 1920 px wide, typically >27\"): readable from about 1.4–2 m; compact type below that, including tablet and phone",
@@ -77,7 +82,10 @@ window.DASHBOARD_CHANGELOG = {
       "Water level chart fills the tile when resized",
       "Gauge buttons as wide as their label",
       "Key figures (weather, fire brigade, water levels) as individual widgets with their own heading",
+      "Wind tile shows direction as a compass and bearing",
       "After resetting the weather page, width can be adjusted again",
+      "Weather key figures stay in an F-pattern row",
+      "Sidebar slogan “Helping Berlin”",
     ],
   },
 };

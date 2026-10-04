@@ -29,9 +29,10 @@ I18N.registerDocs("en", `
       <dl class="docs-dl">
         <dt>Navigation</dt><dd>The entries at the top switch the page. The active entry is highlighted in orange.</dd>
         <dt>Warning banner</dt><dd>In the header, between the page title and the buttons, a notice scrolls from right to left. “ACHTUNG” is always shown on the left and right (yellow and black, readable with red-green colour vision deficiency). You set the text under Organisation in the “Warning banner” widget. Without text the banner stays hidden.</dd>
-        <dt>Against boredom</dt><dd>Shows game tiles. Klondike solitaire is embedded from solitaire-online.com, tic-tac-toe from Jotform. “← Games” returns to the selection.</dd>
+        <dt>Against boredom</dt><dd>Shows game tiles. Klondike solitaire is embedded from solitaire-online.com, tic-tac-toe and the dino game from Jotform. “← Games” returns to the selection.</dd>
         <dt>Documentation</dt><dd>Opens this guide in a separate window.</dd>
         <dt>Version</dt><dd>Shows the current version number and opens the changelog.</dd>
+        <dt>Settings</dt><dd>Keyboard shortcuts for Overview, Weather, Water levels, Fire brigade and Organisation. Default is 1–5. Click a key in the list and press the new key; Backspace clears it. Shortcuts do not run while a search field is focused.</dd>
         <dt>Mode: Light / Dark</dt><dd>Switches the colour scheme. If you haven't chosen one, the dashboard follows your system setting.</dd>
         <dt>Language</dt><dd>The drop-down next to the colour mode switches the dashboard and the documentation to another language (currently German and English). The page reloads briefly and all settings are kept. If you haven't chosen one, the browser language is used.</dd>
         <dt>Refresh</dt><dd>Reloads weather, radar, warnings, fire brigade and water level data. The tiles briefly show a loading state, then the button shows “updated”, then turns back into the button.</dd>
@@ -85,7 +86,7 @@ I18N.registerDocs("en", `
     <section class="docs-card" id="seiten">
       <h2>The pages</h2>
       <h3>Weather</h3>
-      <p>Current weather with temperature, conditions, air pressure, humidity, wind, feels-like temperature, UV index and sunrise/sunset times. On top of that there is a 6-day forecast, an hourly trend, the metrics compared with yesterday and the rain radar. Use the search field to choose another location, e.g. “Lisbon”. Clicking a day shows its details.</p>
+      <p>Current weather with temperature, conditions, air pressure, humidity, wind (speed and direction), feels-like temperature, UV index and sunrise/sunset times. On top of that there is a 6-day forecast, an hourly trend, the metrics compared with yesterday and the rain radar. Use the search field to choose another location, e.g. “Lisbon”. Clicking a day shows its details.</p>
       <figure class="docs-shot">
         <img src="img/docs/wetter.webp" width="1440" height="900" loading="lazy" alt="Weather page with metrics, current weather, forecast and temperature trend">
         <figcaption>Weather page: the metrics at the top, the weather panel with search, days and hourly trend on the left, the charts on the right.</figcaption>
@@ -128,7 +129,7 @@ I18N.registerDocs("en", `
           <tbody>
             <tr><td rowspan="9">Weather</td><td>Current weather</td><td>Place, search, forecast and hourly trend</td></tr>
             <tr><td>Temperature</td><td>Current temperature compared with yesterday</td></tr>
-            <tr><td>Wind</td><td>Wind speed compared with yesterday</td></tr>
+            <tr><td>Wind</td><td>Wind speed and direction compared with yesterday</td></tr>
             <tr><td>Humidity</td><td>Relative humidity compared with yesterday</td></tr>
             <tr><td>Chance of rain today</td><td>Chance of rain for today compared with yesterday</td></tr>
             <tr><td>Forecast · High temperature</td><td>Highs for the coming days as bars</td></tr>
@@ -298,9 +299,9 @@ npm run test:headed  # the same tests, browser visible</code></pre>
       <ul>
         <li>Language menu next to the colour mode, entries Deutsch and English.</li>
         <li>Start in German, switch to English including reload: title, navigation, overview.</li>
-        <li>All five pages (Overview, Weather including rain radar, Water levels, Fire brigade, Organisation).</li>
+        <li>All five pages (Overview, Weather including rain radar, Water levels, Fire brigade, Organisation) and keyboard shortcuts 1–5.</li>
         <li>Open and close the widget catalogue in German and English.</li>
-        <li>Against boredom: game tiles, Klondike and tic-tac-toe.</li>
+        <li>Against boredom: game tiles, Klondike, tic-tac-toe and dino game.</li>
         <li>Add the same widget more than once (weather and gauges with their own search).</li>
         <li>Colour mode light → dark.</li>
         <li>Smartphone (390×844): navigation hidden, the menu opens the sidebar.</li>

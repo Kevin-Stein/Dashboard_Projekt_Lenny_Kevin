@@ -18,7 +18,8 @@ Alle Änderungen nach dem 28. September 2026.
 - Kachellayout im F-Muster von links nach rechts, Zeile für Zeile
 - Kacheln bleiben im sichtbaren Bereich, auch nach manuellem Anordnen
 - Warn-Banner oben auf allen Seiten mit Lauftext, konfigurierbar unter Organisation
-- Seitenleistenpunkt „Gegen Langeweile“ mit Spielkacheln (Klondike-Solitaire und Tic Tac Toe)
+- Seitenleistenpunkt „Gegen Langeweile“ mit Spielkacheln (Klondike, Tic Tac Toe und Dino Game)
+- Seitenleistenpunkt „Einstellungen“ mit Tastaturkürzeln 1–5 für die fünf Hauptseiten
 
 ### Changed
 
@@ -50,4 +51,7 @@ Alle Änderungen nach dem 28. September 2026.
 - Pegelverlauf füllt die Kachel beim Skalieren
 - Pegel-Buttons so breit wie ihr Text
 - Kennzahlen (Wetter, Feuerwehr, Pegel) als einzelne Widgets mit eigener Überschrift
+- Wind-Kachel zeigt Richtung als Kompass und Himmelsrichtung
 - Nach Zurücksetzen der Wetterseite lässt sich die Breite wieder anpassen
+- Wetter-Kennzahlen bleiben im F-Muster in einer Zeile
+- Slogan „Wir helfen Berlin“ in der Seitenleiste

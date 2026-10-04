@@ -98,9 +98,10 @@
       <h2>Seitenleiste &amp; Bedienung</h2>
       <dl class="docs-dl">
         <dt>Warn-Banner</dt><dd>In der Kopfzeile, zwischen Seitentitel und den Schaltflächen, läuft ein Hinweis von rechts nach links. Links und rechts steht immer „ACHTUNG“ (gelb-schwarz, auch bei Rot-Grün-Schwäche gut lesbar). Den Text stellst du unter Organisation im Widget „Warn-Banner“ ein. Ohne Text bleibt das Banner unsichtbar.</dd>
-        <dt>Gegen Langeweile</dt><dd>Zeigt Spielkacheln. Klondike-Solitaire kommt von solitaire-online.com, Tic Tac Toe von Jotform. „← Spiele“ führt zurück zur Auswahl.</dd>
+        <dt>Gegen Langeweile</dt><dd>Zeigt Spielkacheln. Klondike-Solitaire kommt von solitaire-online.com, Tic Tac Toe und Dino Game von Jotform. „← Spiele“ führt zurück zur Auswahl.</dd>
         <dt>Dokumentation</dt><dd>Öffnet diese Anleitung in einem eigenen Fenster.</dd>
         <dt>Version</dt><dd>Zeigt die aktuelle Versionsnummer und öffnet das Changelog.</dd>
+        <dt>Einstellungen</dt><dd>Tastaturkürzel für Übersicht, Wetter, Wasserpegel, Feuerwehr und Organisation. Standard ist 1–5. Eine Taste in der Liste anklicken und die neue Taste drücken; Rücktaste entfernt das Kürzel. In Suchfeldern greifen die Kürzel nicht.</dd>
         <dt>Modus: Hell / Dunkel</dt><dd>Wechselt das Farbschema. Ohne eigene Wahl richtet sich das Dashboard nach der Systemeinstellung.</dd>
         <dt>Sprache</dt><dd>Das Auswahlfeld neben dem Farbmodus stellt Dashboard und Dokumentation auf eine andere Sprache um (derzeit Deutsch und English). Die Seite lädt dabei kurz neu, alle Einstellungen bleiben erhalten. Ohne eigene Wahl gilt die Sprache des Browsers.</dd>
         <dt>Aktualisieren</dt><dd>Lädt Wetter, Radar, Warnungen, Feuerwehr- und Pegeldaten neu. Die Kacheln laden kurz, der Knopf zeigt dann „aktualisiert“ und ist danach wieder der Knopf.</dd>
@@ -154,7 +155,7 @@
     <section class="docs-card" id="seiten">
       <h2>Die Seiten</h2>
       <h3>Wetter</h3>
-      <p>Aktuelles Wetter mit Temperatur, Wetterlage, Luftdruck, Luftfeuchtigkeit, Wind, gefühlter Temperatur, UV-Index und Sonnenzeiten. Dazu kommen eine 6-Tage-Vorhersage, ein Stundenverlauf, die Kennzahlen im Vergleich zu gestern und das Regenradar. Über das Suchfeld lässt sich ein anderer Ort wählen, z. B. „Lissabon“. Ein Klick auf einen Tag zeigt dessen Details.</p>
+      <p>Aktuelles Wetter mit Temperatur, Wetterlage, Luftdruck, Luftfeuchtigkeit, Wind (Geschwindigkeit und Richtung), gefühlter Temperatur, UV-Index und Sonnenzeiten. Dazu kommen eine 6-Tage-Vorhersage, ein Stundenverlauf, die Kennzahlen im Vergleich zu gestern und das Regenradar. Über das Suchfeld lässt sich ein anderer Ort wählen, z. B. „Lissabon“. Ein Klick auf einen Tag zeigt dessen Details.</p>
       <figure class="docs-shot">
         <img src="img/docs/wetter.webp" width="1440" height="900" loading="lazy" alt="Wetterseite mit Kennzahlen, aktuellem Wetter, Vorhersage und Temperaturverlauf">
         <figcaption>Wetterseite: oben die Kennzahlen, links das Wetter-Panel mit Suche, Tagen und Stundenverlauf, rechts die Diagramme.</figcaption>
@@ -197,7 +198,7 @@
           <tbody>
             <tr><td rowspan="9">Wetter</td><td>Aktuelles Wetter</td><td>Ort, Suche, Vorhersage und Stundenverlauf</td></tr>
             <tr><td>Temperatur</td><td>Aktuelle Temperatur im Vergleich zu gestern</td></tr>
-            <tr><td>Wind</td><td>Windgeschwindigkeit im Vergleich zu gestern</td></tr>
+            <tr><td>Wind</td><td>Windgeschwindigkeit und -richtung im Vergleich zu gestern</td></tr>
             <tr><td>Luftfeuchte</td><td>Relative Luftfeuchtigkeit im Vergleich zu gestern</td></tr>
             <tr><td>Regenchance heute</td><td>Regenchance für heute im Vergleich zu gestern</td></tr>
             <tr><td>Vorhersage · Höchsttemperatur</td><td>Höchstwerte der nächsten Tage als Balken</td></tr>
@@ -367,9 +368,9 @@ npm run test:headed  # dieselben Tests, Browser sichtbar</code></pre>
       <ul>
         <li>Sprachmenü steht neben dem Farbmodus, Einträge Deutsch und English.</li>
         <li>Start auf Deutsch, Wechsel auf Englisch inkl. Reload: Titel, Navigation, Übersicht.</li>
-        <li>Alle fünf Seiten (Übersicht, Wetter inkl. Regenradar, Wasserpegel, Feuerwehr, Organisation).</li>
+        <li>Alle fünf Seiten (Übersicht, Wetter inkl. Regenradar, Wasserpegel, Feuerwehr, Organisation) und Tastaturkürzel 1–5.</li>
         <li>Widget-Katalog auf Deutsch und Englisch öffnen und schließen.</li>
-        <li>Gegen Langeweile: Spielkacheln, Klondike und Tic Tac Toe.</li>
+        <li>Gegen Langeweile: Spielkacheln, Klondike, Tic Tac Toe und Dino Game.</li>
         <li>Dasselbe Widget mehrfach hinzufügen (Wetter und Pegel mit eigener Suche).</li>
         <li>Farbmodus Hell → Dunkel.</li>
         <li>Smartphone (390×844): Navigation verborgen, Menü öffnet die Seitenleiste.</li>

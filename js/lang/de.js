@@ -15,8 +15,11 @@ I18N.register("de", {
     "banner.placeholder": "Hinweis für alle Seiten …",
     "banner.tag": "ACHTUNG",
     "brand.title": "Katastrophenschutz",
+    "brand.slogan": "„Wir helfen Berlin“",
 
     "boredom.back": "← Spiele",
+    "boredom.dino.desc": "Springen und ducken, endloser Lauf",
+    "boredom.dino.title": "Dino Game",
     "boredom.klondike.desc": "Karten aufdecken und ablegen",
     "boredom.klondike.title": "Klondike Solitaire",
     "boredom.playedOn": "Gespielt auf",
@@ -199,6 +202,7 @@ I18N.register("de", {
     "nav.fire": "Feuerwehr",
     "nav.overview": "Übersicht",
     "nav.radar": "Regenradar",
+    "nav.settings": "Einstellungen",
     "nav.water": "Wasserpegel",
     "nav.weather": "Wetter",
 
@@ -271,6 +275,12 @@ I18N.register("de", {
     "search.failed": "Ortssuche fehlgeschlagen – {reason}",
     "search.notFound": "Kein Ort namens \"{query}\" gefunden",
     "search.searching": "Suche \"{query}\" …",
+
+    "settings.lead": "Mit einer Taste zur Seite springen. Die Taste in der Liste anklicken und dann die neue Taste drücken. Rücktaste entfernt das Kürzel.",
+    "settings.none": "—",
+    "settings.press": "Taste drücken …",
+    "settings.reset": "Auf 1–5 zurücksetzen",
+    "settings.title": "Einstellungen",
 
     "source.fire": "Feuerwehr",
     "source.radar": "Radar",
@@ -389,6 +399,15 @@ I18N.register("de", {
     "weather.unavailable": "Wetter für \"{place}\" nicht verfügbar – {reason}.",
     "weather.waveAria": "Temperaturverlauf zwischen {min}° und {max}°",
     "weather.waveToday": "heute, stündlich",
+    "weather.wind.N": "Nord",
+    "weather.wind.NO": "Nordost",
+    "weather.wind.NW": "Nordwest",
+    "weather.wind.O": "Ost",
+    "weather.wind.S": "Süd",
+    "weather.wind.SO": "Südost",
+    "weather.wind.SW": "Südwest",
+    "weather.wind.W": "West",
+    "weather.wind.aria": "Wind {speed} aus {dir}",
 
     "widget.calendar-today.desc": "Heutige Einträge aus dem Kalender",
     "widget.calendar-today.title": "Termine heute",
@@ -458,7 +477,7 @@ I18N.register("de", {
     "widget.weather-rain.title": "Regenchance heute",
     "widget.weather-temp.desc": "Aktuelle Temperatur im Vergleich zu gestern",
     "widget.weather-temp.title": "Temperatur",
-    "widget.weather-wind.desc": "Windgeschwindigkeit im Vergleich zu gestern",
+    "widget.weather-wind.desc": "Windgeschwindigkeit und -richtung im Vergleich zu gestern",
     "widget.weather-wind.title": "Wind",
   },
 });

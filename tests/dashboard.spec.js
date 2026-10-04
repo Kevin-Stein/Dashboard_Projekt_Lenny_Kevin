@@ -26,18 +26,22 @@ test.describe("Dashboard", () => {
     await expect(page).toHaveTitle("Katastrophenschutz – Wir helfen Berlin");
     await expect(page.locator("#overviewPage .overview-title")).toHaveText("Meine Übersicht");
     await expect(page.locator("#sidebarNav .nav-item")).toHaveText(PAGES.map((p) => new RegExp(p.de)));
+    await expect(page.locator(".sidebar-slogan")).toHaveText("„Wir helfen Berlin“");
+    await expect(page.locator("#settingsLink")).toHaveText("Einstellungen");
 
     await switchLanguage(page, "en");
     await expect(page).toHaveTitle("Civil Protection – Helping Berlin");
     await expect(page.locator("#overviewPage .overview-title")).toHaveText("My overview");
     await expect(page.locator("#langSelect")).toHaveValue("en");
+    await expect(page.locator(".sidebar-slogan")).toHaveText("“Helping Berlin”");
+    await expect(page.locator("#settingsLink")).toHaveText("Settings");
     await expect(page.locator("#sidebarNav .nav-item")).toHaveText(PAGES.map((p) => new RegExp(p.en)));
   });
 
   test("zeigt ein Warn-Banner mit konfigurierbarem Lauftext", async ({ page }) => {
     await openWithLang(page, "/", "de");
     await expect(page.locator("#warnBanner")).toBeHidden();
-    await expect(page.locator("#sidebarNav .nav-item").nth(2)).toHaveText("Wasserpegel");
+    await expect(page.locator("#sidebarNav .nav-item").nth(2)).toHaveText(/Wasserpegel/);
     await openPage(page, "disasterPage");
     await expect(page.locator("#disasterPage .overview-title")).toHaveText("Organisation");
     await expect(page.locator("#bannerConfigPanel > .panel-title")).toHaveText("Warn-Banner");
@@ -86,6 +90,38 @@ test.describe("Dashboard", () => {
       await expect(page.locator(`#${item.target}`)).toHaveClass(/active/);
       await expect(page.locator(`#sidebarNav .nav-item[data-target="${item.target}"]`)).toHaveClass(/active/);
     }
+  });
+
+  test("wechselt Seiten mit Tastaturkürzeln 1 bis 5", async ({ page }) => {
+    await openWithLang(page, "/", "de");
+    await expect(page.locator('#sidebarNav .nav-item[data-target="weatherPage"] .nav-shortcut')).toHaveText("2");
+    await page.keyboard.press("2");
+    await expect(page.locator("#weatherPage")).toHaveClass(/active/);
+    await page.locator("#weatherSearchInput").focus();
+    await page.keyboard.press("3");
+    await expect(page.locator("#weatherPage")).toHaveClass(/active/);
+    await expect(page.locator("#waterPage")).not.toHaveClass(/active/);
+    await page.locator("#weatherSearchInput").blur();
+    await page.keyboard.press("5");
+    await expect(page.locator("#disasterPage")).toHaveClass(/active/);
+  });
+
+  test("lässt Tastaturkürzel unter Einstellungen ändern", async ({ page }) => {
+    await openWithLang(page, "/", "de");
+    await expect(page.locator("#settingsLink")).toHaveText("Einstellungen");
+    await page.locator("#settingsLink").click();
+    const overlay = page.locator("#settingsOverlay");
+    await expect(overlay).toHaveClass(/show/);
+    await overlay.locator('.settings-key[data-page="weather"]').click();
+    await expect(overlay.locator('.settings-key[data-page="weather"]')).toHaveText("Taste drücken …");
+    await page.keyboard.press("w");
+    await expect(overlay.locator('.settings-key[data-page="weather"]')).toHaveText("W");
+    await page.keyboard.press("Escape");
+    await expect(overlay).not.toHaveClass(/show/);
+    await page.keyboard.press("w");
+    await expect(page.locator("#weatherPage")).toHaveClass(/active/);
+    await page.keyboard.press("2");
+    await expect(page.locator("#weatherPage")).toHaveClass(/active/);
   });
 
   test("öffnet den Widget-Katalog auf Deutsch und Englisch", async ({ page }) => {
@@ -141,16 +177,29 @@ test.describe("Dashboard", () => {
     await expect(page.locator("#boredomPicker")).toBeVisible();
     await expect(page.locator('#boredomPicker [data-game="boredomKlondike"]')).toContainText("Klondike Solitaire");
     await expect(page.locator('#boredomPicker [data-game="boredomTictactoe"]')).toContainText("Tic Tac Toe");
+    await expect(page.locator('#boredomPicker [data-game="boredomDino"]')).toContainText("Dino Game");
     await expect(page.locator("#boredomKlondike")).toBeHidden();
     await page.locator('#boredomPicker [data-game="boredomKlondike"]').click();
     await expect(page.locator("#boredomPicker")).toBeHidden();
     await expect(page.locator("#boredomGame")).toBeVisible();
     await expect(page.locator("#boredomGame")).toHaveAttribute("src", /solitaire-online\.com\/embed\/klondike/);
+    const wrapBox = await page.locator("#boredomKlondike .boredom-frame-wrap").boundingBox();
+    const pageBox = await page.locator("#boredomPage").boundingBox();
+    expect(wrapBox.width).toBeGreaterThan(pageBox.width * 0.85);
+    expect(wrapBox.height).toBeGreaterThan(pageBox.height * 0.55);
     await page.locator("#boredomBack").click();
     await expect(page.locator("#boredomPicker")).toBeVisible();
     await page.locator('#boredomPicker [data-game="boredomTictactoe"]').click();
     await expect(page.locator("#boredomTictactoe")).toBeVisible();
-    await expect(page.locator("#JFWebsiteWidget-01a1079cec1870008d80ca784681b127ad71")).toBeVisible();
+    const toeWrap = await page.locator("#boredomTictactoe .boredom-frame-wrap").boundingBox();
+    expect(toeWrap.height).toBeGreaterThan(pageBox.height * 0.55);
+    const embedBox = await page.locator("#boredomTictactoe .boredom-embed").boundingBox();
+    expect(embedBox.width).toBeGreaterThan(280);
+    expect(embedBox.width).toBeLessThanOrEqual(520);
+    await page.locator("#boredomBack").click();
+    await page.locator('#boredomPicker [data-game="boredomDino"]').click();
+    await expect(page.locator("#boredomDino")).toBeVisible();
+    await expect(page.locator("#JFWebsiteWidget-01a107c6ab9870008b2c9d7ab54f89a22bc3")).toBeAttached();
     await switchLanguage(page, "en");
     await expect(page.locator("#boredomLink")).toHaveText("Against boredom");
     await expect(page.locator("#boredomBack")).toHaveText("← Games");
@@ -327,11 +376,13 @@ test.describe("Dashboard", () => {
     await openPage(page, "weatherPage");
     await page.evaluate(() => window.dispatchEvent(new Event("resize")));
     const weather = await page.locator("#weatherPage #weatherPanel").boundingBox();
-    const temp = await page.locator("#weatherTempCard").boundingBox();
+    const forecast = await page.locator("#weatherForecastPanel").boundingBox();
     const radar = await page.locator("#radarPanel").boundingBox();
-    const overlapWeather = Math.min(temp.y + temp.height, weather.y + weather.height) - Math.max(temp.y, weather.y);
-    const overlapRadar = Math.min(temp.y + temp.height, radar.y + radar.height) - Math.max(temp.y, radar.y);
-    expect(overlapWeather > 40 || overlapRadar > 40).toBeTruthy();
+    const besideForecast = Math.min(forecast.y + forecast.height, weather.y + weather.height) - Math.max(forecast.y, weather.y);
+    const besideRadar = Math.min(radar.y + radar.height, weather.y + weather.height) - Math.max(radar.y, weather.y);
+    expect(besideForecast > 40 || besideRadar > 40).toBeTruthy();
+    const neighbor = besideRadar > besideForecast ? radar : forecast;
+    expect(neighbor.x).toBeGreaterThan(weather.x + 40);
   });
 
   test("zeigt Kennzahlen als einzelne Widgets mit Überschrift", async ({ page }) => {
@@ -341,6 +392,8 @@ test.describe("Dashboard", () => {
     await expect(page.locator("#weatherKpiRow")).toHaveCount(0);
     await expect(page.locator("#weatherTempCard > .panel-title")).toHaveText("Temperatur");
     await expect(page.locator("#weatherWindCard > .panel-title")).toHaveText("Wind");
+    await expect(page.locator("#statWindDir")).toHaveText("Südwest");
+    await expect(page.locator("#weatherWindCard")).toHaveAttribute("aria-label", /Südwest/);
     await expect(page.locator("#weatherHumidityCard > .panel-title")).toHaveText("Luftfeuchte");
     await expect(page.locator("#weatherRainCard > .panel-title")).toHaveText("Regenchance heute");
 
@@ -385,8 +438,23 @@ test.describe("Dashboard", () => {
     expect(radarBox.width).toBeLessThan(weatherBox.width * 0.65);
   });
 
+  test("legt Wetter-Kennzahlen im F-Muster aus", async ({ page }) => {
+    await openWithLang(page, "/", "de");
+    await page.setViewportSize({ width: 1400, height: 900 });
+    await openPage(page, "weatherPage");
+    await page.evaluate(() => window.dispatchEvent(new Event("resize")));
+    const temp = await page.locator("#weatherTempCard").boundingBox();
+    const wind = await page.locator("#weatherWindCard").boundingBox();
+    const weather = await page.locator("#weatherPage #weatherPanel").boundingBox();
+    expect(temp.x).toBeLessThan(wind.x);
+    expect(Math.abs(temp.y - wind.y)).toBeLessThan(24);
+    expect(weather.y).toBeGreaterThan(temp.y + temp.height - 8);
+    expect(weather.x).toBeLessThanOrEqual(temp.x + 8);
+  });
+
   test("packt Wetter, Vorhersage und Radar ohne Lücke", async ({ page }) => {
     await openWithLang(page, "/", "de");
+    await page.setViewportSize({ width: 1400, height: 900 });
     await openPage(page, "weatherPage");
     await page.evaluate(() => window.dispatchEvent(new Event("resize")));
     const pageBox = await page.locator("#weatherPage").boundingBox();

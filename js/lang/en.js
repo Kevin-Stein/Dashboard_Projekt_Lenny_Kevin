@@ -15,8 +15,11 @@ I18N.register("en", {
     "banner.placeholder": "Notice for every page …",
     "banner.tag": "ACHTUNG",
     "brand.title": "Civil Protection",
+    "brand.slogan": "“Helping Berlin”",
 
     "boredom.back": "← Games",
+    "boredom.dino.desc": "Jump and duck, endless runner",
+    "boredom.dino.title": "Dino Game",
     "boredom.klondike.desc": "Turn cards and build stacks",
     "boredom.klondike.title": "Klondike Solitaire",
     "boredom.playedOn": "Played on",
@@ -199,6 +202,7 @@ I18N.register("en", {
     "nav.fire": "Fire brigade",
     "nav.overview": "Overview",
     "nav.radar": "Rain radar",
+    "nav.settings": "Settings",
     "nav.water": "Water levels",
     "nav.weather": "Weather",
 
@@ -271,6 +275,12 @@ I18N.register("en", {
     "search.failed": "Place search failed – {reason}",
     "search.notFound": "No place called \"{query}\" found",
     "search.searching": "Searching \"{query}\" …",
+
+    "settings.lead": "Jump to a page with one key. Click the key in the list, then press the new key. Backspace clears the shortcut.",
+    "settings.none": "—",
+    "settings.press": "Press a key …",
+    "settings.reset": "Reset to 1–5",
+    "settings.title": "Settings",
 
     "source.fire": "Fire brigade",
     "source.radar": "Radar",
@@ -389,6 +399,15 @@ I18N.register("en", {
     "weather.unavailable": "Weather for \"{place}\" unavailable – {reason}.",
     "weather.waveAria": "Temperature trend between {min}° and {max}°",
     "weather.waveToday": "today, hourly",
+    "weather.wind.N": "North",
+    "weather.wind.NO": "Northeast",
+    "weather.wind.NW": "Northwest",
+    "weather.wind.O": "East",
+    "weather.wind.S": "South",
+    "weather.wind.SO": "Southeast",
+    "weather.wind.SW": "Southwest",
+    "weather.wind.W": "West",
+    "weather.wind.aria": "Wind {speed} from {dir}",
 
     "widget.calendar-today.desc": "Today's entries from the calendar",
     "widget.calendar-today.title": "Today's events",
@@ -458,7 +477,7 @@ I18N.register("en", {
     "widget.weather-rain.title": "Chance of rain today",
     "widget.weather-temp.desc": "Current temperature compared with yesterday",
     "widget.weather-temp.title": "Temperature",
-    "widget.weather-wind.desc": "Wind speed compared with yesterday",
+    "widget.weather-wind.desc": "Wind speed and direction compared with yesterday",
     "widget.weather-wind.title": "Wind",
   },
 });
