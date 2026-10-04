@@ -30,7 +30,7 @@ const DOCS = {
     file: "tests/dashboard.spec.js",
     zweck: "Prüft, dass jeder Navigationspunkt die richtige Seite einblendet.",
     schritte: [
-      "Nacheinander Übersicht, Wetter, Katastrophenschutz, Feuerwehr und Wasserpegel anklicken.",
+      "Nacheinander Übersicht, Wetter, Wasserpegel, Feuerwehr und Organisation anklicken.",
     ],
     erwartet: "Die angeklickte Seite hat die Klasse active, ebenso der zugehörige Navigationspunkt.",
   },
@@ -43,7 +43,27 @@ const DOCS = {
       "Den Katalog schließen.",
       "Auf Englisch wechseln und den Katalog erneut öffnen.",
     ],
-    erwartet: "Deutsch: „Widget hinzufügen“, „Kalender & Organisation“, „Aktuelles Wetter“. Englisch: „Add widget“, „Calendar & organisation“, „Current weather“. Schließen blendet den Overlay aus.",
+    erwartet: "Deutsch: „Widget hinzufügen“, „Kalender & Organisation“, „Aktuelles Wetter“, Plus statt Haken und Anzahl 1. Englisch: „Add widget“, „Calendar & organisation“, „Current weather“. Schließen blendet den Overlay aus.",
+  },
+  "öffnet Gegen Langeweile mit Spielkacheln": {
+    suite: "Dashboard",
+    file: "tests/dashboard.spec.js",
+    zweck: "Prüft die Spielauswahl unter Gegen Langeweile.",
+    schritte: [
+      "Gegen Langeweile öffnen und die Kacheln Klondike und Tic Tac Toe prüfen.",
+      "Klondike öffnen, zurück, Tic Tac Toe öffnen, Sprache auf Englisch stellen.",
+    ],
+    erwartet: "Auswahlkacheln sind sichtbar. Klondike lädt solitaire-online.com. Tic Tac Toe zeigt das Jotform-Widget. Englisch: Against boredom, ← Games.",
+  },
+  "bindet dasselbe Widget mehrfach zum Vergleich ein": {
+    suite: "Dashboard",
+    file: "tests/dashboard.spec.js",
+    zweck: "Prüft, dass Wetter und Pegel mehrfach mit eigener Suche liegen können.",
+    schritte: [
+      "Auf der Übersicht „Aktuelles Wetter“ ein zweites Mal hinzufügen und Lissabon suchen.",
+      "„Pegelverlauf“ ein zweites Mal hinzufügen und Dresden suchen.",
+    ],
+    erwartet: "Die zweite Wetterkachel zeigt Lissabon, die Wetterseite bleibt Berlin. Die zweite Pegelkachel zeigt Dresden, die Pegel-Quelle nicht.",
   },
   "öffnet das Versions-Changelog als Popup": {
     suite: "Dashboard",

@@ -1,4 +1,9 @@
-/* Dokumentation: nutzt Farben, Sidebar und Schriften aus style.css */
+/* Dokumentation: nutzt Farben, Sidebar und Schriften aus style.css.
+   Wie das Changelog: nah am Bildschirm lesen, nicht die große Wand-Schrift. */
+.docs-body {
+  --type-scale: 1;
+  --reading-text: max(var(--type-min), round(nearest, calc(12px * var(--type-scale)), 1px));
+}
 .docs-main {
   overflow-y: auto;
   scroll-behavior: smooth;
@@ -16,12 +21,12 @@
   padding: 6px 0 2px;
 }
 .docs-hero .overview-title {
-  font-size: clamp(26px, 3.4vw, 34px);
+  font-size: clamp(22px, 3.4vw, 28px);
 }
 
 .docs-part {
   font-family: var(--font-title);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -35,18 +40,18 @@
   border-radius: var(--card-radius);
   box-shadow: var(--card-shadow);
   padding: clamp(18px, 2.4vw, 28px);
-  line-height: 1.6;
-  font-size: 14.5px;
+  line-height: 1.4;
+  font-size: var(--reading-text);
 }
 .docs-card h2 {
   font-family: var(--font-title);
   font-weight: 650;
-  font-size: 22px;
+  font-size: max(var(--type-min), 18px);
   letter-spacing: -0.03em;
   margin: 0 0 10px;
 }
 .docs-card h3 {
-  font-size: 15px;
+  font-size: max(var(--type-min), 13px);
   font-weight: 600;
   margin: 20px 0 6px;
   color: var(--teal);
@@ -91,7 +96,7 @@
 }
 .docs-card kbd {
   font-family: var(--font-ui);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   background: var(--panel-2);
   border: 1px solid var(--line-strong);
@@ -121,12 +126,12 @@
   border: 1px solid var(--line);
   border-radius: 14px;
   padding: 14px;
-  font-size: 13.5px;
+  font-size: var(--reading-text);
   color: var(--ink-soft);
 }
 .docs-tile strong {
   color: var(--ink);
-  font-size: 14px;
+  font-size: max(var(--type-min), 13px);
 }
 
 .docs-dl {
@@ -152,7 +157,7 @@
 .docs-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13.5px;
+  font-size: var(--reading-text);
 }
 .docs-table th,
 .docs-table td {
@@ -189,7 +194,7 @@
   background: var(--panel-2);
 }
 .docs-shot figcaption {
-  font-size: 12.5px;
+  font-size: var(--reading-text);
   color: var(--ink-soft);
   margin-top: 7px;
   line-height: 1.45;
@@ -239,7 +244,7 @@
   padding-block: 7px;
 }
 .docs-nav-group {
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;

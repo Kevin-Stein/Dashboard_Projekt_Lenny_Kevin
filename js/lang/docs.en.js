@@ -17,7 +17,7 @@ I18N.registerDocs("en", `
         <figcaption>“My overview” with the default selection. On the left, the sidebar with navigation, settings and location.</figcaption>
       </figure>
       <div class="docs-grid">
-        <div class="docs-tile"><strong>1. Choose a page</strong><span>Use the sidebar on the left to switch between Overview, Weather, Civil protection, Fire brigade and Water levels.</span></div>
+        <div class="docs-tile"><strong>1. Choose a page</strong><span>Use the sidebar on the left to switch between Overview, Weather, Water levels, Fire brigade and Organisation.</span></div>
         <div class="docs-tile"><strong>2. Build your overview</strong><span>On “My overview”, use “+ Widget” to show exactly the tiles you need.</span></div>
         <div class="docs-tile"><strong>3. Arrange</strong><span>Use “✥ Arrange” to move widgets and change their size. Finish with “✓ Done”.</span></div>
       </div>
@@ -28,11 +28,13 @@ I18N.registerDocs("en", `
       <h2>Sidebar &amp; controls</h2>
       <dl class="docs-dl">
         <dt>Navigation</dt><dd>The entries at the top switch the page. The active entry is highlighted in orange.</dd>
+        <dt>Warning banner</dt><dd>In the header, between the page title and the buttons, a notice scrolls from right to left. “ACHTUNG” is always shown on the left and right (yellow and black, readable with red-green colour vision deficiency). You set the text under Organisation in the “Warning banner” widget. Without text the banner stays hidden.</dd>
+        <dt>Against boredom</dt><dd>Shows game tiles. Klondike solitaire is embedded from solitaire-online.com, tic-tac-toe from Jotform. “← Games” returns to the selection.</dd>
         <dt>Documentation</dt><dd>Opens this guide in a separate window.</dd>
         <dt>Version</dt><dd>Shows the current version number and opens the changelog.</dd>
         <dt>Mode: Light / Dark</dt><dd>Switches the colour scheme. If you haven't chosen one, the dashboard follows your system setting.</dd>
         <dt>Language</dt><dd>The drop-down next to the colour mode switches the dashboard and the documentation to another language (currently German and English). The page reloads briefly and all settings are kept. If you haven't chosen one, the browser language is used.</dd>
-        <dt>Refresh</dt><dd>Reloads weather, radar, warnings, fire brigade and water level data immediately.</dd>
+        <dt>Refresh</dt><dd>Reloads weather, radar, warnings, fire brigade and water level data. The tiles briefly show a loading state, then the button shows “updated”, then turns back into the button.</dd>
         <dt>Auto refresh</dt><dd>When set to “ON”, all data is reloaded every 5 minutes. One click switches the feature off or back on.</dd>
         <dt>Location &amp; date</dt><dd>Shows the currently selected weather location as well as the date and time. Below it you can see when the data was last updated.</dd>
       </dl>
@@ -46,15 +48,15 @@ I18N.registerDocs("en", `
       <h2>Overview</h2>
       <p>You can put “My overview” together however you like. On first launch it contains current weather (place, forecast and hourly trend), fire incidents per day and the water levels (trend and Berlin list in one widget).</p>
       <ul>
-        <li><strong>Add a widget:</strong> “+ Widget” opens the catalogue. Clicking an entry shows the widget.</li>
+        <li><strong>Add a widget:</strong> “+ Widget” opens the catalogue. Clicking an entry adds the widget — even if it is already there, so you can compare (e.g. two weather places or two gauges). A number on the entry shows how often it is on the page.</li>
         <li><strong>Remove a widget:</strong> In arrange mode, a “×” appears in the top right corner of the widget.</li>
         <li><strong>Collapse:</strong> The arrow on the widget collapses it to its title bar. The other widgets use the freed-up space.</li>
         <li><strong>Reset:</strong> “↺ Reset” restores the default selection and arrangement after asking for confirmation.</li>
       </ul>
-      <p>Widgets that show data from another page (e.g. Weather metrics) are live copies and update automatically along with it.</p>
+      <p>Widgets that show data from another page (e.g. Temperature or fire-brigade metrics) are live copies and update automatically along with it. Extra tiles of “Current weather” and “Water level trend” load their own data so you can compare places and gauges side by side.</p>
       <figure class="docs-shot">
         <img src="img/docs/widget-katalog.webp" width="1440" height="900" loading="lazy" alt="Add widget dialog with widgets sorted by group">
-        <figcaption>The “Add widget” catalogue. Widgets that are already shown have a tick, all others a “+”.</figcaption>
+        <figcaption>The “Add widget” catalogue. Each click adds another tile; the number shows how often the widget is already on the page.</figcaption>
       </figure>
     </section>
 
@@ -97,11 +99,11 @@ I18N.registerDocs("en", `
         <img src="img/docs/radar.webp" width="1440" height="900" loading="lazy" alt="Rain radar with a map of Berlin and Brandenburg and areas of precipitation">
         <figcaption>Rain radar with location search, quick picks, source selection, legend and a timeline for playback.</figcaption>
       </figure>
-      <h3>Civil protection</h3>
-      <p>Official federal warnings (MoWaS, KATWARN, BIWAPP, DWD, flood centres), filterable by location and sorted by severity. There are also the most important emergency numbers and a to-do list (emergency-preparedness suggestions; entries are customisable).</p>
+      <h3>Water levels</h3>
+      <p>Current water levels of the federal waterways; the default is Berlin-Köpenick. You can find other gauges using the search (e.g. “Dresden”) or in the list of gauges in Berlin. The trend shows the last 7 days with the reference values MNW (mean low water), MW (mean water) and MHW (mean high water).</p>
       <figure class="docs-shot">
-        <img src="img/docs/katastrophenschutz.webp" width="1440" height="900" loading="lazy" alt="Civil protection page with list of warnings, emergency numbers and to-do list">
-        <figcaption>Civil protection: warnings are labelled by status (New, Update, Cancelled) and can be filtered by location.</figcaption>
+        <img src="img/docs/wasserpegel.webp" width="1440" height="900" loading="lazy" alt="Water levels page with metrics, water level trend and list of gauges in Berlin">
+        <figcaption>Water levels: clicking a gauge in the list on the right shows its trend.</figcaption>
       </figure>
       <h3>Fire brigade</h3>
       <p>Fire incidents of the Berlin Fire Brigade over the last 7 days: metrics compared with the previous week, incidents per day (the peak day is orange), share of all incidents and a daily overview with fires, technical assistance and arrival time. Use “Export CSV” to download the table as a file.</p>
@@ -109,23 +111,26 @@ I18N.registerDocs("en", `
         <img src="img/docs/feuerwehr.webp" width="1440" height="900" loading="lazy" alt="Fire brigade page with metrics, bar chart, share and daily table">
         <figcaption>Fire brigade page with metrics, charts and daily overview.</figcaption>
       </figure>
-      <h3>Water levels</h3>
-      <p>Current water levels of the federal waterways; the default is Berlin-Köpenick. You can find other gauges using the search (e.g. “Dresden”) or in the list of gauges in Berlin. The trend shows the last 7 days with the reference values MNW (mean low water), MW (mean water) and MHW (mean high water).</p>
+      <h3>Organisation</h3>
+      <p>Official federal warnings (MoWaS, KATWARN, BIWAPP, DWD, flood centres), filterable by location and sorted by severity. There are also the most important emergency numbers, a to-do list (emergency-preparedness suggestions; entries are customisable) and the warning banner in the page header.</p>
       <figure class="docs-shot">
-        <img src="img/docs/wasserpegel.webp" width="1440" height="900" loading="lazy" alt="Water levels page with metrics, water level trend and list of gauges in Berlin">
-        <figcaption>Water levels: clicking a gauge in the list on the right shows its trend.</figcaption>
+        <img src="img/docs/katastrophenschutz.webp" width="1440" height="900" loading="lazy" alt="Organisation page with list of warnings, emergency numbers and to-do list">
+        <figcaption>Organisation: warnings are labelled by status (New, Update, Cancelled) and can be filtered by location.</figcaption>
       </figure>
     </section>
 
     <section class="docs-card" id="widgets">
       <h2>Widget catalogue</h2>
-      <p>You can show these widgets on the overview and on every subpage via “+ Widget”.</p>
+      <p>You can show these widgets on the overview and on every subpage via “+ Widget”. The same type may appear more than once; weather and water-level tiles then each have their own search.</p>
       <div class="docs-table-wrap">
         <table class="docs-table">
           <thead><tr><th>Group</th><th>Widget</th><th>Content</th></tr></thead>
           <tbody>
-            <tr><td rowspan="6">Weather</td><td>Current weather</td><td>Place, search, forecast and hourly trend</td></tr>
-            <tr><td>Weather metrics</td><td>Temperature, wind, humidity and rain compared with yesterday</td></tr>
+            <tr><td rowspan="9">Weather</td><td>Current weather</td><td>Place, search, forecast and hourly trend</td></tr>
+            <tr><td>Temperature</td><td>Current temperature compared with yesterday</td></tr>
+            <tr><td>Wind</td><td>Wind speed compared with yesterday</td></tr>
+            <tr><td>Humidity</td><td>Relative humidity compared with yesterday</td></tr>
+            <tr><td>Chance of rain today</td><td>Chance of rain for today compared with yesterday</td></tr>
             <tr><td>Forecast · High temperature</td><td>Highs for the coming days as bars</td></tr>
             <tr><td>Chance of rain</td><td>Chance of rain for today</td></tr>
             <tr><td>Temperature trend</td><td>Hourly trend with a “now” marker</td></tr>
@@ -136,16 +141,22 @@ I18N.registerDocs("en", `
             <tr><td>Tasks</td><td>To-do list to tick off</td></tr>
             <tr><td>Countdown</td><td>Days until a date of your choice</td></tr>
             <tr><td>World clock</td><td>Time in several cities</td></tr>
-            <tr><td rowspan="3">Safety</td><td>Warnings</td><td>Official warnings (BBK/NINA), filterable by location</td></tr>
+            <tr><td rowspan="4">Safety</td><td>Warnings</td><td>Official warnings (BBK/NINA), filterable by location</td></tr>
+            <tr><td>Warning banner</td><td>Scrolling notice in the header, with “ACHTUNG” on the left and right</td></tr>
             <tr><td>To-do list</td><td>Customisable list, entries stacked, suggestions based on the BBK</td></tr>
             <tr><td>Emergency numbers</td><td>112, 110 and other important numbers</td></tr>
-            <tr><td rowspan="5">Fire brigade</td><td>Fires the previous day</td><td>Number of fire incidents on the latest reported day</td></tr>
-            <tr><td>Fire brigade metrics</td><td>Fire incidents of the last 7 days compared with the previous week</td></tr>
+            <tr><td rowspan="8">Fire brigade</td><td>Fires the previous day</td><td>Number of fire incidents on the latest reported day</td></tr>
+            <tr><td>Fire incidents (7 days)</td><td>Total of the last 7 days compared with the previous week</td></tr>
+            <tr><td>Ø per day</td><td>Average number of fire incidents per day</td></tr>
+            <tr><td>Peak day</td><td>Day with the most fire incidents</td></tr>
+            <tr><td>Arrival time of 1st fire engine</td><td>Average arrival time of the first fire engine</td></tr>
             <tr><td>Fire incidents per day</td><td>Bar chart of the last 7 days</td></tr>
             <tr><td>Share of fire incidents</td><td>Share of all incidents of the week</td></tr>
             <tr><td>Fire brigade daily overview</td><td>Table with fires, technical assistance and arrival time</td></tr>
-            <tr><td rowspan="4">Water levels</td><td>Water level</td><td>Current gauge reading, default Berlin-Köpenick</td></tr>
-            <tr><td>Water level metrics</td><td>Current water level, classification and 7-day range</td></tr>
+            <tr><td rowspan="6">Water levels</td><td>Water level</td><td>Current gauge reading, default Berlin-Köpenick</td></tr>
+            <tr><td>Classification</td><td>Classification against mean water</td></tr>
+            <tr><td>Range 7 days</td><td>Lowest and highest water level of the last 7 days</td></tr>
+            <tr><td>Latest measurement</td><td>Time of the latest gauge reading</td></tr>
             <tr><td>Water level trend</td><td>7-day trend and current Berlin gauges</td></tr>
             <tr><td>Gauges in Berlin</td><td>Current water levels of Berlin gauges</td></tr>
           </tbody>
@@ -287,8 +298,10 @@ npm run test:headed  # the same tests, browser visible</code></pre>
       <ul>
         <li>Language menu next to the colour mode, entries Deutsch and English.</li>
         <li>Start in German, switch to English including reload: title, navigation, overview.</li>
-        <li>All five pages (Overview, Weather including rain radar, Civil protection, Fire brigade, Water levels).</li>
+        <li>All five pages (Overview, Weather including rain radar, Water levels, Fire brigade, Organisation).</li>
         <li>Open and close the widget catalogue in German and English.</li>
+        <li>Against boredom: game tiles, Klondike and tic-tac-toe.</li>
+        <li>Add the same widget more than once (weather and gauges with their own search).</li>
         <li>Colour mode light → dark.</li>
         <li>Smartphone (390×844): navigation hidden, the menu opens the sidebar.</li>
         <li>Documentation: German texts, language switch, Internationalisation section, “Back to dashboard”.</li>
@@ -377,13 +390,12 @@ npm run test:headed  # the same tests, browser visible</code></pre>
     <section class="docs-card" id="layout">
       <h2>Layout system</h2>
       <h3>Containers and elements</h3>
-      <p>Every page consists of <em>containers</em> (the page itself and all classes from <code>LAYOUT_GROUP_CLASSES</code>, e.g. rows such as <code>.stat-row</code>, <code>.detail-row</code> and columns such as <code>.weather-side</code>) and <em>elements</em> (panels, metric cards, groups). Elements are identified by their <code>id</code> or an automatically assigned <code>data-layout-id</code>.</p>
+      <p>Every page has one shared widget area: the <code>.overview-grid</code>. Native tiles and extra widgets live there. Arrange mode moves and resizes only inside that grid.</p>
       <ul>
-        <li><strong>Order:</strong> <code>saveLayoutOrder</code> and <code>applySavedLayoutOrder</code> save and load the order of the elements per container.</li>
-        <li><strong>Free movement:</strong> <code>startRoamDrag</code> determines the target with <code>document.elementsFromPoint</code>. Whether the element lands before or after it depends on whether the pointer is before or after the centre of the target. A <code>.stat-row</code> only accepts metric cards, the widget grid (<code>.overview-grid</code>) only added widgets. All other containers accept any element. The target container is saved in <code>dashboard-widget-places</code> unless it is the original container.</li>
-        <li><strong>Empty containers</strong> get the class <code>.layout-empty</code> and appear as “Drag here” in arrange mode. Metric rows set <code>--stat-cols</code> to the number of their cards.</li>
-        <li><strong>Size:</strong> The default is a fixed tile height (about 280 px) and a width based on content. Empty grid cells become placeholders. In arrange mode the bottom-right handle stores pixel sizes (<code>data-layout-h</code>, <code>data-layout-w</code>, minimum 260 × 170 px). In the widget grid, <code>data-col-frac</code> controls column width. Older <code>grow</code> and <code>weight</code> entries are still read, but no longer stretch the page on their own.</li>
-        <li><strong>Reset:</strong> Every container remembers its default order (<code>_defaultOrder</code>). <code>resetPageLayout</code> restores this order and deletes the saved places and sizes.</li>
+        <li><strong>Order:</strong> <code>saveLayoutOrder</code> and <code>applySavedLayoutOrder</code> save and load the tile order in the grid.</li>
+        <li><strong>Free movement:</strong> <code>startRoamDrag</code> finds the drop target in the grid with <code>document.elementsFromPoint</code>. Whether the element lands before or after it depends on whether the pointer is before or after the centre of the target.</li>
+        <li><strong>Size:</strong> The default width follows the content. In arrange mode the bottom-right handle stores pixel sizes (<code>data-layout-h</code>, <code>data-layout-w</code>, minimum 260 × 170 px).</li>
+        <li><strong>Reset:</strong> The grid remembers its default order (<code>_defaultOrder</code>). <code>resetPageLayout</code> restores it, clears saved sizes, and on the overview remounts the default widgets (current weather, fire chart, water chart) instead of emptying the board.</li>
       </ul>
       <h3>Scaling with container queries</h3>
       <p>Widget contents scale via CSS container queries instead of the window size: <code>.ov-body</code> (<code>ovbody</code>), metric cards (<code>statcard</code>) and charts (<code>chartcard</code>). Font sizes use <code>cqh</code>/<code>cqw</code> with <code>clamp()</code>. In very small widgets, secondary elements such as icons, labels or date lines are hidden.</p>
@@ -407,6 +419,7 @@ npm run test:headed  # the same tests, browser visible</code></pre>
             <tr><td><code>dashboard-widget-places</code></td><td>Elements moved to other containers: <code>{ elementId: "page:container" }</code></td></tr>
             <tr><td><code>dashboard-collapsed</code></td><td>IDs of collapsed widgets</td></tr>
             <tr><td><code>dashboard-cal-events</code></td><td>Calendar events</td></tr>
+            <tr><td><code>dashboard-banner-text</code></td><td>Scrolling text of the warning banner</td></tr>
             <tr><td><code>dashboard-widget-notes</code>, <code>-todo</code>, <code>-countdown</code>, <code>-checklist</code></td><td>Contents of the respective widgets</td></tr>
             <tr><td><code>dashboard-water-station</code></td><td>Selected gauge (UUID). The default is Berlin-Köpenick</td></tr>
           </tbody>
@@ -443,9 +456,8 @@ function mountMyWidget(body) {
       <h3>New page</h3>
       <ol>
         <li>In <code>index.html</code>, create a <code>&lt;div id="myPage" class="page"&gt;</code> with the <code>.overview-bar</code> (title and the three buttons).</li>
-        <li>At the end of the page, insert the widget grid <code>&lt;div class="overview-grid" id="myPageWidgets" hidden&gt;&lt;/div&gt;</code>. The ID must be <code>&lt;page-id&gt;Widgets</code> for “+ Widget” to work.</li>
+        <li>Put the widget grid <code>&lt;div class="overview-grid" id="myPageWidgets"&gt;</code> directly under the bar and place the default tiles inside it. The ID must be <code>&lt;page-id&gt;Widgets</code> for “+ Widget” to work.</li>
         <li>Add an entry with <code>target: "myPage"</code> and an SVG icon to <code>NAV_CATEGORIES</code>. Enter the page name as <code>nav.&lt;id&gt;</code> in every language file and mark up the visible texts of the page with <code>data-i18n</code>.</li>
-        <li>Add your own rows or columns that should be arrangeable to <code>LAYOUT_GROUP_CLASSES</code>. The layout system (arranging, resetting) then picks up the page automatically on startup.</li>
       </ol>
     </section>
 

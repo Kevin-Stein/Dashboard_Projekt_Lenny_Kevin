@@ -187,15 +187,14 @@ const NAV_CATEGORIES = {
     </svg><span>${t("nav.weather")}</span>`,
     target: "weatherPage",
   },
-  disaster: {
-    id: "disaster",
-    label: t("nav.disaster"),
+  water: {
+    id: "water",
+    label: t("nav.water"),
     alwaysShow: true,
-    html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-      <path d="M12 3.5l7.5 3v5.2c0 4.6-3.1 8.2-7.5 9.8-4.4-1.6-7.5-5.2-7.5-9.8V6.5l7.5-3z" />
-      <path d="M12 8v5" /><circle cx="12" cy="15.8" r="0.6" fill="currentColor" stroke="none" />
-    </svg><span>${t("nav.disaster")}</span>`,
-    target: "disasterPage",
+    html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+      <path d="M3 9c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0M3 15c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0" />
+    </svg><span>${t("nav.water")}</span>`,
+    target: "waterPage",
   },
   fire: {
     id: "fire",
@@ -206,16 +205,32 @@ const NAV_CATEGORIES = {
     </svg><span>${t("nav.fire")}</span>`,
     target: "firePage",
   },
-  water: {
-    id: "water",
-    label: t("nav.water"),
+  disaster: {
+    id: "disaster",
+    label: t("nav.disaster"),
     alwaysShow: true,
-    html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-      <path d="M3 9c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0M3 15c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0" />
-    </svg><span>${t("nav.water")}</span>`,
-    target: "waterPage",
+    html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+      <path d="M12 3.5l7.5 3v5.2c0 4.6-3.1 8.2-7.5 9.8-4.4-1.6-7.5-5.2-7.5-9.8V6.5l7.5-3z" />
+      <path d="M12 8v5" /><circle cx="12" cy="15.8" r="0.6" fill="currentColor" stroke="none" />
+    </svg><span>${t("nav.disaster")}</span>`,
+    target: "disasterPage",
   },
 };
+
+function showDashboardPage(pageId, activeBtn) {
+  document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
+  const target = document.getElementById(pageId);
+  if (target) target.classList.add("active");
+  if (target && target.querySelector("#map")) {
+    setTimeout(() => map.invalidateSize(), 50);
+  }
+  document.querySelectorAll(".nav-item").forEach((b) => b.classList.remove("active"));
+  if (activeBtn) activeBtn.classList.add("active");
+  document.dispatchEvent(new Event("dashboard-page-change"));
+  placeWarnBanner();
+  updateResizeHandles();
+  requestAnimationFrame(() => fitAllWidgetGrids());
+}
 
 function updateNavigation() {
   const navContainer = document.getElementById("sidebarNav");
@@ -237,22 +252,7 @@ function updateNavigation() {
     }
 
     btn.addEventListener("click", () => {
-      // Seite wechseln
-      document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
-      const target = document.getElementById(category.target);
-      if (target) target.classList.add("active");
-
-      // Leaflet kann die Kartengröße auf einer versteckten Seite nicht messen
-      if (target && target.querySelector("#map")) {
-        setTimeout(() => map.invalidateSize(), 50);
-      }
-
-      // Navigation aktualisieren
-      document.querySelectorAll(".nav-item").forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      document.dispatchEvent(new Event("dashboard-page-change"));
-      updateResizeHandles();
-      requestAnimationFrame(() => fitAllWidgetGrids());
+      showDashboardPage(category.target, btn);
     });
 
     navContainer.appendChild(btn);
@@ -306,6 +306,7 @@ function setupToggle(panelEl, btnEl) {
 // Alle übrigen Widgets bekommen einen eigenen Einklapp-Pfeil
 function addMissingToggles() {
   document.querySelectorAll(".page .panel, .page .stat-card").forEach((el) => {
+    if (el.classList.contains("boredom-game") || el.classList.contains("boredom-pick")) return;
     if (el.querySelector(".panel-toggle")) return;
     const title = el.querySelector(".panel-title, .stat-label");
     const btn = document.createElement("button");
@@ -338,6 +339,41 @@ menuToggleBtn.addEventListener("click", () => {
 document.getElementById("sidebarNav").addEventListener("click", (e) => {
   if (e.target.closest(".nav-item")) setMenuOpen(false);
 });
+
+document.getElementById("boredomLink").addEventListener("click", () => {
+  setMenuOpen(false);
+  showDashboardPage("boredomPage", document.getElementById("boredomLink"));
+});
+
+const boredomPicker = document.getElementById("boredomPicker");
+const boredomBack = document.getElementById("boredomBack");
+const JOTFORM_TICTACTOE_SRC =
+  "https://www.jotform.com/website-widgets/embed/01a1079cec1870008d80ca784681b127ad71";
+
+function loadTictactoeWidget() {
+  if (document.getElementById("boredomTictactoeScript")) return;
+  const script = document.createElement("script");
+  script.id = "boredomTictactoeScript";
+  script.src = JOTFORM_TICTACTOE_SRC;
+  script.defer = true;
+  document.body.appendChild(script);
+}
+
+function showBoredomGame(id) {
+  const open = Boolean(id);
+  boredomPicker.hidden = open;
+  boredomBack.hidden = !open;
+  document.querySelectorAll("#boredomPage .boredom-game").forEach((el) => {
+    el.hidden = el.id !== id;
+  });
+  if (id === "boredomTictactoe") loadTictactoeWidget();
+}
+
+boredomPicker.addEventListener("click", (e) => {
+  const pick = e.target.closest("[data-game]");
+  if (pick) showBoredomGame(pick.dataset.game);
+});
+boredomBack.addEventListener("click", () => showBoredomGame(null));
 
 // Dokumentation als eigenes Fenster; bei blockiertem Popup öffnet der Link normal im neuen Tab
 document.getElementById("docsLink").addEventListener("click", (e) => {
@@ -497,12 +533,52 @@ function setLastUpdatedNow() {
 
 const refreshBtn = document.getElementById("refreshBtn");
 const refreshIcon = document.getElementById("refreshIcon");
+const refreshBtnFace = document.getElementById("refreshBtnFace");
+const refreshDone = document.getElementById("refreshDone");
+const REFRESH_LOADING_MS = 200;
+const REFRESH_DONE_MS = 300;
+
+function waitMs(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function setTilesRefreshing(on) {
+  document.querySelectorAll(".panel").forEach((el) => {
+    el.classList.toggle("is-refreshing", Boolean(on && el.closest(".page.active")));
+  });
+}
+
+function setRefreshUi(mode) {
+  refreshBtn.classList.toggle("is-loading", mode === "loading");
+  refreshBtn.classList.toggle("is-done", mode === "done");
+  if (refreshBtnFace) refreshBtnFace.hidden = mode === "done";
+  if (refreshDone) refreshDone.hidden = mode !== "done";
+  refreshBtn.disabled = mode !== "idle";
+  refreshBtn.setAttribute("aria-busy", String(mode !== "idle"));
+  if (mode === "loading") {
+    refreshBtn.setAttribute("aria-label", t("refresh.aria"));
+    refreshIcon.classList.add("spinning");
+    setTilesRefreshing(true);
+  } else {
+    refreshIcon.classList.remove("spinning");
+    setTilesRefreshing(false);
+    refreshBtn.setAttribute("aria-label", mode === "done" ? t("refresh.done") : t("refresh.aria"));
+  }
+}
+
+async function playManualRefreshUi() {
+  setRefreshUi("loading");
+  await waitMs(REFRESH_LOADING_MS);
+  setRefreshUi("done");
+  await waitMs(REFRESH_DONE_MS);
+}
 
 const refreshErrorsEl = document.getElementById("refreshErrors");
 let refreshInFlight = null;
+let refreshUiInFlight = null;
 
 // Jede Quelle liefert true/false; eine fehlerhafte Quelle hält die anderen nicht auf
-async function runRefresh(manual) {
+async function runRefreshFetch(manual) {
   const sources = [
     [t("source.weather"), () => loadWeatherForPlace(currentWeatherCoords.lat, currentWeatherCoords.lon, currentWeatherCoords.label)],
     [t("source.radar"), () => loadRadar()],
@@ -510,31 +586,43 @@ async function runRefresh(manual) {
     [t("source.fire"), () => loadFireData()],
     [t("source.water"), () => loadWaterData()],
   ];
-  refreshBtn.disabled = true;
-  refreshIcon.classList.add("spinning");
-  try {
-    const results = await Promise.allSettled(sources.map(([, load]) => load()));
-    const failed = sources
-      .filter((_, i) => results[i].status === "rejected" || results[i].value === false)
-      .map(([name]) => name);
-    results.forEach((r, i) => r.status === "rejected" && reportError(sources[i][0], r.reason));
-    document.dispatchEvent(new Event("dashboard-refresh"));
+  const results = await Promise.allSettled(sources.map(([, load]) => load()));
+  const failed = sources
+    .filter((_, i) => results[i].status === "rejected" || results[i].value === false)
+    .map(([name]) => name);
+  results.forEach((r, i) => r.status === "rejected" && reportError(sources[i][0], r.reason));
+  document.dispatchEvent(new Event("dashboard-refresh"));
 
-    refreshErrorsEl.hidden = !failed.length;
-    refreshErrorsEl.textContent = failed.length ? t("refresh.failedList", { list: failed.join(", ") }) : "";
-    if (failed.length && manual) {
-      const hint = navigator.onLine === false ? t("err.offline") : t("refresh.staleHint");
-      showToast(t("refresh.failedToast", { list: failed.join(", "), hint }), "error");
-    }
-  } finally {
-    refreshIcon.classList.remove("spinning");
-    refreshBtn.disabled = false;
+  refreshErrorsEl.hidden = !failed.length;
+  refreshErrorsEl.textContent = failed.length ? t("refresh.failedList", { list: failed.join(", ") }) : "";
+  if (failed.length && manual) {
+    const hint = navigator.onLine === false ? t("err.offline") : t("refresh.staleHint");
+    showToast(t("refresh.failedToast", { list: failed.join(", "), hint }), "error");
   }
 }
 
 function refreshDashboardData({ manual = false } = {}) {
-  if (!refreshInFlight) refreshInFlight = runRefresh(manual).finally(() => (refreshInFlight = null));
-  return refreshInFlight;
+  if (manual && !refreshUiInFlight) {
+    refreshUiInFlight = playManualRefreshUi().finally(() => {
+      setRefreshUi("idle");
+      refreshUiInFlight = null;
+    });
+  }
+  if (!refreshInFlight) {
+    if (!manual && !refreshUiInFlight) {
+      refreshBtn.disabled = true;
+      refreshIcon.classList.add("spinning");
+    }
+    refreshInFlight = runRefreshFetch(manual).finally(() => {
+      refreshInFlight = null;
+      refreshIcon.classList.remove("spinning");
+      if (!refreshUiInFlight) {
+        refreshBtn.disabled = false;
+        setRefreshUi("idle");
+      }
+    });
+  }
+  return Promise.all([refreshInFlight, refreshUiInFlight].filter(Boolean));
 }
 
 refreshBtn.addEventListener("click", () => {
@@ -1177,21 +1265,92 @@ function initDisasterPage() {
   }
   loadDisasterWarnings("");
 }
+
+const BANNER_STORAGE_KEY = "dashboard-banner-text";
+
+function loadBannerText() {
+  try {
+    return localStorage.getItem(BANNER_STORAGE_KEY) || "";
+  } catch (err) {
+    return "";
+  }
+}
+
+function placeWarnBanner() {
+  const banner = document.getElementById("warnBanner");
+  const page = document.querySelector(".page.active");
+  const host = page && page.querySelector(":scope > .overview-bar .overview-banner-host");
+  if (!banner || !host) return;
+  if (banner.parentElement !== host) host.appendChild(banner);
+}
+
+function renderWarnBanner(text) {
+  const banner = document.getElementById("warnBanner");
+  const run = document.getElementById("warnBannerRun");
+  if (!banner || !run) return;
+  placeWarnBanner();
+  const trimmed = String(text || "").replace(/\s+/g, " ").trim();
+  banner.hidden = !trimmed;
+  document.body.classList.toggle("has-warn-banner", Boolean(trimmed));
+  banner.setAttribute("aria-label", trimmed ? `${t("banner.tag")}: ${trimmed}` : t("banner.aria"));
+  run.replaceChildren();
+  if (!trimmed) return;
+  const viewport = banner.querySelector(".warn-banner-viewport");
+  const lead = Math.max(80, viewport ? viewport.clientWidth : 0);
+  const copies = 2;
+  for (let i = 0; i < copies; i++) {
+    const gap = document.createElement("span");
+    gap.className = "warn-banner-gap";
+    gap.style.flex = `0 0 ${lead}px`;
+    run.appendChild(gap);
+    const span = document.createElement("span");
+    span.className = "warn-banner-copy";
+    span.textContent = trimmed;
+    run.appendChild(span);
+  }
+  requestAnimationFrame(() => {
+    const half = run.scrollWidth / 2;
+    const duration = Math.max(14, half / 70);
+    run.style.animationDuration = `${duration}s`;
+  });
+}
+
+function initWarnBanner() {
+  const input = document.getElementById("bannerConfigInput");
+  const text = loadBannerText();
+  if (input) input.value = text;
+  renderWarnBanner(text);
+  let saveTimer;
+  document.addEventListener("input", (e) => {
+    const el = e.target;
+    if (!(el instanceof HTMLTextAreaElement) || !el.id || !el.id.startsWith("bannerConfigInput")) return;
+    const value = el.value;
+    renderWarnBanner(value);
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      const saved = el.parentElement?.querySelector("#bannerConfigSaved, [id^='bannerConfigSaved']");
+      if (!storageSet(BANNER_STORAGE_KEY, value)) {
+        if (saved) saved.textContent = t("storage.notSaved");
+        return;
+      }
+      const src = document.getElementById("bannerConfigInput");
+      if (src && src !== el && document.activeElement !== src) src.value = value;
+      if (saved) {
+        saved.textContent = t("storage.saved");
+        setTimeout(() => {
+          if (saved.textContent === t("storage.saved")) saved.textContent = "";
+        }, 1500);
+      }
+    }, 400);
+  });
+}
 initDisasterPage();
+initWarnBanner();
+document.addEventListener("dashboard-page-change", placeWarnBanner);
 
 // ---- Layout anpassen: Widgets per Drag & Drop umsortieren ----
-const LAYOUT_GROUP_CLASSES = [
-  "stat-row",
-  "charts-row",
-  "lower-row",
-  "detail-row",
-  "disaster-row",
-  "disaster-side",
-  "weather-side",
-  "weather-stack",
-  "overview-grid",
-];
-const LAYOUT_CONTAINER_SELECTOR = [".page", ...LAYOUT_GROUP_CLASSES.map((c) => "." + c)].join(", ");
+const LAYOUT_GROUP_CLASSES = ["overview-grid"];
+const LAYOUT_CONTAINER_SELECTOR = ".overview-grid";
 const LAYOUT_STORAGE_PREFIX = "dashboard-layout-";
 const LAYOUT_HANDLE_SVG =
   '<svg viewBox="0 0 18 10" fill="currentColor"><circle cx="3" cy="3" r="1.4"/><circle cx="9" cy="3" r="1.4"/><circle cx="15" cy="3" r="1.4"/><circle cx="3" cy="7" r="1.4"/><circle cx="9" cy="7" r="1.4"/><circle cx="15" cy="7" r="1.4"/></svg>';
@@ -1240,32 +1399,13 @@ function isLayoutGroup(el) {
   return LAYOUT_GROUP_CLASSES.some((c) => el.classList.contains(c));
 }
 function canRoam(item) {
-  const page = item.closest(".page");
-  return Boolean(page) && page.id !== "overviewPage" && !isLayoutGroup(item);
+  return Boolean(item.closest(".page")) && !isLayoutGroup(item);
 }
-// Kennzahlen-Karten dürfen zurück in eine Kennzahlen-Reihe, das Widget-Raster nimmt nur Widgets auf
-function roamContainers(page, item) {
-  const isStat = item.classList.contains("stat-card");
-  const isWidget = item.classList.contains("ov-widget");
-  return [page, ...page.querySelectorAll(LAYOUT_CONTAINER_SELECTOR)].filter(
-    (c) =>
-      !c.hidden &&
-      (!c.classList.contains("stat-row") || isStat) &&
-      (!c.classList.contains("overview-grid") || isWidget),
-  );
+function roamContainers(page) {
+  return [...page.querySelectorAll(":scope > .overview-grid")].filter((c) => !c.hidden);
 }
 function findLayoutItem(id) {
   return document.getElementById(id) || document.querySelector(`[data-layout-id="${CSS.escape(id)}"]`);
-}
-// Leere Zeilen und Spalten verschwinden, im Anordnen-Modus bleiben sie als Ablagefläche sichtbar
-function updateEmptyGroups() {
-  document.querySelectorAll(LAYOUT_CONTAINER_SELECTOR).forEach((c) => {
-    if (c.classList.contains("page") || c.classList.contains("overview-grid")) return;
-    const count = layoutItems(c, true).length;
-    c.classList.add("layout-drop");
-    c.classList.toggle("layout-empty", count === 0);
-    if (c.classList.contains("stat-row")) c.style.setProperty("--stat-cols", String(Math.max(1, count)));
-  });
 }
 function applySavedPlaces() {
   const containers = [...document.querySelectorAll(LAYOUT_CONTAINER_SELECTOR)];
@@ -1314,7 +1454,7 @@ function roamTargetAt(x, y, item, containers) {
 function startRoamDrag(e, item) {
   const page = item.closest(".page");
   const board = widgetBoards.get(page.id);
-  const containers = roamContainers(page, item);
+  const containers = roamContainers(page);
   const source = item.parentElement;
   let last = null;
   item.classList.add("layout-dragging");
@@ -1352,8 +1492,7 @@ function startRoamDrag(e, item) {
     if (container !== source) saveLayoutOrder(container);
     const home = item.classList.contains("ov-widget") ? board.grid : item._layoutHome;
     saveWidgetPlace(layoutItemId(item), container === home ? null : layoutContainerKey(container));
-    updateEmptyGroups();
-    afterBoardChange(board);
+    if (board) afterBoardChange(board);
     document.dispatchEvent(new Event("widget-collapse"));
     window.dispatchEvent(new Event("resize"));
   }
@@ -1442,6 +1581,13 @@ function applyLayoutWidth(el, px) {
   el.dataset.layoutW = "";
 }
 
+function clearClampStyles(el) {
+  el.classList.remove("tile-in-view");
+  ["width", "min-width", "max-width", "height", "min-height", "max-height", "flex", "flex-basis"].forEach((prop) =>
+    el.style.removeProperty(prop),
+  );
+}
+
 function clearLayoutBox(el) {
   el.style.removeProperty("--layout-grow");
   el.style.removeProperty("--layout-h");
@@ -1453,6 +1599,16 @@ function clearLayoutBox(el) {
   delete el.dataset.rowWeight;
   delete el.dataset.colFrac;
   el.style.gridColumn = "";
+  clearClampStyles(el);
+}
+
+function clearGridPack(grid) {
+  if (!grid) return;
+  grid.style.flexDirection = "";
+  grid.style.height = "";
+  grid.querySelectorAll(":scope > .widget-slot").forEach((slot) => {
+    slot.hidden = false;
+  });
 }
 
 function applySavedSize(el, size) {
@@ -1467,31 +1623,14 @@ function isWidgetGrid(el) {
   return Boolean(el && el.classList.contains("overview-grid"));
 }
 
-// Flex-Eltern, in denen dieses Element in der Breite (row) bzw. Höhe (column) gezogen werden kann
-function flexResizeAxes(item) {
-  const axes = { x: false, y: false };
-  let el = item;
-  while (el && el.parentElement) {
-    const parent = el.parentElement;
-    const cs = getComputedStyle(parent);
-    if (cs.display === "flex") {
-      if (cs.flexDirection === "row") axes.x = true;
-      if (cs.flexDirection === "column") axes.y = true;
-      break;
-    }
-    if (parent.classList.contains("page") || !parent.matches(LAYOUT_CONTAINER_SELECTOR)) break;
-    el = parent;
-  }
-  return axes;
-}
-
 function resizeMode(item) {
   if (item.classList.contains("collapsed")) return null;
-  if (isWidgetGrid(item.parentElement)) return { grid: true, x: true, y: !MOBILE_SCROLL_QUERY.matches };
-  if (MOBILE_SCROLL_QUERY.matches) return null;
-  const axes = flexResizeAxes(item);
-  if (!axes.x && !axes.y) return null;
-  return { grid: false, x: axes.x, y: axes.y };
+  const inGrid = isWidgetGrid(item.parentElement);
+  if (MOBILE_SCROLL_QUERY.matches) {
+    if (!inGrid) return null;
+    return { grid: true, x: true, y: false };
+  }
+  return { grid: false, x: true, y: true };
 }
 
 function updateResizeHandles() {
@@ -1515,28 +1654,87 @@ function tileOutOfView(el, view, slack = 4) {
 
 function clampTileToView(el, view) {
   const r = el.getBoundingClientRect();
-  const maxW = Math.max(LAYOUT_MIN_WIDTH, Math.floor(view.right - r.left - 4));
-  const maxH = Math.max(LAYOUT_MIN_HEIGHT, Math.floor(view.bottom - r.top - 4));
-  const patch = {};
-  if (r.width > maxW + 2) {
-    if (el.dataset.layoutW) {
+  const left = Math.max(r.left, view.left);
+  const top = Math.max(r.top, view.top);
+  const maxW = Math.max(LAYOUT_MIN_WIDTH, Math.floor(view.right - left - 4));
+  const maxH = Math.max(LAYOUT_MIN_HEIGHT, Math.floor(view.bottom - top - 4));
+  if (r.width > maxW + 2 || r.right > view.right + 2) {
+    if (!el.classList.contains("water-combo")) {
+      clearClampStyles(el);
       applyLayoutWidth(el, maxW);
-      patch.width = maxW;
-    } else {
-      el.style.maxWidth = `${maxW}px`;
+      el.classList.add("tile-in-view");
     }
-    el.classList.add("tile-in-view");
   }
-  if (r.height > maxH + 2) {
-    if (el.dataset.layoutH) {
+  if (r.height > maxH + 2 || r.bottom > view.bottom + 2) {
+    if (!el.classList.contains("water-combo")) {
       applyLayoutHeight(el, maxH);
-      patch.height = maxH;
-    } else {
-      el.style.maxHeight = `${maxH}px`;
+      el.classList.add("tile-in-view");
     }
-    el.classList.add("tile-in-view");
   }
-  if (Object.keys(patch).length) saveLayoutSize(layoutItemId(el), patch);
+}
+
+const RADAR_MAP_MIN = 260;
+
+function placeOverflowingTileBeside(page, el, view) {
+  const row = el.parentElement;
+  if (!row || !row.classList.contains("overview-grid")) return;
+  const map = el.querySelector(".map-wrap");
+  const mapBox = map ? map.getBoundingClientRect() : null;
+  const squeezed = mapBox && mapBox.height > 0 && mapBox.height < RADAR_MAP_MIN;
+  const belowFold = el.getBoundingClientRect().bottom > view.bottom + 4;
+  if (!belowFold && !squeezed && !tileOutOfView(el, view)) return;
+  el.style.maxHeight = "";
+  if (map) map.style.maxHeight = "";
+  const items = layoutItems(row).filter((item) => item !== el);
+  const weather = items.find((c) => c.classList.contains("weather") || c.id === "weatherPanel");
+  const inView = items.filter((item) => item.getBoundingClientRect().bottom <= view.bottom + 4);
+  const anchor = (el.classList.contains("radar") && weather) || inView[inView.length - 1] || items[0];
+  if (anchor && anchor.nextElementSibling !== el) anchor.after(el);
+}
+
+function packOverflowingGrid(page) {
+  const grid = page.querySelector(":scope > .overview-grid");
+  if (!grid || MOBILE_SCROLL_QUERY.matches) return;
+  const view = pageViewBox(page);
+  const bar = page.querySelector(":scope > .overview-bar");
+  const top = bar ? bar.getBoundingClientRect().bottom : view.top;
+  const height = Math.max(200, Math.floor(view.bottom - top - 8));
+  const items = layoutItems(grid).filter((el) => el.offsetParent && !el.classList.contains("collapsed"));
+  grid.style.flexDirection = "row";
+  grid.style.flexWrap = "wrap";
+  grid.style.height = "";
+  grid.style.alignContent = "flex-start";
+  grid.style.alignItems = "flex-start";
+  if (!items.length) {
+    clearGridPack(grid);
+    return;
+  }
+  const packed = items.map((el) => ({ el, r: el.getBoundingClientRect() }));
+  const overflow = packed.some((p) => p.r.height > 2 && p.r.bottom > view.bottom + 4);
+  const leftover = packed.some((tall) => {
+    if (tall.r.height < 240) return false;
+    const roomRight = view.right - tall.r.right;
+    const laterFits = packed.some(
+      (other) => other.el !== tall.el && other.r.top >= tall.r.bottom - 12 && other.r.width <= roomRight - 8,
+    );
+    return roomRight > 140 && laterFits;
+  });
+  const squeezeWide = leftover && packed.some((p) => {
+    if (!p.el.classList.contains("water-combo")) return false;
+    const tall = packed.find((t) => t.r.height >= 240 && t.el !== p.el);
+    const room = tall ? view.right - tall.r.right : view.width;
+    return p.r.width > room - 8;
+  });
+  if (!overflow && (!leftover || squeezeWide)) {
+    clearGridPack(grid);
+    return;
+  }
+  grid.querySelectorAll(":scope > .widget-slot").forEach((slot) => {
+    slot.hidden = true;
+  });
+  grid.style.flexDirection = "column";
+  grid.style.flexWrap = "wrap";
+  grid.style.height = `${height}px`;
 }
 
 function keepTilesInView(page) {
@@ -1546,55 +1744,34 @@ function keepTilesInView(page) {
   const view = pageViewBox(page);
   if (view.width < 80 || view.height < 80) return;
 
-  const tiles = [...page.querySelectorAll(".panel, .stat-card, .ov-widget")].filter(
-    (el) => el.offsetParent && !el.closest(".widget-picker-overlay") && !el.classList.contains("collapsed"),
+  packOverflowingGrid(page);
+
+  const grid = page.querySelector(":scope > .overview-grid");
+  const tiles = (grid ? layoutItems(grid) : []).filter(
+    (el) => el.offsetParent && !el.classList.contains("collapsed"),
   );
   tiles.forEach((el) => clampTileToView(el, view));
 
-  const stack = page.querySelector(":scope .weather-stack");
-  if (stack) {
-    const weather = stack.querySelector(":scope > .weather");
-    const radar = stack.querySelector(":scope > .radar");
-    const room = Math.floor(view.bottom - stack.getBoundingClientRect().top - 4);
-    stack.style.flexWrap = "nowrap";
-    stack.style.overflow = "hidden";
-    if (room >= LAYOUT_MIN_HEIGHT) stack.style.maxHeight = `${room}px`;
-    if (weather && radar && room > 320) {
-      const gap = parseFloat(getComputedStyle(stack).rowGap) || 12;
-      const maxWeather = Math.max(220, room - 180 - gap);
-      if (weather.getBoundingClientRect().height > maxWeather + 2) {
-        weather.style.maxHeight = `${maxWeather}px`;
-        weather.classList.add("tile-in-view");
-      }
-    }
-  }
+  tiles
+    .filter((el) => el.classList.contains("radar") || tileOutOfView(el, view))
+    .forEach((el) => placeOverflowingTileBeside(page, el, view));
+  packOverflowingGrid(page);
+  tiles.forEach((el) => {
+    if (el.isConnected) clampTileToView(el, view);
+  });
 
-  [page, ...page.querySelectorAll(LAYOUT_CONTAINER_SELECTOR)].forEach((row) => {
-    if (row.classList.contains("page") || row.classList.contains("stat-row") || row.classList.contains("weather-stack"))
-      return;
+  page.querySelectorAll(LAYOUT_CONTAINER_SELECTOR).forEach((row) => {
+    if (row.classList.contains("stat-row")) return;
     const cs = getComputedStyle(row);
     if (cs.display !== "flex" && cs.display !== "inline-flex") return;
+    if (cs.flexDirection === "column") return;
     const overflowsX = [...row.children].some(
       (ch) => !ch.classList.contains("widget-slot") && ch.getBoundingClientRect().right > view.right + 6,
     );
-    if (overflowsX && cs.flexDirection !== "column") {
+    if (overflowsX) {
       row.style.flexWrap = "wrap";
+      row.style.justifyContent = "flex-start";
       row.style.alignContent = "flex-start";
-    }
-    if (cs.flexDirection === "column") {
-      const r = row.getBoundingClientRect();
-      const overflowsY =
-        r.bottom > view.bottom + 6 ||
-        [...row.children].some((ch) => !ch.classList.contains("widget-slot") && ch.getBoundingClientRect().bottom > view.bottom + 6);
-      if (overflowsY) {
-        const room = Math.floor(view.bottom - r.top - 4);
-        if (room >= LAYOUT_MIN_HEIGHT) {
-          row.style.maxHeight = `${room}px`;
-          row.style.minHeight = "0";
-          row.style.overflow = "hidden";
-          row.style.flexWrap = "nowrap";
-        }
-      }
     }
   });
 
@@ -1605,13 +1782,14 @@ function keepTilesInView(page) {
       .filter((el) => el.isConnected && tileOutOfView(el, box))
       .forEach((el) => {
         const parent = el.parentElement;
-        if (!parent || parent.classList.contains("page") || parent.classList.contains("weather-stack")) return;
-        if (getComputedStyle(parent).flexDirection === "column") return;
-        parent.style.flexWrap = "wrap";
-        parent.style.justifyContent = "flex-start";
-        parent.style.alignContent = "flex-start";
+        if (!parent || !parent.classList.contains("overview-grid")) return;
+        if (getComputedStyle(parent).flexDirection !== "column") {
+          parent.style.flexWrap = "wrap";
+          parent.style.justifyContent = "flex-start";
+          parent.style.alignContent = "flex-start";
+        }
+        if (el.classList.contains("radar")) placeOverflowingTileBeside(page, el, box);
       });
-    fitFlexRowSlots(page);
   });
 }
 
@@ -1667,7 +1845,9 @@ function startLayoutResize(e, item) {
   if (!mode) return;
   e.preventDefault();
   e.stopPropagation();
-  const onMove = mode.grid ? startGridResize(e, item) : startFlexResize(e, item, mode);
+  clearClampStyles(item);
+  const useGrid = mode.grid && getComputedStyle(item.parentElement).display === "grid";
+  const onMove = useGrid ? startGridResize(e, item) : startFlexResize(e, item, { x: true, y: true });
   document.body.classList.add("layout-resize-active");
   item.classList.add("layout-resizing");
   function onUp() {
@@ -1715,8 +1895,8 @@ function refreshLayoutHandles() {
         handle.addEventListener("pointerdown", (e) => startLayoutDrag(e, item));
         item.prepend(handle);
       }
-      // Kennzahlen-Karten liegen in einem festen Raster und behalten ihre Größe
-      if (!existingResize && !container.classList.contains("stat-row")) {
+      // Zeilen und Spalten nicht skalieren — nur die Widgets darin
+      if (!existingResize && !item.classList.contains("layout-group")) {
         const resize = document.createElement("button");
         resize.type = "button";
         resize.className = "layout-resize";
@@ -1737,7 +1917,7 @@ function setLayoutEditing(editing) {
     btn.setAttribute("aria-pressed", String(editing));
     btn.textContent = t(editing ? "layout.done" : "layout.arrange");
   });
-  updateResizeHandles();
+  refreshLayoutHandles();
 }
 
 function initLayout() {
@@ -1753,7 +1933,6 @@ function initLayout() {
   });
   applySavedPlaces();
   containers.forEach(applySavedLayoutOrder);
-  updateEmptyGroups();
   applySavedFlexSizes();
   refreshLayoutHandles();
 
@@ -1764,7 +1943,7 @@ function initLayout() {
 
 // Stellt Reihenfolge, Größen und Einklapp-Zustand einer Seite wie im HTML vorgegeben wieder her
 function resetLayoutOrderAndSizes(page) {
-  const containers = [page, ...page.querySelectorAll(LAYOUT_CONTAINER_SELECTOR)];
+  const containers = [...page.querySelectorAll(":scope > .overview-grid")];
   containers.forEach((container) => {
     (container._defaultOrder || []).forEach((el) => {
       container.appendChild(el);
@@ -1777,6 +1956,7 @@ function resetLayoutOrderAndSizes(page) {
       clearLayoutBox(el);
       saveLayoutSize(layoutItemId(el), null);
     });
+    clearGridPack(container);
   });
   page.querySelectorAll(".collapsed").forEach((el) => {
     const btn = [...el.querySelectorAll(".panel-toggle")].find((b) => b.closest(".panel, .stat-card") === el);
@@ -2498,16 +2678,21 @@ function renderWeatherNoData() {
   document.getElementById("weatherRange").textContent = t("common.noData");
 }
 
+function weatherForecastUrl(lat, lon) {
+  return (
+    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+    `&current=temperature_2m,weather_code,relative_humidity_2m,apparent_temperature,surface_pressure,wind_speed_10m` +
+    `&hourly=temperature_2m,weather_code,precipitation_probability,surface_pressure,relative_humidity_2m,wind_speed_10m` +
+    `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,uv_index_max,sunrise,sunset` +
+    `&timezone=auto&forecast_days=8&past_days=1`
+  );
+}
+
 async function loadWeatherForPlace(lat, lon, label) {
   currentWeatherCoords = { lat, lon, label };
   weatherLoading.textContent = t("weather.loadingFor", { place: label });
   try {
-    const url =
-      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
-      `&current=temperature_2m,weather_code,relative_humidity_2m,apparent_temperature,surface_pressure,wind_speed_10m` +
-      `&hourly=temperature_2m,weather_code,precipitation_probability,surface_pressure,relative_humidity_2m,wind_speed_10m` +
-      `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,uv_index_max,sunrise,sunset` +
-      `&timezone=auto&forecast_days=8&past_days=1`;
+    const url = weatherForecastUrl(lat, lon);
     const data = await fetchData(url, { source: "Wetter" });
     if (!data.current || !(data.daily?.time?.length > 1)) throw dataError("Wetter", "unvollständige Wetterdaten");
     const yesterday = splitOffYesterday(data);
@@ -2884,13 +3069,18 @@ function fireDayLabel(iso) {
   return `${fireWeekday(iso)}, ${fireShortDate(iso)}`;
 }
 
+function setElText(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = text;
+}
+
 function renderFire(days) {
   const week = days.slice(-7);
   const prev = days.length >= 14 ? days.slice(-14, -7) : null;
   const last = week[week.length - 1];
   const prevDay = days.length >= 2 ? days[days.length - 2] : null;
-  document.getElementById("fireYesterday").textContent = last.fire.toLocaleString(LOCALE);
-  document.getElementById("fireYesterdayLabel").textContent = t("fire.stat.yesterday", { date: fireDayLabel(last.date) });
+  setElText("fireYesterday", last.fire.toLocaleString(LOCALE));
+  setElText("fireYesterdayLabel", fireDayLabel(last.date));
   setStatDelta(
     "fireYesterdayDelta",
     formatDelta(last.fire, prevDay?.fire, "", prevDay ? fireDayLabel(prevDay.date) : ""),
@@ -2982,9 +3172,9 @@ function renderFire(days) {
 
 function renderFireNoData() {
   ["fireTotal", "fireAvg", "firePeak", "fireResponse", "fireYesterday"].forEach((id) => {
-    document.getElementById(id).textContent = "–";
+    setElText(id, "–");
   });
-  document.getElementById("fireYesterdayLabel").textContent = t("fire.stat.yesterdayFallback");
+  setElText("fireYesterdayLabel", "");
   ["fireTotalDelta", "fireAvgDelta", "firePeakDelta", "fireResponseDelta", "fireYesterdayDelta"].forEach((id) =>
     setStatDelta(id, { main: t("common.noDataMain"), suffix: t("common.noDataSuffix") }),
   );
@@ -3084,6 +3274,10 @@ async function loadWaterStations() {
       }),
     );
     renderBerlinStations();
+    document.querySelectorAll(".ov-compare.water-combo").forEach((panel) => {
+      fillWaterStationList(panel);
+      paintBerlinStations(panel, panel._compareWaterId, (next) => loadWaterIntoPanel(panel, next));
+    });
     return true;
   } catch (err) {
     reportError("Pegelliste", err);
@@ -3148,7 +3342,7 @@ async function loadWaterStation(id) {
     const values = measurements.map((m) => m.value);
 
     document.getElementById("waterLevel").textContent = current ? `${Math.round(current.value)} cm` : "–";
-    document.getElementById("waterLevelLabel").textContent = t("water.levelAt", { name });
+    document.getElementById("waterLevelLabel").textContent = name;
     const dayAgo = current && measurementNear(measurements, new Date(current.timestamp) - 24 * 3600 * 1000);
     setStatDelta("waterLevelDelta", current && dayAgo ? formatDelta(current.value, dayAgo.value, " cm", t("delta.yesterday")) : null);
 
@@ -3196,7 +3390,7 @@ async function loadWaterStation(id) {
   }
 }
 
-function renderWaterChart(el, measurements, chars) {
+function renderWaterChart(el, measurements, chars, fillId = "waterFill") {
   if (!measurements.length) {
     el.innerHTML = `<div class="chart-empty">${t("water.noMeasurements")}</div>`;
     return;
@@ -3265,12 +3459,12 @@ function renderWaterChart(el, measurements, chars) {
       <div class="wave-area">
         <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
           <defs>
-            <linearGradient id="waterFill" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id="${fillId}" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" style="stop-color:var(--teal);stop-opacity:0.35"/>
               <stop offset="100%" style="stop-color:var(--teal);stop-opacity:0"/>
             </linearGradient>
           </defs>
-          <path d="${area}" fill="url(#waterFill)" stroke="none"/>
+          <path d="${area}" fill="url(#${fillId})" stroke="none"/>
           ${refLines}
           <path d="${line}" fill="none" style="stroke:var(--teal)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
           <line class="chart-hover-guide" x1="0" y1="0" x2="0" y2="${h}"/>
@@ -3359,13 +3553,28 @@ const OVERVIEW_WIDGETS = {
     group: "weather",
     icon: OVERVIEW_ICONS.cloud,
     source: "#weatherPanel",
+    compare: true,
     wide: true,
   },
-  "weather-kpis": {
+  "weather-temp": {
     group: "weather",
     icon: OVERVIEW_ICONS.kpi,
-    mirror: ["#weatherKpiRow"],
-    wide: true,
+    source: "#weatherTempCard",
+  },
+  "weather-wind": {
+    group: "weather",
+    icon: OVERVIEW_ICONS.kpi,
+    source: "#weatherWindCard",
+  },
+  "weather-humidity": {
+    group: "weather",
+    icon: OVERVIEW_ICONS.kpi,
+    source: "#weatherHumidityCard",
+  },
+  "weather-rain": {
+    group: "weather",
+    icon: OVERVIEW_ICONS.kpi,
+    source: "#weatherRainCard",
   },
   "forecast-bars": {
     group: "weather",
@@ -3427,6 +3636,11 @@ const OVERVIEW_WIDGETS = {
     icon: OVERVIEW_ICONS.warning,
     mount: mountWarningsWidget,
   },
+  "banner-config": {
+    group: "safety",
+    icon: OVERVIEW_ICONS.warning,
+    source: "#bannerConfigPanel",
+  },
   checklist: {
     group: "safety",
     icon: OVERVIEW_ICONS.todo,
@@ -3440,14 +3654,27 @@ const OVERVIEW_WIDGETS = {
   "fire-yesterday": {
     group: "fire",
     icon: OVERVIEW_ICONS.fire,
-    mirror: ["#fireYesterdayCard"],
-    compact: "ov-compact-kpi",
+    source: "#fireYesterdayCard",
   },
-  "fire-kpis": {
+  "fire-total": {
     group: "fire",
     icon: OVERVIEW_ICONS.fire,
-    mirror: ["#fireStats"],
-    wide: true,
+    source: "#fireTotalCard",
+  },
+  "fire-avg": {
+    group: "fire",
+    icon: OVERVIEW_ICONS.calendar,
+    source: "#fireAvgCard",
+  },
+  "fire-peak": {
+    group: "fire",
+    icon: OVERVIEW_ICONS.bars,
+    source: "#firePeakCard",
+  },
+  "fire-response": {
+    group: "fire",
+    icon: OVERVIEW_ICONS.clock,
+    source: "#fireResponseCard",
   },
   "fire-chart": {
     group: "fire",
@@ -3469,18 +3696,28 @@ const OVERVIEW_WIDGETS = {
   "water-level": {
     group: "water",
     icon: OVERVIEW_ICONS.wave,
-    mirror: ["#waterLevelCard"],
+    source: "#waterLevelCard",
   },
-  "water-kpis": {
+  "water-state": {
+    group: "water",
+    icon: OVERVIEW_ICONS.bars,
+    source: "#waterStateCard",
+  },
+  "water-range": {
     group: "water",
     icon: OVERVIEW_ICONS.wave,
-    mirror: ["#waterStats"],
-    wide: true,
+    source: "#waterRangeCard",
+  },
+  "water-time": {
+    group: "water",
+    icon: OVERVIEW_ICONS.clock,
+    source: "#waterTimeCard",
   },
   "water-chart": {
     group: "water",
     icon: OVERVIEW_ICONS.wave,
     source: "#waterChartPanel",
+    compare: true,
     wide: true,
   },
   "water-berlin": {
@@ -3575,6 +3812,353 @@ function mountCalendarTodayWidget(body) {
   };
 }
 
+function widgetEl(root, baseId) {
+  if (!root) return document.getElementById(baseId);
+  if (root.id === baseId) return root;
+  try {
+    const exact = root.querySelector("#" + CSS.escape(baseId));
+    if (exact) return exact;
+  } catch (err) {}
+  const prefix = baseId + "--";
+  return [...root.querySelectorAll("[id]")].find((el) => el.id.startsWith(prefix)) || null;
+}
+
+function bindHourStrip(root) {
+  const hours = widgetEl(root, "dayDetailHours");
+  const prev = widgetEl(root, "hourScrollPrev");
+  const next = widgetEl(root, "hourScrollNext");
+  if (!hours || !prev || !next) return () => {};
+  const update = () => {
+    prev.disabled = hours.scrollLeft <= 2;
+    next.disabled = hours.scrollLeft + hours.clientWidth >= hours.scrollWidth - 2;
+  };
+  prev.addEventListener("click", () => hours.scrollBy({ left: -hours.clientWidth * 0.8 }));
+  next.addEventListener("click", () => hours.scrollBy({ left: hours.clientWidth * 0.8 }));
+  hours.addEventListener("scroll", update);
+  const resize = new ResizeObserver(update);
+  resize.observe(hours);
+  update();
+  return () => resize.disconnect();
+}
+
+function paintTimezoneNote(root, data, label) {
+  const tzEl = widgetEl(root, "weatherTzNote");
+  if (!tzEl) return "";
+  const browserOffset = -new Date().getTimezoneOffset() * 60;
+  if (typeof data.utc_offset_seconds !== "number" || data.utc_offset_seconds === browserOffset) {
+    tzEl.hidden = true;
+    return "";
+  }
+  const place = label.split(",")[0];
+  tzEl.textContent = t("weather.tzNote", { place, offset: formatUtcOffset(data.utc_offset_seconds) });
+  tzEl.hidden = false;
+  return t("weather.tzShort", { place });
+}
+
+function paintWeatherDayDetail(root, data, index, tzShort) {
+  const forecastEl = widgetEl(root, "weatherForecast");
+  forecastEl?.querySelectorAll(".day").forEach((el, i) => el.classList.toggle("selected", i === index));
+  const d = data.daily;
+  const dateStr = d.time[index];
+  const dateLabel = new Date(dateStr + "T00:00:00").toLocaleDateString(LOCALE, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+  const titleEl = widgetEl(root, "dayDetailTitle");
+  if (titleEl) titleEl.textContent = dateLabel;
+  const hourly = data.hourly;
+  const hourIdxForDay = hourly.time.map((t, i) => (t.startsWith(dateStr) ? i : -1)).filter((i) => i >= 0);
+  const rainHours = hourIdxForDay.filter((i) => hourly.precipitation_probability[i] >= 30);
+  let rainSummary;
+  if (!rainHours.length) rainSummary = t("weather.noRain");
+  else {
+    const first = formatHour(hourly.time[rainHours[0]]);
+    const last = formatHour(hourly.time[rainHours[rainHours.length - 1]]);
+    const maxPop = Math.max(...rainHours.map((i) => hourly.precipitation_probability[i]));
+    rainSummary =
+      rainHours.length === 1
+        ? t("weather.rainAt", { time: first, pop: maxPop })
+        : t("weather.rainBetween", { from: first, to: last, pop: maxPop });
+  }
+  const rainEl = widgetEl(root, "dayDetailRain");
+  if (rainEl) rainEl.textContent = rainSummary;
+  const hoursEl = widgetEl(root, "dayDetailHours");
+  if (hoursEl) {
+    hoursEl.innerHTML = "";
+    hourIdxForDay
+      .filter((_, pos) => pos % 2 === 0)
+      .forEach((i) => {
+        const info = weatherCodeInfo(hourly.weather_code[i]);
+        const chip = document.createElement("div");
+        chip.className = "hour-chip";
+        chip.innerHTML = `
+      <div class="hour-time">${hourly.time[i].slice(11, 16)}</div>
+      <svg class="hour-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">${weatherIcons[info.icon]}</svg>
+      <div class="hour-temp">${Math.round(hourly.temperature_2m[i])}°</div>
+      <div class="hour-rain">${hourly.precipitation_probability[i]}%</div>
+    `;
+        hoursEl.appendChild(chip);
+      });
+    hoursEl.scrollLeft = 0;
+  }
+  widgetEl(root, "dayDetail")?.classList.add("show");
+  const statsEl = widgetEl(root, "weatherStats");
+  if (!statsEl) return;
+  if (index === 0) {
+    const c = data.current;
+    const sunrise = new Date(d.sunrise[0]).toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" });
+    const sunset = new Date(d.sunset[0]).toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" });
+    statsEl.innerHTML =
+      statChip(iconPressure, t("weather.chip.pressure"), `${Math.round(c.surface_pressure)} hPa`) +
+      statChip(iconHumidity, t("weather.chip.humidity"), `${c.relative_humidity_2m} %`) +
+      statChip(iconWind, t("weather.chip.wind"), `${Math.round(c.wind_speed_10m)} km/h`) +
+      statChip(iconFeels, t("weather.chip.feels"), `${Math.round(c.apparent_temperature)}°`) +
+      statChip(iconUv, t("weather.chip.uv"), `${Math.round(d.uv_index_max[0])}`) +
+      statChip(iconSun, t("weather.chip.sun"), `${sunrise} – ${sunset}`);
+  } else {
+    const avgPressure = Math.round(
+      hourIdxForDay.reduce((s, i) => s + hourly.surface_pressure[i], 0) / hourIdxForDay.length,
+    );
+    const avgHumidity = Math.round(
+      hourIdxForDay.reduce((s, i) => s + hourly.relative_humidity_2m[i], 0) / hourIdxForDay.length,
+    );
+    const sunrise = new Date(d.sunrise[index]).toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" });
+    const sunset = new Date(d.sunset[index]).toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" });
+    statsEl.innerHTML =
+      statChip(iconPressure, t("weather.chip.pressureAvg"), `${avgPressure} hPa`) +
+      statChip(iconHumidity, t("weather.chip.humidityAvg"), `${avgHumidity} %`) +
+      statChip(iconWind, t("weather.chip.windMax"), `${Math.round(d.wind_speed_10m_max[index])} km/h`) +
+      statChip(iconUv, t("weather.chip.uv"), `${Math.round(d.uv_index_max[index])}`) +
+      statChip(iconSun, t("weather.chip.sun"), `${sunrise} – ${sunset}`);
+  }
+}
+
+function paintWeatherNow(root, data, label) {
+  const tzShort = paintTimezoneNote(root, data, label);
+  const placeEl = widgetEl(root, "weatherPlaceName");
+  if (placeEl) placeEl.textContent = label;
+  const cur = weatherCodeInfo(data.current.weather_code);
+  const tempEl = widgetEl(root, "weatherTempNow");
+  if (tempEl) tempEl.textContent = `${Math.round(data.current.temperature_2m)}°`;
+  const condEl = widgetEl(root, "weatherConditionText");
+  if (condEl) condEl.textContent = cur.text;
+  const iconEl = widgetEl(root, "weatherIcon");
+  if (iconEl) iconEl.innerHTML = weatherIcons[cur.icon];
+  const hi = Math.round(data.daily.temperature_2m_max[0]);
+  const lo = Math.round(data.daily.temperature_2m_min[0]);
+  const pop = data.daily.precipitation_probability_max[0];
+  const rangeEl = widgetEl(root, "weatherRange");
+  if (rangeEl) rangeEl.textContent = t("weather.range", { lo, hi, pop: pop ?? 0 });
+  const forecastEl = widgetEl(root, "weatherForecast");
+  if (forecastEl) {
+    forecastEl.innerHTML = "";
+    data.daily.time.forEach((dateStr, i) => {
+      const d = new Date(dateStr + "T00:00:00");
+      const info = weatherCodeInfo(data.daily.weather_code[i]);
+      const isToday = i === 0;
+      const dayEl = document.createElement("div");
+      dayEl.className = "day" + (isToday ? " today" : "");
+      dayEl.title = `${isToday ? t("common.todayCap") : weekdayShort(d)} · ${info.text} · ${Math.round(data.daily.temperature_2m_max[i])}° / ${Math.round(data.daily.temperature_2m_min[i])}°`;
+      dayEl.innerHTML = `
+        <div class="day-label">${isToday ? t("common.todayCap") : weekdayShort(d)}</div>
+        <svg class="day-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:20px;height:20px;">${weatherIcons[info.icon]}</svg>
+        <div class="day-high">${Math.round(data.daily.temperature_2m_max[i])}°</div>
+        <div class="day-low">${Math.round(data.daily.temperature_2m_min[i])}°</div>
+      `;
+      dayEl.addEventListener("click", () => paintWeatherDayDetail(root, data, i, tzShort));
+      forecastEl.appendChild(dayEl);
+    });
+  }
+  paintWeatherDayDetail(root, data, 0, tzShort);
+  const note = widgetEl(root, "weatherSourceNote");
+  if (note) note.textContent = t("weather.source");
+}
+
+async function loadWeatherIntoPanel(panel, lat, lon, label) {
+  const loading = widgetEl(panel, "weatherLoading");
+  if (loading) loading.textContent = t("weather.loadingFor", { place: label });
+  try {
+    const data = await fetchData(weatherForecastUrl(lat, lon), { source: "Wetter" });
+    if (!data.current || !(data.daily?.time?.length > 1)) throw dataError("Wetter", "unvollständige Wetterdaten");
+    splitOffYesterday(data);
+    panel._compareWeather = { lat, lon, label, data };
+    paintWeatherNow(panel, data, label);
+    if (loading) loading.textContent = "";
+    requestAnimationFrame(() => fitAllWidgetGrids());
+    return true;
+  } catch (err) {
+    reportError("Wetter", err);
+    if (loading) {
+      renderRetry(loading, t("weather.unavailable", { place: label, reason: describeError(err) }), () =>
+        loadWeatherIntoPanel(panel, lat, lon, label),
+      );
+    }
+    return false;
+  }
+}
+
+async function searchWeatherIntoPanel(panel, query) {
+  const loading = widgetEl(panel, "weatherLoading");
+  if (!query.trim()) return;
+  if (loading) loading.textContent = t("search.searching", { query: query.trim() });
+  try {
+    const data = await fetchData(geocodeUrl(query), { source: "Ortssuche" });
+    const hit = data.results?.[0];
+    if (!hit) {
+      if (loading) loading.textContent = t("search.notFound", { query: query.trim() });
+      return;
+    }
+    const label = [hit.name, hit.country].filter(Boolean).join(", ");
+    return loadWeatherIntoPanel(panel, hit.latitude, hit.longitude, label);
+  } catch (err) {
+    reportError("Ortssuche", err);
+    if (loading) {
+      renderRetry(loading, t("search.failed", { reason: describeError(err) }) + ".", () =>
+        searchWeatherIntoPanel(panel, query),
+      );
+    }
+  }
+}
+
+function bindCompareWeather(panel) {
+  const stopHours = bindHourStrip(panel);
+  const form = widgetEl(panel, "weatherSearchForm");
+  const input = widgetEl(panel, "weatherSearchInput");
+  const onSubmit = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    searchWeatherIntoPanel(panel, input?.value || "");
+  };
+  form?.addEventListener("submit", onSubmit);
+  const coords = currentWeatherCoords || DEFAULT_PLACE;
+  loadWeatherIntoPanel(panel, coords.lat, coords.lon, coords.label);
+  const onRefresh = () => {
+    const saved = panel._compareWeather;
+    if (saved) loadWeatherIntoPanel(panel, saved.lat, saved.lon, saved.label);
+  };
+  document.addEventListener("dashboard-refresh", onRefresh);
+  return () => {
+    stopHours();
+    form?.removeEventListener("submit", onSubmit);
+    document.removeEventListener("dashboard-refresh", onRefresh);
+  };
+}
+
+function paintBerlinStations(root, selectedId, onSelect) {
+  const list = widgetEl(root, "waterBerlinList");
+  if (!list) return;
+  const berlin = waterStations.filter((s) => s.longname.startsWith("BERLIN"));
+  if (!berlin.length) {
+    list.innerHTML = `<div class="chart-empty">${t("water.noBerlin")}</div>`;
+    return;
+  }
+  list.replaceChildren(
+    ...berlin.map((s) => {
+      const m = waterLevelOf(s);
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "water-item" + (s.uuid === selectedId ? " selected" : "");
+      btn.innerHTML = `
+        <span class="water-item-text"><span class="water-item-name"></span><span class="water-item-water"></span></span>
+        <span class="water-item-value"></span>`;
+      btn.querySelector(".water-item-name").textContent = pegelName(s.longname).replace(/^Berlin-/, "");
+      btn.querySelector(".water-item-water").textContent = pegelName(s.water?.longname);
+      const value = btn.querySelector(".water-item-value");
+      value.textContent = m ? `${Math.round(m.value)} cm` : "–";
+      if (m && WATER_STATE_LABELS[m.stateMnwMhw]) {
+        value.classList.add("water-state-" + m.stateMnwMhw);
+        value.title = WATER_STATE_LABELS[m.stateMnwMhw];
+      }
+      btn.addEventListener("click", () => onSelect(s.uuid));
+      return btn;
+    }),
+  );
+}
+
+function fillWaterStationList(root) {
+  const datalist = widgetEl(root, "waterStationList");
+  if (!datalist) return;
+  datalist.replaceChildren(
+    ...waterStations.map((s) => {
+      const opt = document.createElement("option");
+      opt.value = pegelLabel(s);
+      return opt;
+    }),
+  );
+}
+
+async function loadWaterIntoPanel(panel, id) {
+  const chartEl = widgetEl(panel, "waterChart");
+  try {
+    const [station, series, measurements] = await Promise.all([
+      fetchPegel(`/stations/${id}.json`),
+      fetchPegel(`/stations/${id}/W.json?includeCharacteristicValues=true&includeCurrentMeasurement=true`),
+      fetchPegel(`/stations/${id}/W/measurements.json?start=P7D`),
+    ]);
+    const name = pegelName(station.longname);
+    const chars = Object.fromEntries((series.characteristicValues || []).map((c) => [c.shortname, c.value]));
+    panel._compareWaterId = id;
+    const title = widgetEl(panel, "waterChartTitle");
+    const sub = widgetEl(panel, "waterChartSub");
+    if (title) title.textContent = t("water.chartTitle", { name });
+    if (sub) sub.textContent = t("water.chartSub", { name });
+    if (chartEl) renderWaterChart(chartEl, measurements, chars, `waterFill--${panel.id}`);
+    paintBerlinStations(panel, id, (next) => loadWaterIntoPanel(panel, next));
+    return true;
+  } catch (err) {
+    reportError("Pegel", err);
+    if (chartEl) {
+      renderRetry(chartEl, t("water.unavailable", { reason: describeError(err) }), () => loadWaterIntoPanel(panel, id), "chart-empty");
+    }
+    return false;
+  }
+}
+
+function bindCompareWater(panel) {
+  const form = widgetEl(panel, "waterSearchForm");
+  const input = widgetEl(panel, "waterSearchInput");
+  const onSubmit = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const q = (input?.value || "").trim().toLowerCase();
+    if (!q) return;
+    const match =
+      waterStations.find((s) => pegelLabel(s).toLowerCase() === q) ||
+      waterStations.find((s) => s.longname.toLowerCase().includes(q)) ||
+      waterStations.find((s) => pegelLabel(s).toLowerCase().includes(q));
+    if (!match) {
+      showToast(t(waterStations.length ? "water.notFound" : "water.listLoading"));
+      return;
+    }
+    if (input) input.value = "";
+    loadWaterIntoPanel(panel, match.uuid);
+  };
+  form?.addEventListener("submit", onSubmit);
+  const syncList = () => {
+    fillWaterStationList(panel);
+    paintBerlinStations(panel, panel._compareWaterId, (next) => loadWaterIntoPanel(panel, next));
+  };
+  if (waterStations.length) syncList();
+  const startId = panel._compareWaterId || waterStationId;
+  loadWaterIntoPanel(panel, startId);
+  const onRefresh = () => {
+    if (waterStations.length) syncList();
+    if (panel._compareWaterId) loadWaterIntoPanel(panel, panel._compareWaterId);
+  };
+  document.addEventListener("dashboard-refresh", onRefresh);
+  return () => {
+    form?.removeEventListener("submit", onSubmit);
+    document.removeEventListener("dashboard-refresh", onRefresh);
+  };
+}
+
+function bindIndependentWidget(panel, type) {
+  if (type === "weather-now") return bindCompareWeather(panel);
+  if (type === "water-chart") return bindCompareWater(panel);
+  return () => {};
+}
+
 // Jede Seite hat ein eigenes Widget-Raster; die Übersicht ist eines davon
 const PAGE_WIDGETS_STORAGE_PREFIX = "dashboard-page-widgets-";
 const widgetBoards = new Map();
@@ -3583,18 +4167,75 @@ function sameTypeList(a, b) {
   return Array.isArray(a) && a.length === b.length && a.every((type, i) => type === b[i]);
 }
 
+const BOARD_TYPE_EXPAND = {
+  "weather-kpis": ["weather-temp", "weather-wind", "weather-humidity", "weather-rain"],
+  "fire-kpis": ["fire-yesterday", "fire-total", "fire-avg", "fire-peak", "fire-response"],
+  "water-kpis": ["water-level", "water-state", "water-range", "water-time"],
+};
+
+const INSTANCE_SEP = "::";
+
+function widgetTypeOf(key) {
+  return String(key || "").split(INSTANCE_SEP)[0];
+}
+
+function widgetInstanceOf(key) {
+  const n = Number(String(key || "").split(INSTANCE_SEP)[1]);
+  return Number.isFinite(n) && n >= 2 ? n : 1;
+}
+
+function widgetKey(type, n) {
+  return n > 1 ? `${type}${INSTANCE_SEP}${n}` : type;
+}
+
+function nextInstanceKey(board, type) {
+  const used = new Set(board.types.filter((key) => widgetTypeOf(key) === type).map(widgetInstanceOf));
+  let n = 1;
+  while (used.has(n)) n += 1;
+  return widgetKey(type, n);
+}
+
+function boardPanelId(board, key) {
+  const type = widgetTypeOf(key);
+  const n = widgetInstanceOf(key);
+  return n > 1 ? `${board.prefix}-${type}--i${n}` : `${board.prefix}-${type}`;
+}
+
+function widgetCount(board, type) {
+  return board.types.filter((key) => widgetTypeOf(key) === type).length;
+}
+
+function knownBoardType(key) {
+  const type = widgetTypeOf(key);
+  return Boolean(OVERVIEW_WIDGETS[type] || BOARD_TYPE_EXPAND[type]);
+}
+
+function expandBoardTypes(types) {
+  const out = [];
+  (Array.isArray(types) ? types : []).forEach((key) => {
+    const type = widgetTypeOf(key);
+    const n = widgetInstanceOf(key);
+    (BOARD_TYPE_EXPAND[type] || [type]).forEach((part) => {
+      if (!OVERVIEW_WIDGETS[part]) return;
+      const expanded = widgetKey(part, n);
+      if (!out.includes(expanded)) out.push(expanded);
+    });
+  });
+  return out;
+}
+
 function loadBoardTypes(board, defaults) {
   try {
     const raw = localStorage.getItem(board.storageKey);
     if (raw) {
-      const types = JSON.parse(raw).filter((type) => OVERVIEW_WIDGETS[type]);
+      const parsed = JSON.parse(raw).filter(knownBoardType);
       if (
         board.storageKey === OVERVIEW_STORAGE_KEY &&
-        OVERVIEW_DEFAULT_LEGACY.some((legacy) => sameTypeList(types, legacy))
+        (parsed.length === 0 || OVERVIEW_DEFAULT_LEGACY.some((legacy) => sameTypeList(parsed, legacy)))
       ) {
         return [...defaults];
       }
-      return types;
+      return expandBoardTypes(parsed);
     }
   } catch (err) {}
   return [...defaults];
@@ -3605,14 +4246,15 @@ function saveBoardTypes(board) {
 }
 
 function createWidgetBoard(page, grid, { prefix, storageKey, defaults = [], emptyEl = null }) {
-  const board = { page, grid, prefix, storageKey, emptyEl, cleanups: new Map() };
-  board.types = loadBoardTypes(board, defaults);
+  const board = { page, grid, prefix, storageKey, defaults: [...defaults], emptyEl, cleanups: new Map() };
+  board.types = loadBoardTypes(board, board.defaults);
   widgetBoards.set(page.id, board);
   return board;
 }
 
 // Ein Spiegel-Widget der eigenen Seite würde nur doppelt anzeigen, was dort schon steht
-function boardOffersWidget(board, def) {
+function boardOffersWidget(board, type, def) {
+  if (def.compare) return true;
   const sources = [def.source, ...(def.mirror || []), ...(def.hideOn || [])].filter(Boolean);
   return !sources.some((sel) => {
     const el = document.querySelector(sel);
@@ -3626,84 +4268,113 @@ function widgetApi(board) {
     setupToggle,
     loadLayoutSizes,
     applySavedSize,
-    onRemove: (type) => removeBoardWidget(board, type),
+    onRemove: (key) => removeBoardWidget(board, key),
+    bindIndependent: (panel, type) => bindIndependentWidget(panel, type),
   };
 }
 
-function mountBoardWidget(board, type) {
+function shouldMountIndependent(board, key, def) {
+  if (!def.source || !def.compare) return false;
+  if (widgetInstanceOf(key) > 1) return true;
+  const src = document.querySelector(def.source);
+  return Boolean(src && board.page.contains(src));
+}
+
+function mountBoardWidget(board, key) {
+  const type = widgetTypeOf(key);
   const def = OVERVIEW_WIDGETS[type];
+  const options = { key, panelId: boardPanelId(board, key), independent: shouldMountIndependent(board, key, def) };
   let cleanup = null;
   try {
     if (def.source) {
-      cleanup = DashboardWidgets.mountClonedSource(board, type, def, widgetApi(board));
+      cleanup = DashboardWidgets.mountClonedSource(board, type, def, widgetApi(board), options);
     } else {
-      const panel = DashboardWidgets.createShell(board, type, def, widgetApi(board));
+      const panel = DashboardWidgets.createShell(board, type, def, widgetApi(board), options);
       const body = panel.querySelector(".ov-body");
       cleanup = def.mirror
-        ? DashboardWidgets.mountFragmentMirror(body, def.mirror, board.prefix, mirrorMembers)
+        ? DashboardWidgets.mountFragmentMirror(body, def.mirror, options.panelId, mirrorMembers)
         : def.mount(body);
     }
   } catch (err) {
     console.error(`[Dashboard] Widget "${type}" konnte nicht gestartet werden:`, err);
-    const panel = document.getElementById(`${board.prefix}-${type}`);
+    const panel = document.getElementById(options.panelId);
     const body = panel?.querySelector(".ov-body") || panel;
     if (body) renderRetry(body, t("widget.failed"), null, "chart-empty");
   }
-  board.cleanups.set(type, typeof cleanup === "function" ? cleanup : null);
+  board.cleanups.set(key, typeof cleanup === "function" ? cleanup : null);
 }
 
-function addBoardWidget(board, type) {
-  if (!OVERVIEW_WIDGETS[type] || board.types.includes(type)) return;
-  board.types.push(type);
+function addBoardWidget(board, catalogType) {
+  const type = widgetTypeOf(catalogType);
+  if (!OVERVIEW_WIDGETS[type]) return;
+  const key = nextInstanceKey(board, type);
+  board.types.push(key);
   saveBoardTypes(board);
-  mountBoardWidget(board, type);
-  const panel = document.getElementById(`${board.prefix}-${type}`);
+  mountBoardWidget(board, key);
+  const panel = document.getElementById(boardPanelId(board, key));
   const dest = pickerInsert;
-  if (panel && dest && dest !== board.grid && dest.closest(".page") === board.page && canRoam(panel)) {
+  if (panel && dest && dest === board.grid) {
     const slot = dest.querySelector(":scope > .widget-slot");
     if (slot) slot.before(panel);
-    else dest.appendChild(panel);
-    saveWidgetPlace(panel.id, layoutContainerKey(dest));
-    saveLayoutOrder(dest);
   }
   afterBoardChange(board);
   saveLayoutOrder(board.grid);
 }
 
-function removeBoardWidget(board, type) {
-  board.types = board.types.filter((t) => t !== type);
-  saveBoardTypes(board);
-  const cleanup = board.cleanups.get(type);
+function unmountBoardWidget(board, key) {
+  const cleanup = board.cleanups.get(key);
   if (cleanup) cleanup();
-  board.cleanups.delete(type);
-  document.getElementById(`${board.prefix}-${type}`)?.remove();
-  storeCollapsed(`${board.prefix}-${type}`, false);
-  saveLayoutSize(`${board.prefix}-${type}`, null);
-  saveWidgetPlace(`${board.prefix}-${type}`, null);
+  board.cleanups.delete(key);
+  const id = boardPanelId(board, key);
+  document.getElementById(id)?.remove();
+  storeCollapsed(id, false);
+  saveLayoutSize(id, null);
+  saveWidgetPlace(id, null);
+}
+
+function removeBoardWidget(board, key) {
+  board.types = board.types.filter((item) => item !== key);
+  saveBoardTypes(board);
+  unmountBoardWidget(board, key);
+  afterBoardChange(board);
+  saveLayoutOrder(board.grid);
+}
+
+function restoreBoardDefaults(board) {
+  [...board.types].forEach((type) => unmountBoardWidget(board, type));
+  board.types = [...board.defaults];
+  saveBoardTypes(board);
+  board.types.forEach((type) => mountBoardWidget(board, type));
   afterBoardChange(board);
   saveLayoutOrder(board.grid);
 }
 
 function afterBoardChange(board) {
-  board.grid.hidden = !board.grid.querySelector(":scope > .ov-widget");
-  if (board.emptyEl) board.emptyEl.hidden = board.types.length > 0;
+  if (board.emptyEl) {
+    board.emptyEl.hidden = board.types.length > 0;
+    board.grid.hidden = board.types.length === 0;
+  } else {
+    board.grid.hidden = false;
+  }
   refreshLayoutHandles();
   fitWidgetGrid(board.grid);
-  fitFlexRowSlots(board.page);
   if (board.page.classList.contains("active")) keepTilesInView(board.page);
   if (pickerOverlay.classList.contains("show") && pickerBoard === board) renderWidgetPicker();
 }
 
 // Zeilen, in denen alles eingeklappt ist, bekommen nur ihre Titelhöhe
 function fitWidgetGrid(grid) {
-  if (!grid.offsetParent) return;
+  if (!grid || !grid.offsetParent) return;
   const gap = parseFloat(getComputedStyle(grid).columnGap) || 0;
   const width = grid.clientWidth;
   const items = layoutItems(grid);
-  grid.querySelectorAll(":scope > .widget-slot").forEach((el) => el.remove());
+  const slots = [...grid.querySelectorAll(":scope > .widget-slot")];
+  const slot = slots.shift() || null;
+  slots.forEach((el) => el.remove());
 
   // Mobil scrollt die Seite: feste Kachelhöhe, breite Widgets über die ganze Breite
   if (MOBILE_SCROLL_QUERY.matches) {
+    if (slot) slot.remove();
     const mobileCols = width >= 2 * OVERVIEW_MIN_COL_TIGHT + gap ? 2 : 1;
     const mobileRows = packOverviewRows(items, mobileCols, 2);
     grid._layoutRows = mobileRows;
@@ -3736,7 +4407,10 @@ function fitWidgetGrid(grid) {
     el.style.gridRow = "";
   });
   const page = grid.closest(".page");
-  if (page) grid.appendChild(makeWidgetSlot(page));
+  if (page) {
+    const next = slot || makeWidgetSlot(page);
+    grid.appendChild(next);
+  }
 }
 function isOpenRow(row) {
   return row.some(({ el }) => !el.classList.contains("collapsed"));
@@ -3745,7 +4419,6 @@ function fitAllWidgetGrids() {
   document.querySelectorAll(".ov-widget .widget-slot, .ov-body .widget-slot").forEach((el) => el.remove());
   widgetBoards.forEach((board) => {
     fitWidgetGrid(board.grid);
-    fitFlexRowSlots(board.page);
     if (board.page.classList.contains("active")) keepTilesInView(board.page);
   });
 }
@@ -3779,8 +4452,6 @@ function packOverviewRows(items, cols, minColsForWide = 3) {
   return rows;
 }
 
-const FLEX_SLOT_ROWS = ":scope > .stat-row, :scope > .charts-row, :scope > .lower-row, :scope > .detail-row, :scope > .disaster-row";
-
 function makeWidgetSlot(page) {
   const btn = document.createElement("button");
   btn.type = "button";
@@ -3796,41 +4467,14 @@ function makeWidgetSlot(page) {
   return btn;
 }
 
-function fitFlexRowSlots(page) {
-  if (!page || !page.classList.contains("active")) return;
-  page.querySelectorAll(".ov-widget .widget-slot, .ov-body .widget-slot").forEach((el) => el.remove());
-  page.querySelectorAll(FLEX_SLOT_ROWS).forEach((row) => {
-    let slot = row.querySelector(":scope > .widget-slot");
-    if (!slot) {
-      slot = makeWidgetSlot(page);
-      row.appendChild(slot);
-    } else {
-      row.appendChild(slot);
-    }
-    if (MOBILE_SCROLL_QUERY.matches) {
-      slot.hidden = true;
-      return;
-    }
-    slot.hidden = false;
-    requestAnimationFrame(() => {
-      if (!slot.isConnected || slot.hidden) return;
-      const widgets = layoutItems(row).filter((el) => !el.classList.contains("collapsed"));
-      if (!widgets.length) return;
-      const last = widgets[widgets.length - 1].getBoundingClientRect();
-      const box = slot.getBoundingClientRect();
-      slot.hidden = box.top > last.top + 20 || box.width < 148;
-    });
-  });
-}
-
-// ---- Widget-Auswahl: fügt hinzu oder entfernt wieder ----
+// ---- Widget-Auswahl: jedes Klicken fügt eine weitere Kachel hinzu ----
 const pickerOverlay = document.getElementById("widgetPickerOverlay");
 const pickerBody = document.getElementById("widgetPickerBody");
 let pickerBoard = null;
 let pickerInsert = null;
 
 function renderWidgetPicker() {
-  const offered = Object.entries(OVERVIEW_WIDGETS).filter(([, d]) => boardOffersWidget(pickerBoard, d));
+  const offered = Object.entries(OVERVIEW_WIDGETS).filter(([type, d]) => boardOffersWidget(pickerBoard, type, d));
   const groups = [...new Set(offered.map(([, d]) => d.group))];
   pickerBody.innerHTML = groups
     .map(
@@ -3840,14 +4484,15 @@ function renderWidgetPicker() {
         ${offered
           .filter(([, d]) => d.group === group)
           .map(([type, d]) => {
-            const added = pickerBoard.types.includes(type);
-            return `<button type="button" class="widget-option${added ? " added" : ""}" data-widget="${type}" aria-pressed="${added}">
+            const count = widgetCount(pickerBoard, type);
+            return `<button type="button" class="widget-option${count ? " added" : ""}" data-widget="${type}">
               <span class="widget-option-icon">${d.icon}</span>
               <span class="widget-option-text">
                 <span class="widget-option-title">${t(`widget.${type}.title`)}</span>
                 <span class="widget-option-desc">${t(`widget.${type}.desc`)}</span>
               </span>
-              <span class="widget-option-state" aria-hidden="true">${added ? "✓" : "+"}</span>
+              <span class="widget-option-state" aria-hidden="true">+</span>
+              ${count ? `<span class="widget-option-count">${count}</span>` : ""}
             </button>`;
           })
           .join("")}
@@ -3858,7 +4503,7 @@ function renderWidgetPicker() {
 }
 function openWidgetPicker(board, insertContainer) {
   pickerBoard = board;
-  pickerInsert = insertContainer && insertContainer !== board.grid ? insertContainer : null;
+  pickerInsert = insertContainer && insertContainer.classList.contains("overview-grid") ? insertContainer : board.grid;
   renderWidgetPicker();
   pickerOverlay.classList.add("show");
   pickerBody.querySelector(".widget-option")?.focus();
@@ -3871,8 +4516,7 @@ pickerBody.addEventListener("click", (e) => {
   const option = e.target.closest(".widget-option");
   if (!option) return;
   const type = option.dataset.widget;
-  if (pickerBoard.types.includes(type)) removeBoardWidget(pickerBoard, type);
-  else addBoardWidget(pickerBoard, type);
+  addBoardWidget(pickerBoard, type);
   pickerBody.querySelector(`[data-widget="${type}"]`)?.focus();
 });
 document.getElementById("widgetPickerClose").addEventListener("click", closeWidgetPicker);
@@ -3892,7 +4536,8 @@ const overviewBoard = createWidgetBoard(document.getElementById("overviewPage"),
 // Widget der früheren Widget-Seite übernehmen
 try {
   const legacy = localStorage.getItem("dashboard-widget-slot");
-  if (legacy && OVERVIEW_WIDGETS[legacy] && !overviewBoard.types.includes(legacy)) overviewBoard.types.push(legacy);
+  if (legacy && OVERVIEW_WIDGETS[legacy] && !overviewBoard.types.some((key) => widgetTypeOf(key) === legacy))
+    overviewBoard.types.push(legacy);
   localStorage.removeItem("dashboard-widget-slot");
 } catch (err) {}
 overviewBoard.emptyEl.addEventListener("click", () => openWidgetPicker(overviewBoard));
@@ -3912,7 +4557,7 @@ function placeRoamingWidgets(board) {
   const sizes = loadLayoutSizes();
   const touched = new Set();
   layoutItems(board.grid, true).forEach((panel) => {
-    const container = roamContainers(board.page, panel).find(
+    const container = roamContainers(board.page).find(
       (c) => c !== board.grid && layoutContainerKey(c) === places[panel.id],
     );
     if (!container) return;
@@ -3928,11 +4573,14 @@ widgetBoards.forEach((board) => {
   board.types.forEach((type) => mountBoardWidget(board, type));
   applySavedLayoutOrder(board.grid);
   if (board !== overviewBoard) placeRoamingWidgets(board);
-  board.grid.hidden = !board.grid.querySelector(":scope > .ov-widget");
-  if (board.emptyEl) board.emptyEl.hidden = board.types.length > 0;
+  if (board.emptyEl) {
+    board.emptyEl.hidden = board.types.length > 0;
+    board.grid.hidden = board.types.length === 0;
+  } else {
+    board.grid.hidden = false;
+  }
   new ResizeObserver(() => fitWidgetGrid(board.grid)).observe(board.grid);
 });
-updateEmptyGroups();
 refreshLayoutHandles();
 fitAllWidgetGrids();
 document.addEventListener("widget-collapse", () => {
@@ -3945,9 +4593,8 @@ MOBILE_SCROLL_QUERY.addEventListener("change", updateResizeHandles);
 // ---- Seite auf Standard-Layout zurücksetzen (mit Rückfrage) ----
 function resetPageLayout(page) {
   const board = widgetBoards.get(page.id);
-  if (board) [...board.types].forEach((type) => removeBoardWidget(board, type));
+  if (board) restoreBoardDefaults(board);
   resetLayoutOrderAndSizes(page);
-  updateEmptyGroups();
   refreshLayoutHandles();
   fitAllWidgetGrids();
   document.dispatchEvent(new Event("widget-collapse"));

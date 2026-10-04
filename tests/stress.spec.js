@@ -1,7 +1,7 @@
 const { test, expect } = require("@playwright/test");
 const { openWithLang, openPage, addOverviewWidget } = require("./helpers");
 
-const NAV = ["overviewPage", "weatherPage", "disasterPage", "firePage", "waterPage"];
+const NAV = ["overviewPage", "weatherPage", "waterPage", "firePage", "disasterPage"];
 
 test.describe("Belastung", () => {
   test.describe.configure({ timeout: 60_000 });
@@ -13,7 +13,7 @@ test.describe("Belastung", () => {
         await page.locator(`#sidebarNav .nav-item[data-target="${target}"]`).click();
       }
     }
-    await expect(page.locator("#waterPage")).toHaveClass(/active/);
+    await expect(page.locator("#disasterPage")).toHaveClass(/active/);
     await expect(page.locator("#langSelect")).toBeVisible();
     await expect(page.locator(".page.active .overview-title")).toBeVisible();
   });

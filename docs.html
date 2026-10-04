@@ -87,7 +87,7 @@
         <figcaption>„Meine Übersicht“ mit der Standard-Auswahl. Links die Seitenleiste mit Navigation, Einstellungen und Standort.</figcaption>
       </figure>
       <div class="docs-grid">
-        <div class="docs-tile"><strong>1. Seite wählen</strong><span>Links in der Seitenleiste zwischen Übersicht, Wetter, Katastrophenschutz, Feuerwehr und Wasserpegel wechseln.</span></div>
+        <div class="docs-tile"><strong>1. Seite wählen</strong><span>Links in der Seitenleiste zwischen Übersicht, Wetter, Wasserpegel, Feuerwehr und Organisation wechseln.</span></div>
         <div class="docs-tile"><strong>2. Übersicht zusammenstellen</strong><span>Auf „Meine Übersicht“ mit „+ Widget“ genau die Kacheln einblenden, die du brauchst.</span></div>
         <div class="docs-tile"><strong>3. Anordnen</strong><span>Mit „✥ Anordnen“ Widgets verschieben und ihre Größe ändern. Mit „✓ Fertig“ beenden.</span></div>
       </div>
@@ -97,12 +97,13 @@
     <section class="docs-card" id="bedienung">
       <h2>Seitenleiste &amp; Bedienung</h2>
       <dl class="docs-dl">
-        <dt>Navigation</dt><dd>Die Einträge oben wechseln die Seite. Der aktive Eintrag ist orange hinterlegt.</dd>
+        <dt>Warn-Banner</dt><dd>In der Kopfzeile, zwischen Seitentitel und den Schaltflächen, läuft ein Hinweis von rechts nach links. Links und rechts steht immer „ACHTUNG“ (gelb-schwarz, auch bei Rot-Grün-Schwäche gut lesbar). Den Text stellst du unter Organisation im Widget „Warn-Banner“ ein. Ohne Text bleibt das Banner unsichtbar.</dd>
+        <dt>Gegen Langeweile</dt><dd>Zeigt Spielkacheln. Klondike-Solitaire kommt von solitaire-online.com, Tic Tac Toe von Jotform. „← Spiele“ führt zurück zur Auswahl.</dd>
         <dt>Dokumentation</dt><dd>Öffnet diese Anleitung in einem eigenen Fenster.</dd>
         <dt>Version</dt><dd>Zeigt die aktuelle Versionsnummer und öffnet das Changelog.</dd>
         <dt>Modus: Hell / Dunkel</dt><dd>Wechselt das Farbschema. Ohne eigene Wahl richtet sich das Dashboard nach der Systemeinstellung.</dd>
         <dt>Sprache</dt><dd>Das Auswahlfeld neben dem Farbmodus stellt Dashboard und Dokumentation auf eine andere Sprache um (derzeit Deutsch und English). Die Seite lädt dabei kurz neu, alle Einstellungen bleiben erhalten. Ohne eigene Wahl gilt die Sprache des Browsers.</dd>
-        <dt>Aktualisieren</dt><dd>Lädt Wetter, Radar, Warnungen, Feuerwehr- und Pegeldaten sofort neu.</dd>
+        <dt>Aktualisieren</dt><dd>Lädt Wetter, Radar, Warnungen, Feuerwehr- und Pegeldaten neu. Die Kacheln laden kurz, der Knopf zeigt dann „aktualisiert“ und ist danach wieder der Knopf.</dd>
         <dt>Auto-Aktualisierung</dt><dd>Bei „AN“ werden alle Daten alle 5 Minuten neu geladen. Ein Klick schaltet die Funktion aus oder wieder an.</dd>
         <dt>Standort &amp; Datum</dt><dd>Zeigt den aktuell gewählten Wetterort sowie Datum und Uhrzeit. Darunter steht, wann zuletzt aktualisiert wurde.</dd>
       </dl>
@@ -116,15 +117,15 @@
       <h2>Übersicht</h2>
       <p>„Meine Übersicht“ ist frei zusammenstellbar. Beim ersten Start enthält sie aktuelles Wetter (Ort, Vorhersage und Stundenverlauf), Brandeinsätze pro Tag und die Pegel (Verlauf und Berliner Liste in einem Widget).</p>
       <ul>
-        <li><strong>Widget hinzufügen:</strong> „+ Widget“ öffnet den Katalog. Ein Klick auf einen Eintrag blendet das Widget ein.</li>
+        <li><strong>Widget hinzufügen:</strong> „+ Widget“ öffnet den Katalog. Ein Klick auf einen Eintrag fügt das Widget hinzu — auch wenn es schon da ist, für Vergleiche (z. B. zwei Wetterorte oder zwei Pegel). Eine Zahl am Eintrag zeigt, wie oft es auf der Seite liegt.</li>
         <li><strong>Widget entfernen:</strong> Im Anordnen-Modus erscheint oben rechts am Widget ein „×“.</li>
         <li><strong>Einklappen:</strong> Der Pfeil am Widget klappt es auf die Titelzeile zusammen. Die übrigen Widgets nutzen den frei gewordenen Platz.</li>
         <li><strong>Zurücksetzen:</strong> „↺ Zurücksetzen“ stellt nach einer Rückfrage die Standard-Auswahl und -Anordnung wieder her.</li>
       </ul>
-      <p>Widgets, die Daten einer anderen Seite zeigen (z. B. Wetter-Kennzahlen), sind Live-Kopien und aktualisieren sich automatisch mit.</p>
+      <p>Widgets, die Daten einer anderen Seite zeigen (z. B. Temperatur oder Feuerwehr-Kennzahlen), sind Live-Kopien und aktualisieren sich automatisch mit. Zusätzliche Kacheln von „Aktuelles Wetter“ und „Pegelverlauf“ laden eigene Daten, damit du Orte und Pegel nebeneinander vergleichen kannst.</p>
       <figure class="docs-shot">
         <img src="img/docs/widget-katalog.webp" width="1440" height="900" loading="lazy" alt="Dialog Widget hinzufügen mit Widgets nach Gruppen">
-        <figcaption>Der Katalog „Widget hinzufügen“. Bereits eingeblendete Widgets tragen einen Haken, alle anderen ein „+“.</figcaption>
+        <figcaption>Der Katalog „Widget hinzufügen“. Ein Klick fügt immer eine weitere Kachel hinzu; die Zahl zeigt, wie oft das Widget schon liegt.</figcaption>
       </figure>
     </section>
 
@@ -167,11 +168,11 @@
         <img src="img/docs/radar.webp" width="1440" height="900" loading="lazy" alt="Regenradar mit Karte von Berlin und Brandenburg und Niederschlagsgebieten">
         <figcaption>Regenradar mit Ortssuche, Schnellwahl, Quellenwahl, Legende und Zeitleiste zum Abspielen.</figcaption>
       </figure>
-      <h3>Katastrophenschutz</h3>
-      <p>Amtliche Warnungen des Bundes (MoWaS, KATWARN, BIWAPP, DWD, Hochwasserzentralen), nach Ort filterbar und nach Schwere sortiert. Dazu gibt es die wichtigsten Notrufnummern und eine To-do-Liste (Vorschläge zur Notfallvorsorge, Einträge sind anpassbar).</p>
+      <h3>Wasserpegel</h3>
+      <p>Aktuelle Wasserstände der Bundeswasserstraßen, Standard ist Berlin-Köpenick. Andere Pegel findest du über die Suche (z. B. „Dresden“) oder in der Liste der Berliner Pegel. Der Verlauf zeigt die letzten 7 Tage mit den Richtwerten MNW (mittleres Niedrigwasser), MW (Mittelwasser) und MHW (mittleres Hochwasser).</p>
       <figure class="docs-shot">
-        <img src="img/docs/katastrophenschutz.webp" width="1440" height="900" loading="lazy" alt="Seite Katastrophenschutz mit Warnliste, Notrufnummern und To-do-Liste">
-        <figcaption>Katastrophenschutz: Die Warnungen sind nach Status markiert (Neu, Update, Aufgehoben) und lassen sich nach Ort filtern.</figcaption>
+        <img src="img/docs/wasserpegel.webp" width="1440" height="900" loading="lazy" alt="Wasserpegelseite mit Kennzahlen, Pegelverlauf und Liste der Berliner Pegel">
+        <figcaption>Wasserpegel: Ein Klick auf einen Pegel in der Liste rechts zeigt dessen Verlauf.</figcaption>
       </figure>
       <h3>Feuerwehr</h3>
       <p>Brandeinsätze der Berliner Feuerwehr der letzten 7 Tage: Kennzahlen im Vergleich zur Vorwoche, Einsätze pro Tag (der Spitzentag ist orange), Anteil an allen Einsätzen sowie eine Tagesübersicht mit Bränden, Hilfeleistungen und Eintreffzeit. Mit „CSV exportieren“ lädst du die Tabelle als Datei herunter.</p>
@@ -179,23 +180,26 @@
         <img src="img/docs/feuerwehr.webp" width="1440" height="900" loading="lazy" alt="Feuerwehrseite mit Kennzahlen, Balkendiagramm, Anteil und Tagestabelle">
         <figcaption>Feuerwehr-Seite mit Kennzahlen, Diagrammen und Tagesübersicht.</figcaption>
       </figure>
-      <h3>Wasserpegel</h3>
-      <p>Aktuelle Wasserstände der Bundeswasserstraßen, Standard ist Berlin-Köpenick. Andere Pegel findest du über die Suche (z. B. „Dresden“) oder in der Liste der Berliner Pegel. Der Verlauf zeigt die letzten 7 Tage mit den Richtwerten MNW (mittleres Niedrigwasser), MW (Mittelwasser) und MHW (mittleres Hochwasser).</p>
+      <h3>Organisation</h3>
+      <p>Amtliche Warnungen des Bundes (MoWaS, KATWARN, BIWAPP, DWD, Hochwasserzentralen), nach Ort filterbar und nach Schwere sortiert. Dazu gibt es die wichtigsten Notrufnummern, eine To-do-Liste (Vorschläge zur Notfallvorsorge, Einträge sind anpassbar) und das Warn-Banner in der Kopfzeile.</p>
       <figure class="docs-shot">
-        <img src="img/docs/wasserpegel.webp" width="1440" height="900" loading="lazy" alt="Wasserpegelseite mit Kennzahlen, Pegelverlauf und Liste der Berliner Pegel">
-        <figcaption>Wasserpegel: Ein Klick auf einen Pegel in der Liste rechts zeigt dessen Verlauf.</figcaption>
+        <img src="img/docs/katastrophenschutz.webp" width="1440" height="900" loading="lazy" alt="Seite Organisation mit Warnliste, Notrufnummern und To-do-Liste">
+        <figcaption>Organisation: Die Warnungen sind nach Status markiert (Neu, Update, Aufgehoben) und lassen sich nach Ort filtern.</figcaption>
       </figure>
     </section>
 
     <section class="docs-card" id="widgets">
       <h2>Widget-Katalog</h2>
-      <p>Diese Widgets lassen sich auf der Übersicht und auf jeder Unterseite über „+ Widget“ einblenden.</p>
+      <p>Diese Widgets lassen sich auf der Übersicht und auf jeder Unterseite über „+ Widget“ einblenden. Derselbe Typ darf mehrfach liegen; Wetter- und Pegelkacheln haben dann jeweils eine eigene Suche.</p>
       <div class="docs-table-wrap">
         <table class="docs-table">
           <thead><tr><th>Gruppe</th><th>Widget</th><th>Inhalt</th></tr></thead>
           <tbody>
-            <tr><td rowspan="6">Wetter</td><td>Aktuelles Wetter</td><td>Ort, Suche, Vorhersage und Stundenverlauf</td></tr>
-            <tr><td>Wetter-Kennzahlen</td><td>Temperatur, Wind, Luftfeuchte und Regen im Vergleich zu gestern</td></tr>
+            <tr><td rowspan="9">Wetter</td><td>Aktuelles Wetter</td><td>Ort, Suche, Vorhersage und Stundenverlauf</td></tr>
+            <tr><td>Temperatur</td><td>Aktuelle Temperatur im Vergleich zu gestern</td></tr>
+            <tr><td>Wind</td><td>Windgeschwindigkeit im Vergleich zu gestern</td></tr>
+            <tr><td>Luftfeuchte</td><td>Relative Luftfeuchtigkeit im Vergleich zu gestern</td></tr>
+            <tr><td>Regenchance heute</td><td>Regenchance für heute im Vergleich zu gestern</td></tr>
             <tr><td>Vorhersage · Höchsttemperatur</td><td>Höchstwerte der nächsten Tage als Balken</td></tr>
             <tr><td>Regenwahrscheinlichkeit</td><td>Regenchance für heute</td></tr>
             <tr><td>Temperaturverlauf</td><td>Stündlicher Verlauf mit „jetzt“-Markierung</td></tr>
@@ -206,16 +210,22 @@
             <tr><td>Aufgaben</td><td>To-do-Liste zum Abhaken</td></tr>
             <tr><td>Countdown</td><td>Tage bis zu einem Termin deiner Wahl</td></tr>
             <tr><td>Weltzeituhr</td><td>Uhrzeit in mehreren Städten</td></tr>
-            <tr><td rowspan="3">Sicherheit</td><td>Warnungen</td><td>Amtliche Warnungen (BBK/NINA), nach Ort filterbar</td></tr>
+            <tr><td rowspan="4">Sicherheit</td><td>Warnungen</td><td>Amtliche Warnungen (BBK/NINA), nach Ort filterbar</td></tr>
+            <tr><td>Warn-Banner</td><td>Lauftext in der Kopfzeile, links und rechts „ACHTUNG“</td></tr>
             <tr><td>To-do-Liste</td><td>Anpassbare Liste, Einträge untereinander, Vorschläge nach BBK</td></tr>
             <tr><td>Notrufnummern</td><td>112, 110 und weitere wichtige Nummern</td></tr>
-            <tr><td rowspan="5">Feuerwehr</td><td>Brände vom Vortag</td><td>Anzahl der Brandeinsätze am letzten Meldetag</td></tr>
-            <tr><td>Feuerwehr-Kennzahlen</td><td>Brandeinsätze der letzten 7 Tage im Vergleich zur Vorwoche</td></tr>
+            <tr><td rowspan="8">Feuerwehr</td><td>Brände vom Vortag</td><td>Anzahl der Brandeinsätze am letzten Meldetag</td></tr>
+            <tr><td>Brandeinsätze (7 Tage)</td><td>Summe der letzten 7 Tage im Vergleich zur Vorwoche</td></tr>
+            <tr><td>Ø pro Tag</td><td>Mittlere Zahl der Brandeinsätze pro Tag</td></tr>
+            <tr><td>Spitzentag</td><td>Tag mit den meisten Brandeinsätzen</td></tr>
+            <tr><td>Eintreffzeit 1. Löschfahrzeug</td><td>Mittlere Eintreffzeit des ersten Löschfahrzeugs</td></tr>
             <tr><td>Brandeinsätze pro Tag</td><td>Balkendiagramm der letzten 7 Tage</td></tr>
             <tr><td>Anteil Brandeinsätze</td><td>Anteil an allen Einsätzen der Woche</td></tr>
             <tr><td>Feuerwehr-Tagesübersicht</td><td>Tabelle mit Bränden, Hilfeleistungen und Eintreffzeit</td></tr>
-            <tr><td rowspan="4">Wasserpegel</td><td>Pegelstand</td><td>Aktueller Wasserstand, Standard Berlin-Köpenick</td></tr>
-            <tr><td>Pegel-Kennzahlen</td><td>Aktueller Wasserstand, Einordnung und 7-Tage-Spanne</td></tr>
+            <tr><td rowspan="6">Wasserpegel</td><td>Wasserstand</td><td>Aktueller Wasserstand, Standard Berlin-Köpenick</td></tr>
+            <tr><td>Einordnung</td><td>Einordnung zum Mittelwasser</td></tr>
+            <tr><td>Spanne 7 Tage</td><td>Tiefster und höchster Wasserstand der letzten 7 Tage</td></tr>
+            <tr><td>Letzte Messung</td><td>Zeitpunkt der letzten Pegelmessung</td></tr>
             <tr><td>Pegelverlauf</td><td>7-Tage-Verlauf und aktuelle Berliner Wasserstände</td></tr>
             <tr><td>Pegel in Berlin</td><td>Aktuelle Wasserstände der Berliner Pegel</td></tr>
           </tbody>
@@ -357,8 +367,10 @@ npm run test:headed  # dieselben Tests, Browser sichtbar</code></pre>
       <ul>
         <li>Sprachmenü steht neben dem Farbmodus, Einträge Deutsch und English.</li>
         <li>Start auf Deutsch, Wechsel auf Englisch inkl. Reload: Titel, Navigation, Übersicht.</li>
-        <li>Alle fünf Seiten (Übersicht, Wetter inkl. Regenradar, Katastrophenschutz, Feuerwehr, Wasserpegel).</li>
+        <li>Alle fünf Seiten (Übersicht, Wetter inkl. Regenradar, Wasserpegel, Feuerwehr, Organisation).</li>
         <li>Widget-Katalog auf Deutsch und Englisch öffnen und schließen.</li>
+        <li>Gegen Langeweile: Spielkacheln, Klondike und Tic Tac Toe.</li>
+        <li>Dasselbe Widget mehrfach hinzufügen (Wetter und Pegel mit eigener Suche).</li>
         <li>Farbmodus Hell → Dunkel.</li>
         <li>Smartphone (390×844): Navigation verborgen, Menü öffnet die Seitenleiste.</li>
         <li>Dokumentation: deutsche Texte, Sprachwechsel, Abschnitt Mehrsprachigkeit, Knopf „Zum Dashboard“.</li>
@@ -367,7 +379,7 @@ npm run test:headed  # dieselben Tests, Browser sichtbar</code></pre>
       <ul>
         <li>Leeres Absenden bei Wetter, Radar und Pegel ändert nichts.</li>
         <li>Ortssuche: Treffer (Hamburg), unbekannter Name, Radar-Schnellwahl Potsdam.</li>
-        <li>Notrufnummern und To-do-Liste auf der Katastrophenschutz-Seite.</li>
+        <li>Notrufnummern und To-do-Liste auf der Organisations-Seite.</li>
         <li>Warnungsfilter (Dresden / kein Treffer) und Checkliste abhaken.</li>
         <li>Pegelsuche: Dresden anzeigen, unbekannter Name als Toast.</li>
         <li>Aufgaben anlegen, abhaken, löschen; Notizen speichern; Kalendertermin; Countdown.</li>
@@ -447,13 +459,12 @@ npm run test:headed  # dieselben Tests, Browser sichtbar</code></pre>
     <section class="docs-card" id="layout">
       <h2>Layout-System</h2>
       <h3>Container und Elemente</h3>
-      <p>Jede Seite besteht aus <em>Containern</em> (die Seite selbst und alle Klassen aus <code>LAYOUT_GROUP_CLASSES</code>, z. B. Reihen wie <code>.stat-row</code>, <code>.detail-row</code> und Spalten wie <code>.weather-side</code>) und <em>Elementen</em> (Panels, Kennzahl-Karten, Gruppen). Elemente werden über <code>id</code> oder ein automatisch vergebenes <code>data-layout-id</code> identifiziert.</p>
+      <p>Jede Seite hat eine gemeinsame Widget-Fläche: das Raster <code>.overview-grid</code>. Darin liegen die Standard-Kacheln der Seite und alle hinzugefügten Widgets. Verschieben und Skalieren im Modus Anordnen gilt nur innerhalb dieses Rasters.</p>
       <ul>
-        <li><strong>Reihenfolge:</strong> <code>saveLayoutOrder</code> und <code>applySavedLayoutOrder</code> speichern und laden pro Container die Reihenfolge der Elemente.</li>
-        <li><strong>Freies Verschieben:</strong> <code>startRoamDrag</code> ermittelt mit <code>document.elementsFromPoint</code> das Ziel. Ob das Element davor oder dahinter landet, hängt davon ab, ob der Zeiger vor oder hinter der Mitte des Ziels liegt. In eine <code>.stat-row</code> passen nur Kennzahl-Karten, in das Widget-Raster (<code>.overview-grid</code>) nur hinzugefügte Widgets. Alle anderen Container nehmen jedes Element auf. Der Zielcontainer wird in <code>dashboard-widget-places</code> gespeichert, sofern er nicht der Ursprungscontainer ist.</li>
-        <li><strong>Leere Container</strong> erhalten die Klasse <code>.layout-empty</code> und erscheinen im Anordnen-Modus als „Hierher ziehen“. Kennzahl-Reihen setzen <code>--stat-cols</code> auf die Anzahl ihrer Karten.</li>
-        <li><strong>Größe:</strong> Standard ist eine feste Kachelhöhe (ca. 280 px) und eine Breite nach Inhalt. Freie Rasterplätze werden zu Platzhaltern. Im Anordnen-Modus speichert der Griff unten rechts Pixelmaße (<code>data-layout-h</code>, <code>data-layout-w</code>, Mindestgröße 260 × 170 px). Im Widget-Raster steuert <code>data-col-frac</code> die Spaltenbreite. Alte Einträge <code>grow</code> und <code>weight</code> werden weiter gelesen, strecken die Seite aber nicht mehr von allein.</li>
-        <li><strong>Zurücksetzen:</strong> Jeder Container merkt sich seine Standardreihenfolge (<code>_defaultOrder</code>). <code>resetPageLayout</code> stellt diese Reihenfolge wieder her und löscht die gespeicherten Plätze und Größen.</li>
+        <li><strong>Reihenfolge:</strong> <code>saveLayoutOrder</code> und <code>applySavedLayoutOrder</code> speichern und laden die Reihenfolge der Kacheln im Raster.</li>
+        <li><strong>Freies Verschieben:</strong> <code>startRoamDrag</code> ermittelt mit <code>document.elementsFromPoint</code> das Ziel im Raster. Ob das Element davor oder dahinter landet, hängt davon ab, ob der Zeiger vor oder hinter der Mitte des Ziels liegt.</li>
+        <li><strong>Größe:</strong> Standard ist Breite nach Inhalt. Im Anordnen-Modus speichert der Griff unten rechts Pixelmaße (<code>data-layout-h</code>, <code>data-layout-w</code>, Mindestgröße 260 × 170 px).</li>
+        <li><strong>Zurücksetzen:</strong> Das Raster merkt sich die Standardreihenfolge (<code>_defaultOrder</code>). <code>resetPageLayout</code> stellt sie wieder her, löscht gespeicherte Größen und setzt auf der Übersicht die Standard-Widgets (aktuelles Wetter, Feuerwehr-Diagramm, Pegel) wieder ein statt die Fläche zu leeren.</li>
       </ul>
       <h3>Skalierung mit Container-Queries</h3>
       <p>Widget-Inhalte skalieren über CSS-Container-Queries statt über die Fenstergröße: <code>.ov-body</code> (<code>ovbody</code>), Kennzahl-Karten (<code>statcard</code>) und Diagramme (<code>chartcard</code>). Schriftgrößen nutzen <code>cqh</code>/<code>cqw</code> mit <code>clamp()</code>. Bei sehr kleinen Widgets werden Nebenelemente wie Icons, Beschriftungen oder Datumszeilen ausgeblendet.</p>
@@ -477,6 +488,7 @@ npm run test:headed  # dieselben Tests, Browser sichtbar</code></pre>
             <tr><td><code>dashboard-widget-places</code></td><td>In andere Container verschobene Elemente: <code>{ elementId: "seite:container" }</code></td></tr>
             <tr><td><code>dashboard-collapsed</code></td><td>IDs eingeklappter Widgets</td></tr>
             <tr><td><code>dashboard-cal-events</code></td><td>Kalendertermine</td></tr>
+            <tr><td><code>dashboard-banner-text</code></td><td>Lauftext des Warn-Banners</td></tr>
             <tr><td><code>dashboard-widget-notes</code>, <code>-todo</code>, <code>-countdown</code>, <code>-checklist</code></td><td>Inhalte der jeweiligen Widgets</td></tr>
             <tr><td><code>dashboard-water-station</code></td><td>Gewählter Pegel (UUID). Standard ist Berlin-Köpenick</td></tr>
           </tbody>
@@ -509,9 +521,8 @@ function mountMeinWidget(body) {
       <h3>Neue Seite</h3>
       <ol>
         <li>In <code>index.html</code> ein <code>&lt;div id="meinePage" class="page"&gt;</code> mit der <code>.overview-bar</code> (Titel und die drei Schaltflächen) anlegen.</li>
-        <li>Am Ende der Seite das Widget-Raster <code>&lt;div class="overview-grid" id="meinePageWidgets" hidden&gt;&lt;/div&gt;</code> einfügen. Die ID muss <code>&lt;Seiten-ID&gt;Widgets</code> lauten, damit „+ Widget“ funktioniert.</li>
+        <li>Direkt unter der Leiste das Widget-Raster <code>&lt;div class="overview-grid" id="meinePageWidgets"&gt;</code> anlegen und die Standard-Kacheln darin einfügen. Die ID muss <code>&lt;Seiten-ID&gt;Widgets</code> lauten, damit „+ Widget“ funktioniert.</li>
         <li>In <code>NAV_CATEGORIES</code> einen Eintrag mit <code>target: "meinePage"</code> und einem SVG-Icon ergänzen. Den Seitennamen als <code>nav.&lt;id&gt;</code> in jede Sprachdatei eintragen, sichtbare Texte der Seite mit <code>data-i18n</code> auszeichnen.</li>
-        <li>Eigene Reihen oder Spalten, die anordenbar sein sollen, in <code>LAYOUT_GROUP_CLASSES</code> eintragen. Danach nimmt das Layout-System (Anordnen, Zurücksetzen) die Seite beim Start automatisch auf.</li>
       </ol>
     </section>
 

@@ -117,16 +117,21 @@
     return toggle;
   }
 
-  function mountClonedSource(board, type, def, api) {
+  function mountClonedSource(board, type, def, api, options = {}) {
     const src = document.querySelector(def.source);
     if (!src) throw new Error(`Widget-Quelle fehlt: ${def.source}`);
-    const suffix = `${board.prefix}-${type}`;
+    const key = options.key || type;
+    const panelId = options.panelId || `${board.prefix}-${type}`;
+    const suffix = panelId;
+    const independent = Boolean(options.independent);
     const title = api.t(`widget.${type}.title`);
     const panel = clonePanel(src, suffix);
     panel.classList.add("ov-widget", "ov-clone");
+    if (independent) panel.classList.add("ov-compare");
     if (def.wide) panel.classList.add("ov-wide");
     if (def.compact) panel.classList.add(def.compact);
-    panel.id = `${board.prefix}-${type}`;
+    panel.id = panelId;
+    panel.dataset.widgetKey = key;
     panel.setAttribute("aria-label", title);
     if (!panel.querySelector(":scope > .panel-title")) {
       const heading = document.createElement("div");
@@ -136,11 +141,15 @@
     }
     addRemoveButton(panel, api.t("widget.removeAria", { title }), () => {
       if (!document.body.classList.contains("layout-editing")) return;
-      api.onRemove(type);
+      api.onRemove(key);
     });
     ensureToggle(panel, api.t("widget.toggleAria", { title }), api.setupToggle);
     api.applySavedSize(panel, api.loadLayoutSizes()[panel.id]);
     board.grid.appendChild(panel);
+    if (independent) {
+      const stop = api.bindIndependent?.(panel, type);
+      return () => stop?.();
+    }
     bindCloneProxy(panel, src, suffix);
 
     let queued = false;
@@ -150,8 +159,10 @@
       const fresh = clonePanel(src, suffix);
       const remove = panel.querySelector(":scope > .ov-remove");
       const keepToggle = panel.querySelector(":scope > .panel-toggle.auto-toggle");
+      const keepHandle = panel.querySelector(":scope > .layout-handle");
+      const keepResize = panel.querySelector(":scope > .layout-resize");
       [...panel.children].forEach((child) => {
-        if (child !== remove && child !== keepToggle) child.remove();
+        if (child !== remove && child !== keepToggle && child !== keepHandle && child !== keepResize) child.remove();
       });
       [...fresh.children].forEach((child) => {
         if (child.classList.contains("ov-remove")) return;
@@ -159,7 +170,16 @@
       });
       ensureToggle(panel, api.t("widget.toggleAria", { title }), api.setupToggle);
     };
-    const observer = new MutationObserver(() => {
+    const observer = new MutationObserver((records) => {
+      const chrome = (node) =>
+        node.nodeType === 1 &&
+        (node.classList.contains("layout-handle") || node.classList.contains("layout-resize"));
+      if (
+        records.every((record) =>
+          [...record.addedNodes, ...record.removedNodes].every((node) => node.nodeType !== 1 || chrome(node)),
+        )
+      )
+        return;
       if (queued) return;
       queued = true;
       requestAnimationFrame(refresh);
@@ -195,7 +215,9 @@
     return () => observer.disconnect();
   }
 
-  function createShell(board, type, def, api) {
+  function createShell(board, type, def, api, options = {}) {
+    const key = options.key || type;
+    const panelId = options.panelId || `${board.prefix}-${type}`;
     const title = api.t(`widget.${type}.title`);
     const panel = document.createElement("section");
     panel.className =
@@ -203,12 +225,13 @@
       (def.wide ? " ov-wide" : "") +
       (def.full ? " ov-full" : "") +
       (def.compact ? " " + def.compact : "");
-    panel.id = `${board.prefix}-${type}`;
+    panel.id = panelId;
+    panel.dataset.widgetKey = key;
     panel.setAttribute("aria-label", title);
     panel.innerHTML = `<div class="panel-title">${title}</div><div class="ov-body ov-body-${type}"></div>`;
     addRemoveButton(panel, api.t("widget.removeAria", { title }), () => {
       if (!document.body.classList.contains("layout-editing")) return;
-      api.onRemove(type);
+      api.onRemove(key);
     });
     ensureToggle(panel, api.t("widget.toggleAria", { title }), api.setupToggle);
     api.applySavedSize(panel, api.loadLayoutSizes()[panel.id]);
