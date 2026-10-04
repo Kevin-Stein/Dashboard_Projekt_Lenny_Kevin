@@ -187,16 +187,6 @@ const NAV_CATEGORIES = {
     </svg><span>${t("nav.weather")}</span>`,
     target: "weatherPage",
   },
-  radar: {
-    id: "radar",
-    label: t("nav.radar"),
-    alwaysShow: true,
-    html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-      <path d="M12 3v6M12 3a9 9 0 1 0 9 9M12 3a5 5 0 0 1 5 5" />
-      <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" />
-    </svg><span>${t("nav.radar")}</span>`,
-    target: "radarPage",
-  },
   disaster: {
     id: "disaster",
     label: t("nav.disaster"),
@@ -260,7 +250,9 @@ function updateNavigation() {
       // Navigation aktualisieren
       document.querySelectorAll(".nav-item").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
+      document.dispatchEvent(new Event("dashboard-page-change"));
       updateResizeHandles();
+      requestAnimationFrame(() => fitAllWidgetGrids());
     });
 
     navContainer.appendChild(btn);
@@ -363,6 +355,85 @@ document.getElementById("docsLink").addEventListener("click", (e) => {
     docsWindow.focus();
   }
 });
+
+const changelogOverlay = document.getElementById("changelogOverlay");
+const changelogBody = document.getElementById("changelogBody");
+const changelogTitle = document.getElementById("changelogTitle");
+const versionLink = document.getElementById("versionLink");
+const versionNumberEl = document.getElementById("versionNumber");
+const CHANGELOG_SECTIONS = ["added", "changed", "removed", "fixed"];
+if (versionNumberEl && window.DASHBOARD_CHANGELOG?.version) {
+  versionNumberEl.textContent = window.DASHBOARD_CHANGELOG.version;
+}
+
+function changelogCopy() {
+  const data = window.DASHBOARD_CHANGELOG || { version: "2.0.0", de: {} };
+  return data[I18N.lang()] || data.de || {};
+}
+
+function renderChangelog() {
+  const data = window.DASHBOARD_CHANGELOG || { version: "2.0.0", date: "2026-10-04" };
+  const copy = changelogCopy();
+  changelogTitle.textContent = t("changelog.title", { version: data.version });
+  changelogBody.replaceChildren();
+
+  const meta = document.createElement("div");
+  meta.className = "changelog-release-meta";
+  const ver = document.createElement("div");
+  ver.className = "changelog-version";
+  ver.textContent = data.version;
+  const dateEl = document.createElement("div");
+  dateEl.className = "changelog-date";
+  dateEl.textContent = data.date
+    ? new Date(`${data.date}T12:00:00`).toLocaleDateString(LOCALE, { day: "numeric", month: "long", year: "numeric" })
+    : "";
+  meta.append(ver, dateEl);
+  changelogBody.append(meta);
+
+  CHANGELOG_SECTIONS.forEach((section) => {
+    const items = copy[section];
+    if (!items || !items.length) return;
+    const title = document.createElement("div");
+    title.className = "changelog-section-title";
+    title.textContent = t(`changelog.${section}`);
+    const list = document.createElement("ul");
+    list.className = "changelog-list";
+    items.forEach((item) => {
+      const li = document.createElement("li");
+      li.textContent = item;
+      list.append(li);
+    });
+    changelogBody.append(title, list);
+  });
+}
+
+function openChangelog() {
+  setMenuOpen(false);
+  renderChangelog();
+  changelogOverlay.classList.add("show");
+  versionLink.setAttribute("aria-expanded", "true");
+  document.getElementById("changelogClose").focus();
+}
+
+function closeChangelog() {
+  changelogOverlay.classList.remove("show");
+  versionLink.setAttribute("aria-expanded", "false");
+}
+
+versionLink.addEventListener("click", openChangelog);
+document.getElementById("changelogClose").addEventListener("click", closeChangelog);
+changelogOverlay.addEventListener("click", (e) => {
+  if (e.target === changelogOverlay) closeChangelog();
+});
+document.addEventListener(
+  "keydown",
+  (e) => {
+    if (e.key !== "Escape" || !changelogOverlay.classList.contains("show")) return;
+    e.stopImmediatePropagation();
+    closeChangelog();
+  },
+  true,
+);
 
 setupToggle(document.querySelector("section.panel.weather"), document.getElementById("weatherToggle"));
 setupToggle(document.querySelector("section.panel.radar"), document.getElementById("radarToggle"));
@@ -864,48 +935,97 @@ function mountWarningsWidget(body) {
   return () => document.removeEventListener("dashboard-refresh", reload);
 }
 
-// ---- Notfall-Checkliste Widget ----
+// ---- To-do-Liste (anpassbare Checkliste) ----
 const CHECKLIST_STORAGE_KEY = "dashboard-widget-checklist";
 
-function loadChecklistState() {
-  try {
-    return JSON.parse(localStorage.getItem(CHECKLIST_STORAGE_KEY) || "[]");
-  } catch (err) {
-    return [];
-  }
+function defaultChecklistItems() {
+  return DISASTER_CHECKLIST_ITEMS.map((key, i) => ({ id: "d" + i, key, done: false }));
 }
-function toggleChecklistItem(i) {
-  let checked = loadChecklistState();
-  checked = checked.includes(i) ? checked.filter((x) => x !== i) : [...checked, i];
-  storageSet(CHECKLIST_STORAGE_KEY, JSON.stringify(checked));
+
+function loadChecklistItems() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(CHECKLIST_STORAGE_KEY) || "null");
+    if (!raw) return defaultChecklistItems();
+    if (Array.isArray(raw) && raw.every((x) => typeof x === "number")) {
+      return defaultChecklistItems().map((item, i) => ({ ...item, done: raw.includes(i) }));
+    }
+    if (raw && Array.isArray(raw.items)) {
+      return raw.items.filter((it) => it && it.id && (it.key || typeof it.text === "string"));
+    }
+  } catch (err) {}
+  return defaultChecklistItems();
+}
+
+function saveChecklistItems(items) {
+  storageSet(CHECKLIST_STORAGE_KEY, JSON.stringify({ v: 2, items }));
   document.dispatchEvent(new Event("checklist-change"));
 }
+
+function checklistItemLabel(item) {
+  return item.key ? t(item.key) : item.text;
+}
+
 function renderChecklist(list) {
-  const checked = loadChecklistState();
+  const items = loadChecklistItems();
   list.innerHTML = "";
-  DISASTER_CHECKLIST_ITEMS.forEach((text, i) => {
+  if (!items.length) {
+    list.innerHTML = `<div class="todo-empty">${t("checklist.empty")}</div>`;
+    return;
+  }
+  items.forEach((item) => {
     const row = document.createElement("div");
-    row.className = "todo-item" + (checked.includes(i) ? " done" : "");
-    row.innerHTML = `<input type="checkbox" ${checked.includes(i) ? "checked" : ""}><span></span>`;
-    row.querySelector("span").textContent = t(text);
-    row.querySelector("input").addEventListener("change", () => toggleChecklistItem(i));
+    row.className = "todo-item" + (item.done ? " done" : "");
+    row.innerHTML = `<input type="checkbox" ${item.done ? "checked" : ""}><span></span><button type="button" aria-label="${t("common.delete")}">×</button>`;
+    row.querySelector("span").textContent = checklistItemLabel(item);
+    row.querySelector("input").addEventListener("change", () => {
+      const next = loadChecklistItems();
+      const found = next.find((it) => it.id === item.id);
+      if (found) found.done = !found.done;
+      saveChecklistItems(next);
+    });
+    row.querySelector("button").addEventListener("click", () => {
+      saveChecklistItems(loadChecklistItems().filter((it) => it.id !== item.id));
+    });
     list.appendChild(row);
   });
 }
 
-function mountChecklistWidget(body) {
-  renderInto(
-    body,
-    `
+function checklistMarkup() {
+  return `
+    <form class="todo-add" data-checklist-add>
+      <input type="text" placeholder="${t("checklist.placeholder")}" autocomplete="off" aria-label="${t("checklist.add")}">
+      <button type="submit" aria-label="${t("checklist.add")}">+</button>
+    </form>
     <div class="todo-list scroll-list" data-checklist></div>
     <div class="warn-note">${t("checklist.note")}</div>
-  `,
-  );
-  const list = body.querySelector("[data-checklist]");
+  `;
+}
+
+function bindChecklist(root) {
+  const list = root.querySelector("[data-checklist]");
+  const form = root.querySelector("[data-checklist-add]");
+  if (!list) return () => {};
   const render = () => renderChecklist(list);
   render();
+  const onAdd = (e) => {
+    e.preventDefault();
+    const input = form.querySelector("input");
+    const text = input.value.trim();
+    if (!text) return;
+    saveChecklistItems([...loadChecklistItems(), { id: "c" + Date.now().toString(36), text, done: false }]);
+    input.value = "";
+  };
+  form?.addEventListener("submit", onAdd);
   document.addEventListener("checklist-change", render);
-  return () => document.removeEventListener("checklist-change", render);
+  return () => {
+    form?.removeEventListener("submit", onAdd);
+    document.removeEventListener("checklist-change", render);
+  };
+}
+
+function mountChecklistWidget(body) {
+  renderInto(body, checklistMarkup());
+  return bindChecklist(body);
 }
 
 // ---- Notrufnummern Widget ----
@@ -928,7 +1048,7 @@ const DISASTER_NUMBERS = [
   { num: "116 117", label: "numbers.116117" },
   { num: "030 19240", label: "numbers.poison" },
 ];
-// Gespeichert wird der Index, daher neue Punkte nur hinten anfügen
+// Vorgeschlagene Einträge; eigene Punkte kommen dazu, gelöschte bleiben weg
 const DISASTER_CHECKLIST_ITEMS = [
   "checklist.water",
   "checklist.food",
@@ -950,12 +1070,6 @@ function renderDisasterNumbers() {
     (n) => `<div class="emerg-row"><div class="emerg-num">${n.num}</div><div class="emerg-label">${t(n.label)}</div></div>`,
   ).join("");
 }
-
-function renderDisasterChecklist() {
-  const list = document.getElementById("disasterChecklistList");
-  if (list) renderChecklist(list);
-}
-document.addEventListener("checklist-change", renderDisasterChecklist);
 
 // warnung.bund.de erlaubt keine Browser-Abrufe (kein CORS), daher über /api/warnings (api/warnings.js)
 const WARN_SOURCE_LABEL = { mowas: "MoWaS", katwarn: "KATWARN", biwapp: "BIWAPP", dwd: "DWD", lhp: t("warn.sourceFlood") };
@@ -1051,40 +1165,9 @@ async function loadDisasterWarnings(filterText) {
   }
 }
 
-// Treffpunkt-Eingabe auf der Katastrophenschutz-Seite und im Übersichts-Widget teilen sich den Wert
-function bindMeetingPointInput(input, saved) {
-  const load = () => {
-    try {
-      if (document.activeElement !== input) input.value = localStorage.getItem("dashboard-meeting-point") || "";
-    } catch (err) {}
-  };
-  load();
-  let saveTimer;
-  input.addEventListener("input", () => {
-    clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => {
-      if (!storageSet("dashboard-meeting-point", input.value)) {
-        saved.textContent = t("storage.notSaved");
-        return;
-      }
-      saved.textContent = t("storage.saved");
-      setTimeout(() => (saved.textContent = "\u00a0"), 1500);
-      document.dispatchEvent(new Event("meeting-change"));
-    }, 500);
-  });
-  document.addEventListener("meeting-change", load);
-  return () => document.removeEventListener("meeting-change", load);
-}
-
-function setupDisasterMeetingPoint() {
-  const input = document.getElementById("meetingPointInput");
-  if (input) bindMeetingPointInput(input, document.getElementById("meetingSaved"));
-}
-
 function initDisasterPage() {
   renderDisasterNumbers();
-  renderDisasterChecklist();
-  setupDisasterMeetingPoint();
+  bindChecklist(document.getElementById("disasterChecklistPanel"));
   const form = document.getElementById("disasterWarnSearchForm");
   if (form) {
     form.addEventListener("submit", (e) => {
@@ -1105,6 +1188,7 @@ const LAYOUT_GROUP_CLASSES = [
   "disaster-row",
   "disaster-side",
   "weather-side",
+  "weather-stack",
   "overview-grid",
 ];
 const LAYOUT_CONTAINER_SELECTOR = [".page", ...LAYOUT_GROUP_CLASSES.map((c) => "." + c)].join(", ");
@@ -1126,6 +1210,7 @@ function layoutItems(container, includeHidden = false) {
     (c) =>
       !c.classList.contains("layout-handle") &&
       !c.classList.contains("layout-resize") &&
+      !c.classList.contains("widget-slot") &&
       !c.hasAttribute("data-layout-fixed") &&
       (includeHidden || !c.hidden),
   );
@@ -1210,6 +1295,10 @@ function roamTargetAt(x, y, item, containers) {
   // Über dem gezogenen Widget selbst lägen darunter nur seine eigenen Container
   if (!hits.length || item.contains(hits[0])) return null;
   for (const hit of hits) {
+    const slot = hit.closest?.(".widget-slot");
+    if (slot && containers.includes(slot.parentElement)) {
+      return { target: slot, container: slot.parentElement };
+    }
     let el = hit;
     while (el && el.parentElement) {
       if (containers.includes(el) && layoutItems(el).length === 0) return { target: null, container: el };
@@ -1243,7 +1332,9 @@ function startRoamDrag(e, item) {
     const r = target.getBoundingClientRect();
     const cs = getComputedStyle(container);
     const horizontal = cs.display === "grid" || (cs.display === "flex" && cs.flexDirection === "row");
-    const before = horizontal ? ev.clientX < r.left + r.width / 2 : ev.clientY < r.top + r.height / 2;
+    const before =
+      target.classList.contains("widget-slot") ||
+      (horizontal ? ev.clientX < r.left + r.width / 2 : ev.clientY < r.top + r.height / 2);
     if (target === last?.target && before === last?.before) return;
     last = { target, before };
     if (before) target.before(item);
@@ -1338,44 +1429,69 @@ function applyFlexGrow(el, grow) {
   el.dataset.layoutGrow = "";
 }
 
+function applyLayoutHeight(el, px) {
+  if (!(px > 0)) return;
+  el.style.setProperty("--layout-h", `${Math.round(px)}px`);
+  el.dataset.layoutH = "";
+  el.dataset.rowHeight = String(Math.round(px));
+}
+
+function applyLayoutWidth(el, px) {
+  if (!(px > 0)) return;
+  el.style.setProperty("--layout-w", `${Math.round(px)}px`);
+  el.dataset.layoutW = "";
+}
+
+function clearLayoutBox(el) {
+  el.style.removeProperty("--layout-grow");
+  el.style.removeProperty("--layout-h");
+  el.style.removeProperty("--layout-w");
+  delete el.dataset.layoutGrow;
+  delete el.dataset.layoutH;
+  delete el.dataset.layoutW;
+  delete el.dataset.rowHeight;
+  delete el.dataset.rowWeight;
+  delete el.dataset.colFrac;
+  el.style.gridColumn = "";
+}
+
+function applySavedSize(el, size) {
+  if (!size) return;
+  if (size.grow > 0) applyFlexGrow(el, size.grow);
+  if (size.height > 0) applyLayoutHeight(el, size.height);
+  if (size.width > 0) applyLayoutWidth(el, size.width);
+  if (size.frac) el.dataset.colFrac = String(size.frac);
+}
+
 function isWidgetGrid(el) {
   return Boolean(el && el.classList.contains("overview-grid"));
 }
 
-// Wachsende, offene Geschwister entlang der Hauptachse eines Flex-Containers
-function flexGrowItems(parent) {
-  return layoutItems(parent).filter(
-    (el) => !el.classList.contains("collapsed") && parseFloat(getComputedStyle(el).flexGrow) > 0,
-  );
-}
-
-// Sucht für jede Achse das Element, dessen Flex-Anteil die Größe bestimmt (das Widget selbst oder seine Zeile/Spalte)
-function flexResizeTargets(item) {
-  const targets = {};
-  ["row", "column"].forEach((axis) => {
-    let el = item;
-    while (el && el.parentElement) {
-      const parent = el.parentElement;
-      const cs = getComputedStyle(parent);
-      if (cs.display === "flex" && cs.flexDirection === axis) {
-        const growing = flexGrowItems(parent);
-        if (growing.length > 1 && growing.includes(el)) targets[axis] = el;
-        break;
-      }
-      if (parent.classList.contains("page") || !parent.matches(LAYOUT_CONTAINER_SELECTOR)) break;
-      el = parent;
+// Flex-Eltern, in denen dieses Element in der Breite (row) bzw. Höhe (column) gezogen werden kann
+function flexResizeAxes(item) {
+  const axes = { x: false, y: false };
+  let el = item;
+  while (el && el.parentElement) {
+    const parent = el.parentElement;
+    const cs = getComputedStyle(parent);
+    if (cs.display === "flex") {
+      if (cs.flexDirection === "row") axes.x = true;
+      if (cs.flexDirection === "column") axes.y = true;
+      break;
     }
-  });
-  return targets;
+    if (parent.classList.contains("page") || !parent.matches(LAYOUT_CONTAINER_SELECTOR)) break;
+    el = parent;
+  }
+  return axes;
 }
 
 function resizeMode(item) {
   if (item.classList.contains("collapsed")) return null;
   if (isWidgetGrid(item.parentElement)) return { grid: true, x: true, y: !MOBILE_SCROLL_QUERY.matches };
   if (MOBILE_SCROLL_QUERY.matches) return null;
-  const t = flexResizeTargets(item);
-  if (!t.row && !t.column) return null;
-  return { grid: false, x: Boolean(t.row), y: Boolean(t.column), targets: t };
+  const axes = flexResizeAxes(item);
+  if (!axes.x && !axes.y) return null;
+  return { grid: false, x: axes.x, y: axes.y };
 }
 
 function updateResizeHandles() {
@@ -1387,27 +1503,137 @@ function updateResizeHandles() {
   });
 }
 
-function startFlexResize(e, item, targets) {
-  const axes = Object.entries(targets).map(([axis, el]) => {
-    const horizontal = axis === "row";
-    const siblings = flexGrowItems(el.parentElement);
-    const sizes = siblings.map((s) => (horizontal ? s.getBoundingClientRect().width : s.getBoundingClientRect().height));
-    const total = sizes.reduce((a, b) => a + b, 0);
-    return { el, horizontal, siblings, sizes, total, start: sizes[siblings.indexOf(el)] };
+function pageViewBox(page) {
+  return page.getBoundingClientRect();
+}
+
+function tileOutOfView(el, view, slack = 4) {
+  const r = el.getBoundingClientRect();
+  if (r.width < 2 || r.height < 2) return false;
+  return r.right > view.right + slack || r.bottom > view.bottom + slack || r.left < view.left - slack || r.top < view.top - slack;
+}
+
+function clampTileToView(el, view) {
+  const r = el.getBoundingClientRect();
+  const maxW = Math.max(LAYOUT_MIN_WIDTH, Math.floor(view.right - r.left - 4));
+  const maxH = Math.max(LAYOUT_MIN_HEIGHT, Math.floor(view.bottom - r.top - 4));
+  const patch = {};
+  if (r.width > maxW + 2) {
+    if (el.dataset.layoutW) {
+      applyLayoutWidth(el, maxW);
+      patch.width = maxW;
+    } else {
+      el.style.maxWidth = `${maxW}px`;
+    }
+    el.classList.add("tile-in-view");
+  }
+  if (r.height > maxH + 2) {
+    if (el.dataset.layoutH) {
+      applyLayoutHeight(el, maxH);
+      patch.height = maxH;
+    } else {
+      el.style.maxHeight = `${maxH}px`;
+    }
+    el.classList.add("tile-in-view");
+  }
+  if (Object.keys(patch).length) saveLayoutSize(layoutItemId(el), patch);
+}
+
+function keepTilesInView(page) {
+  if (!page || !page.classList.contains("active") || MOBILE_SCROLL_QUERY.matches) return;
+  if (document.body.classList.contains("layout-dragging") || document.body.classList.contains("layout-resize-active"))
+    return;
+  const view = pageViewBox(page);
+  if (view.width < 80 || view.height < 80) return;
+
+  const tiles = [...page.querySelectorAll(".panel, .stat-card, .ov-widget")].filter(
+    (el) => el.offsetParent && !el.closest(".widget-picker-overlay") && !el.classList.contains("collapsed"),
+  );
+  tiles.forEach((el) => clampTileToView(el, view));
+
+  const stack = page.querySelector(":scope .weather-stack");
+  if (stack) {
+    const weather = stack.querySelector(":scope > .weather");
+    const radar = stack.querySelector(":scope > .radar");
+    const room = Math.floor(view.bottom - stack.getBoundingClientRect().top - 4);
+    stack.style.flexWrap = "nowrap";
+    stack.style.overflow = "hidden";
+    if (room >= LAYOUT_MIN_HEIGHT) stack.style.maxHeight = `${room}px`;
+    if (weather && radar && room > 320) {
+      const gap = parseFloat(getComputedStyle(stack).rowGap) || 12;
+      const maxWeather = Math.max(220, room - 180 - gap);
+      if (weather.getBoundingClientRect().height > maxWeather + 2) {
+        weather.style.maxHeight = `${maxWeather}px`;
+        weather.classList.add("tile-in-view");
+      }
+    }
+  }
+
+  [page, ...page.querySelectorAll(LAYOUT_CONTAINER_SELECTOR)].forEach((row) => {
+    if (row.classList.contains("page") || row.classList.contains("stat-row") || row.classList.contains("weather-stack"))
+      return;
+    const cs = getComputedStyle(row);
+    if (cs.display !== "flex" && cs.display !== "inline-flex") return;
+    const overflowsX = [...row.children].some(
+      (ch) => !ch.classList.contains("widget-slot") && ch.getBoundingClientRect().right > view.right + 6,
+    );
+    if (overflowsX && cs.flexDirection !== "column") {
+      row.style.flexWrap = "wrap";
+      row.style.alignContent = "flex-start";
+    }
+    if (cs.flexDirection === "column") {
+      const r = row.getBoundingClientRect();
+      const overflowsY =
+        r.bottom > view.bottom + 6 ||
+        [...row.children].some((ch) => !ch.classList.contains("widget-slot") && ch.getBoundingClientRect().bottom > view.bottom + 6);
+      if (overflowsY) {
+        const room = Math.floor(view.bottom - r.top - 4);
+        if (room >= LAYOUT_MIN_HEIGHT) {
+          row.style.maxHeight = `${room}px`;
+          row.style.minHeight = "0";
+          row.style.overflow = "hidden";
+          row.style.flexWrap = "nowrap";
+        }
+      }
+    }
   });
-  return (ev) => {
-    axes.forEach(({ el, horizontal, siblings, sizes, total, start }) => {
-      const delta = horizontal ? ev.clientX - e.clientX : ev.clientY - e.clientY;
-      const min = Math.min(horizontal ? LAYOUT_MIN_WIDTH : LAYOUT_MIN_HEIGHT, total / siblings.length);
-      const size = Math.min(Math.max(start + delta, min), total - min * (siblings.length - 1));
-      const scale = (total - size) / (total - start || 1);
-      siblings.forEach((s, i) => {
-        const px = s === el ? size : sizes[i] * scale;
-        const grow = +((px * siblings.length) / total).toFixed(3);
-        applyFlexGrow(s, grow);
-        saveLayoutSize(layoutItemId(s), { grow });
+
+  requestAnimationFrame(() => {
+    if (!page.classList.contains("active") || MOBILE_SCROLL_QUERY.matches) return;
+    const box = pageViewBox(page);
+    tiles
+      .filter((el) => el.isConnected && tileOutOfView(el, box))
+      .forEach((el) => {
+        const parent = el.parentElement;
+        if (!parent || parent.classList.contains("page") || parent.classList.contains("weather-stack")) return;
+        if (getComputedStyle(parent).flexDirection === "column") return;
+        parent.style.flexWrap = "wrap";
+        parent.style.justifyContent = "flex-start";
+        parent.style.alignContent = "flex-start";
       });
-    });
+    fitFlexRowSlots(page);
+  });
+}
+
+function startFlexResize(e, item, mode) {
+  const start = item.getBoundingClientRect();
+  const page = item.closest(".page");
+  return (ev) => {
+    const view = page ? pageViewBox(page) : null;
+    const patch = {};
+    if (mode.x) {
+      let width = Math.max(LAYOUT_MIN_WIDTH, Math.round(start.width + ev.clientX - e.clientX));
+      if (view) width = Math.min(width, Math.max(LAYOUT_MIN_WIDTH, Math.floor(view.right - start.left - 4)));
+      applyLayoutWidth(item, width);
+      patch.width = width;
+    }
+    if (mode.y) {
+      let height = Math.max(LAYOUT_MIN_HEIGHT, Math.round(start.height + ev.clientY - e.clientY));
+      if (view) height = Math.min(height, Math.max(LAYOUT_MIN_HEIGHT, Math.floor(view.bottom - start.top - 4)));
+      applyLayoutHeight(item, height);
+      patch.height = height;
+    }
+    saveLayoutSize(layoutItemId(item), patch);
   };
 }
 
@@ -1428,20 +1654,9 @@ function startGridResize(e, item) {
     // Neue Breite kann die Reihen umsortieren, daher die Höhe erst danach auf die aktuelle Reihe anwenden
     fitWidgetGrid(grid);
     if (MOBILE_SCROLL_QUERY.matches) return;
-
-    const rows = grid._layoutRows || [];
-    const rowIndex = rows.findIndex((row) => row.some(({ el }) => el === item));
-    const rowPx = getComputedStyle(grid).gridTemplateRows.split(" ").map(parseFloat);
-    const openRows = rows.map((_, i) => i).filter((i) => isOpenRow(rows[i]));
-    const otherRows = openRows.filter((i) => i !== rowIndex);
-    if (rowIndex < 0 || !otherRows.length) return;
-    const totalOpen = openRows.reduce((sum, i) => sum + (rowPx[i] || 0), 0);
-    const otherWeight = otherRows.reduce((sum, i) => sum + rowWeight(rows[i]), 0);
-    const min = OVERVIEW_MIN_TILE;
-    const h = Math.min(Math.max(startRect.height + ev.clientY - e.clientY, min), totalOpen - min * otherRows.length);
-    const weight = +((h * otherWeight) / (totalOpen - h)).toFixed(3);
-    item.dataset.rowWeight = String(weight);
-    saveLayoutSize(layoutItemId(item), { weight });
+    const height = Math.max(LAYOUT_MIN_HEIGHT, Math.round(startRect.height + ev.clientY - e.clientY));
+    applyLayoutHeight(item, height);
+    saveLayoutSize(layoutItemId(item), { height });
     fitWidgetGrid(grid);
   };
 }
@@ -1452,7 +1667,7 @@ function startLayoutResize(e, item) {
   if (!mode) return;
   e.preventDefault();
   e.stopPropagation();
-  const onMove = mode.grid ? startGridResize(e, item) : startFlexResize(e, item, mode.targets);
+  const onMove = mode.grid ? startGridResize(e, item) : startFlexResize(e, item, mode);
   document.body.classList.add("layout-resize-active");
   item.classList.add("layout-resizing");
   function onUp() {
@@ -1472,10 +1687,7 @@ function startLayoutResize(e, item) {
 function applySavedFlexSizes() {
   const sizes = loadLayoutSizes();
   document.querySelectorAll(LAYOUT_CONTAINER_SELECTOR).forEach((container) => {
-    layoutItems(container, true).forEach((el) => {
-      const grow = sizes[layoutItemId(el)]?.grow;
-      if (grow > 0) applyFlexGrow(el, grow);
-    });
+    layoutItems(container, true).forEach((el) => applySavedSize(el, sizes[layoutItemId(el)]));
   });
 }
 
@@ -1562,8 +1774,7 @@ function resetLayoutOrderAndSizes(page) {
       localStorage.removeItem(LAYOUT_STORAGE_PREFIX + layoutContainerKey(container));
     } catch (err) {}
     layoutItems(container, true).forEach((el) => {
-      el.style.removeProperty("--layout-grow");
-      delete el.dataset.layoutGrow;
+      clearLayoutBox(el);
       saveLayoutSize(layoutItemId(el), null);
     });
   });
@@ -2373,6 +2584,7 @@ async function loadWeatherForPlace(lat, lon, label) {
       t("weather.source");
     weatherLoading.textContent = "";
     setLastUpdatedNow();
+    requestAnimationFrame(() => fitAllWidgetGrids());
     return true;
   } catch (err) {
     reportError("Wetter", err);
@@ -2676,6 +2888,13 @@ function renderFire(days) {
   const week = days.slice(-7);
   const prev = days.length >= 14 ? days.slice(-14, -7) : null;
   const last = week[week.length - 1];
+  const prevDay = days.length >= 2 ? days[days.length - 2] : null;
+  document.getElementById("fireYesterday").textContent = last.fire.toLocaleString(LOCALE);
+  document.getElementById("fireYesterdayLabel").textContent = t("fire.stat.yesterday", { date: fireDayLabel(last.date) });
+  setStatDelta(
+    "fireYesterdayDelta",
+    formatDelta(last.fire, prevDay?.fire, "", prevDay ? fireDayLabel(prevDay.date) : ""),
+  );
 
   const total = sumBy(week, "fire");
   const prevTotal = prev ? sumBy(prev, "fire") : null;
@@ -2762,10 +2981,11 @@ function renderFire(days) {
 }
 
 function renderFireNoData() {
-  ["fireTotal", "fireAvg", "firePeak", "fireResponse"].forEach((id) => {
+  ["fireTotal", "fireAvg", "firePeak", "fireResponse", "fireYesterday"].forEach((id) => {
     document.getElementById(id).textContent = "–";
   });
-  ["fireTotalDelta", "fireAvgDelta", "firePeakDelta", "fireResponseDelta"].forEach((id) =>
+  document.getElementById("fireYesterdayLabel").textContent = t("fire.stat.yesterdayFallback");
+  ["fireTotalDelta", "fireAvgDelta", "firePeakDelta", "fireResponseDelta", "fireYesterdayDelta"].forEach((id) =>
     setStatDelta(id, { main: t("common.noDataMain"), suffix: t("common.noDataSuffix") }),
   );
   ["fireBarChart", "fireDonut"].forEach((id) => {
@@ -3098,11 +3318,15 @@ loadWaterData();
 
 // ---- Übersicht: frei zusammenstellbare Widgets ----
 const OVERVIEW_STORAGE_KEY = "dashboard-overview-widgets";
-const OVERVIEW_DEFAULT = ["weather-now", "weather-kpis", "forecast-bars", "rain-donut", "temp-wave"];
+const OVERVIEW_DEFAULT = ["weather-now", "fire-chart", "water-chart"];
+const OVERVIEW_DEFAULT_LEGACY = [
+  ["weather-now", "weather-kpis", "forecast-bars", "rain-donut", "temp-wave"],
+  ["fire-yesterday", "water-level", "weather-now", "forecast-bars"],
+  ["weather-now", "fire-chart", "water-chart", "water-berlin"],
+];
 const OVERVIEW_MIN_COL = 260;
+const OVERVIEW_ROW = 280;
 const OVERVIEW_MIN_COL_TIGHT = 160;
-const OVERVIEW_MIN_ROW = 150;
-const OVERVIEW_MIN_TILE = 110;
 const OVERVIEW_MOBILE_ROW = 200;
 const MOBILE_SCROLL_QUERY = window.matchMedia("(max-width: 760px)");
 const BASE_TILE_URL =
@@ -3125,7 +3349,6 @@ const OVERVIEW_ICONS = {
   clock: svgIcon('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'),
   warning: svgIcon('<path d="M12 3.5L2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/>'),
   phone: svgIcon('<path d="M6.5 3.5c1 2 1.5 3.5 1.5 4.5 0 1-2 1.5-2 2.5 0 2.5 4 6.5 6.5 6.5 1 0 1.5-2 2.5-2 1 0 2.5.5 4.5 1.5 0 2-1.5 4-3.5 4-6 0-13-7-13-13 0-2 2-4 4-4z"/>'),
-  pin: svgIcon('<path d="M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/>'),
   fire: svgIcon('<path d="M12 21c-3.9 0-6.5-2.6-6.5-6.2 0-3.3 2.3-5.4 3.6-7.6.3 1.6 1.1 2.8 2.2 3.4.2-2.9 1.4-5.6 3.7-7.6.3 2.7 1.3 4.6 2.6 6.4 1 1.4.9 2.9.9 5.4 0 3.6-2.6 6.2-6.5 6.2z"/>'),
   table: svgIcon('<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M3.5 14.5h17M9.5 9.5v10"/>'),
 };
@@ -3135,7 +3358,8 @@ const OVERVIEW_WIDGETS = {
   "weather-now": {
     group: "weather",
     icon: OVERVIEW_ICONS.cloud,
-    mirror: ["#weatherPlace", "#weatherIcon", "#weatherPanel .temp-row"],
+    source: "#weatherPanel",
+    wide: true,
   },
   "weather-kpis": {
     group: "weather",
@@ -3146,23 +3370,25 @@ const OVERVIEW_WIDGETS = {
   "forecast-bars": {
     group: "weather",
     icon: OVERVIEW_ICONS.bars,
-    mirror: ["#barChart"],
+    source: "#weatherForecastPanel",
   },
   "rain-donut": {
     group: "weather",
     icon: OVERVIEW_ICONS.donut,
-    mirror: ["#donutChart", "#donutCaption"],
+    source: "#weatherRainPanel",
   },
   "temp-wave": {
     group: "weather",
     icon: OVERVIEW_ICONS.wave,
-    mirror: ["#waveDayLabel", "#waveChart"],
+    source: "#weatherWavePanel",
     wide: true,
   },
   radar: {
     group: "weather",
     icon: OVERVIEW_ICONS.radar,
     mount: mountRadarWidget,
+    hideOn: ["#radarPanel"],
+    compact: "ov-compact-radar",
   },
   calendar: {
     group: "calendar",
@@ -3179,6 +3405,7 @@ const OVERVIEW_WIDGETS = {
     group: "calendar",
     icon: OVERVIEW_ICONS.notes,
     mount: mountNotesWidget,
+    compact: "ov-compact-notes",
   },
   todo: {
     group: "calendar",
@@ -3210,10 +3437,11 @@ const OVERVIEW_WIDGETS = {
     icon: OVERVIEW_ICONS.phone,
     mount: mountEmergencyNumbersWidget,
   },
-  meeting: {
-    group: "safety",
-    icon: OVERVIEW_ICONS.pin,
-    mount: mountMeetingWidget,
+  "fire-yesterday": {
+    group: "fire",
+    icon: OVERVIEW_ICONS.fire,
+    mirror: ["#fireYesterdayCard"],
+    compact: "ov-compact-kpi",
   },
   "fire-kpis": {
     group: "fire",
@@ -3224,18 +3452,24 @@ const OVERVIEW_WIDGETS = {
   "fire-chart": {
     group: "fire",
     icon: OVERVIEW_ICONS.bars,
-    mirror: ["#fireChartSub", "#fireBarChart"],
+    source: "#fireChartPanel",
+    wide: true,
   },
   "fire-share": {
     group: "fire",
     icon: OVERVIEW_ICONS.donut,
-    mirror: ["#fireDonut", "#fireDonutCaption"],
+    source: "#fireSharePanel",
   },
   "fire-table": {
     group: "fire",
     icon: OVERVIEW_ICONS.table,
-    mirror: ["#fireTablePanel .fire-table-wrap"],
+    source: "#fireTablePanel",
     wide: true,
+  },
+  "water-level": {
+    group: "water",
+    icon: OVERVIEW_ICONS.wave,
+    mirror: ["#waterLevelCard"],
   },
   "water-kpis": {
     group: "water",
@@ -3246,62 +3480,20 @@ const OVERVIEW_WIDGETS = {
   "water-chart": {
     group: "water",
     icon: OVERVIEW_ICONS.wave,
-    mirror: ["#waterChartSub", "#waterChart"],
+    source: "#waterChartPanel",
+    wide: true,
+  },
+  "water-berlin": {
+    group: "water",
+    icon: OVERVIEW_ICONS.wave,
+    mirror: ["#waterBerlinPanel .panel-sub", "#waterBerlinList"],
+    wide: true,
   },
 };
 
-// IDs werden umbenannt, damit sie eindeutig bleiben und SVG-Verläufe nicht auf die versteckte Vorlage zeigen
-function cloneForMirror(src, suffix) {
-  const clone = src.cloneNode(true);
-  clone.querySelectorAll(".panel-toggle, .layout-handle, .layout-resize, .fire-export").forEach((el) => el.remove());
-  [clone, ...clone.querySelectorAll("*")].forEach((el) => {
-    el.classList.remove("collapsed", "layout-group", "layout-dragging", "layout-resizing");
-    el.removeAttribute("data-layout-id");
-    el.removeAttribute("data-layout-item");
-    el.removeAttribute("data-layout-grow");
-    el.style.removeProperty("--layout-grow");
-    if (el.id) el.id += "--" + suffix;
-    ["fill", "stroke", "clip-path", "mask"].forEach((attr) => {
-      const value = el.getAttribute(attr);
-      if (value && value.includes("url(#"))
-        el.setAttribute(attr, value.replace(/url\(#([^)]+)\)/g, `url(#$1--${suffix})`));
-    });
-  });
-  clone.hidden = false;
-  return clone;
-}
-
-// Aus einer Kennzahlen-Reihe herausgezogene Karten gehören für die Spiegelung weiter zur Reihe
 function mirrorMembers(src) {
   if (!src.classList.contains("stat-row") || !src._defaultOrder) return null;
   return [...layoutItems(src, true), ...src._defaultOrder.filter((el) => el.parentElement !== src)];
-}
-
-function mountMirrorWidget(body, selectors, suffix) {
-  const sources = selectors.map((s) => document.querySelector(s)).filter(Boolean);
-  let queued = false;
-  const update = () => {
-    queued = false;
-    body.replaceChildren(
-      ...sources.map((src) => {
-        const members = mirrorMembers(src);
-        const clone = cloneForMirror(src, suffix);
-        if (members) clone.replaceChildren(...members.map((el) => cloneForMirror(el, suffix)));
-        return clone;
-      }),
-    );
-  };
-  const observer = new MutationObserver(() => {
-    if (queued) return;
-    queued = true;
-    requestAnimationFrame(update);
-  });
-  const watched = sources.flatMap((src) => [src, ...(mirrorMembers(src) ? src._defaultOrder : [])]);
-  watched.forEach((el) =>
-    observer.observe(el, { childList: true, subtree: true, characterData: true, attributes: true }),
-  );
-  update();
-  return () => observer.disconnect();
 }
 
 function mountRadarWidget(body) {
@@ -3383,24 +3575,27 @@ function mountCalendarTodayWidget(body) {
   };
 }
 
-function mountMeetingWidget(body) {
-  renderInto(
-    body,
-    `<div class="panel-sub">${t("meeting.sub")}</div>
-    <input type="text" class="meeting-input" placeholder="${t("meeting.placeholder")}" autocomplete="off" aria-label="${t("widget.meeting.title")}">
-    <div class="notes-saved">&nbsp;</div>`,
-  );
-  return bindMeetingPointInput(body.querySelector(".meeting-input"), body.querySelector(".notes-saved"));
-}
-
 // Jede Seite hat ein eigenes Widget-Raster; die Übersicht ist eines davon
 const PAGE_WIDGETS_STORAGE_PREFIX = "dashboard-page-widgets-";
 const widgetBoards = new Map();
 
+function sameTypeList(a, b) {
+  return Array.isArray(a) && a.length === b.length && a.every((type, i) => type === b[i]);
+}
+
 function loadBoardTypes(board, defaults) {
   try {
     const raw = localStorage.getItem(board.storageKey);
-    if (raw) return JSON.parse(raw).filter((type) => OVERVIEW_WIDGETS[type]);
+    if (raw) {
+      const types = JSON.parse(raw).filter((type) => OVERVIEW_WIDGETS[type]);
+      if (
+        board.storageKey === OVERVIEW_STORAGE_KEY &&
+        OVERVIEW_DEFAULT_LEGACY.some((legacy) => sameTypeList(types, legacy))
+      ) {
+        return [...defaults];
+      }
+      return types;
+    }
   } catch (err) {}
   return [...defaults];
 }
@@ -3418,40 +3613,41 @@ function createWidgetBoard(page, grid, { prefix, storageKey, defaults = [], empt
 
 // Ein Spiegel-Widget der eigenen Seite würde nur doppelt anzeigen, was dort schon steht
 function boardOffersWidget(board, def) {
-  return !def.mirror || !def.mirror.some((sel) => board.page.contains(document.querySelector(sel)));
+  const sources = [def.source, ...(def.mirror || []), ...(def.hideOn || [])].filter(Boolean);
+  return !sources.some((sel) => {
+    const el = document.querySelector(sel);
+    return el && board.page.contains(el);
+  });
+}
+
+function widgetApi(board) {
+  return {
+    t,
+    setupToggle,
+    loadLayoutSizes,
+    applySavedSize,
+    onRemove: (type) => removeBoardWidget(board, type),
+  };
 }
 
 function mountBoardWidget(board, type) {
   const def = OVERVIEW_WIDGETS[type];
-  const title = t(`widget.${type}.title`);
-  const panel = document.createElement("section");
-  panel.className = "panel ov-widget" + (def.wide ? " ov-wide" : "");
-  panel.id = `${board.prefix}-${type}`;
-  panel.setAttribute("aria-label", title);
-  panel.innerHTML = `
-    <div class="panel-title">${title}</div>
-    <button type="button" class="ov-remove" aria-label="${t("widget.removeAria", { title })}" title="${t("widget.remove")}">×</button>
-    <div class="ov-body ov-body-${type}"></div>`;
-  const toggle = document.createElement("button");
-  toggle.type = "button";
-  toggle.className = "panel-toggle auto-toggle";
-  toggle.setAttribute("aria-label", t("widget.toggleAria", { title }));
-  toggle.innerHTML = CHEVRON_SVG;
-  panel.appendChild(toggle);
-  setupToggle(panel, toggle);
-  panel.querySelector(".ov-remove").addEventListener("click", () => removeBoardWidget(board, type));
-  const size = loadLayoutSizes()[panel.id];
-  if (size?.frac) panel.dataset.colFrac = String(size.frac);
-  if (size?.weight) panel.dataset.rowWeight = String(size.weight);
-  board.grid.appendChild(panel);
-
-  const body = panel.querySelector(".ov-body");
   let cleanup = null;
   try {
-    cleanup = def.mirror ? mountMirrorWidget(body, def.mirror, board.prefix) : def.mount(body);
+    if (def.source) {
+      cleanup = DashboardWidgets.mountClonedSource(board, type, def, widgetApi(board));
+    } else {
+      const panel = DashboardWidgets.createShell(board, type, def, widgetApi(board));
+      const body = panel.querySelector(".ov-body");
+      cleanup = def.mirror
+        ? DashboardWidgets.mountFragmentMirror(body, def.mirror, board.prefix, mirrorMembers)
+        : def.mount(body);
+    }
   } catch (err) {
     console.error(`[Dashboard] Widget "${type}" konnte nicht gestartet werden:`, err);
-    renderRetry(body, t("widget.failed"), null, "chart-empty");
+    const panel = document.getElementById(`${board.prefix}-${type}`);
+    const body = panel?.querySelector(".ov-body") || panel;
+    if (body) renderRetry(body, t("widget.failed"), null, "chart-empty");
   }
   board.cleanups.set(type, typeof cleanup === "function" ? cleanup : null);
 }
@@ -3461,6 +3657,15 @@ function addBoardWidget(board, type) {
   board.types.push(type);
   saveBoardTypes(board);
   mountBoardWidget(board, type);
+  const panel = document.getElementById(`${board.prefix}-${type}`);
+  const dest = pickerInsert;
+  if (panel && dest && dest !== board.grid && dest.closest(".page") === board.page && canRoam(panel)) {
+    const slot = dest.querySelector(":scope > .widget-slot");
+    if (slot) slot.before(panel);
+    else dest.appendChild(panel);
+    saveWidgetPlace(panel.id, layoutContainerKey(dest));
+    saveLayoutOrder(dest);
+  }
   afterBoardChange(board);
   saveLayoutOrder(board.grid);
 }
@@ -3484,16 +3689,18 @@ function afterBoardChange(board) {
   if (board.emptyEl) board.emptyEl.hidden = board.types.length > 0;
   refreshLayoutHandles();
   fitWidgetGrid(board.grid);
+  fitFlexRowSlots(board.page);
+  if (board.page.classList.contains("active")) keepTilesInView(board.page);
   if (pickerOverlay.classList.contains("show") && pickerBoard === board) renderWidgetPicker();
 }
 
-// Zeilen, in denen alles eingeklappt ist, bekommen nur ihre Titelhöhe; alle anderen teilen sich den Rest
+// Zeilen, in denen alles eingeklappt ist, bekommen nur ihre Titelhöhe
 function fitWidgetGrid(grid) {
   if (!grid.offsetParent) return;
   const gap = parseFloat(getComputedStyle(grid).columnGap) || 0;
   const width = grid.clientWidth;
-  const height = grid.clientHeight;
   const items = layoutItems(grid);
+  grid.querySelectorAll(":scope > .widget-slot").forEach((el) => el.remove());
 
   // Mobil scrollt die Seite: feste Kachelhöhe, breite Widgets über die ganze Breite
   if (MOBILE_SCROLL_QUERY.matches) {
@@ -3501,68 +3708,56 @@ function fitWidgetGrid(grid) {
     const mobileRows = packOverviewRows(items, mobileCols, 2);
     grid._layoutRows = mobileRows;
     grid.classList.remove("ov-overfull");
+    grid.style.display = "";
     grid.style.gridTemplateColumns = `repeat(${mobileCols}, minmax(0, 1fr))`;
-    mobileRows.forEach((row) => row.forEach(({ el, span }) => (el.style.gridColumn = span > 1 ? `span ${span}` : "")));
+    grid.style.justifyContent = "";
+    mobileRows.forEach((row) =>
+      row.forEach(({ el, span }) => {
+        el.style.gridColumn = span > 1 ? `span ${span}` : "";
+        el.style.gridRow = "";
+      }),
+    );
     grid.style.gridTemplateRows = mobileRows
-      .map((row) => (isOpenRow(row) ? `${OVERVIEW_MOBILE_ROW}px` : "auto"))
+      .map((row) => (isOpenRow(row) ? "max-content" : "auto"))
       .join(" ");
     return;
   }
 
-  const rowHeight = (c) => {
-    const rowCount = packOverviewRows(items, c).length;
-    return (height - gap * (rowCount - 1)) / rowCount;
-  };
-  // Bei wenig Höhe lieber schmalere Kacheln nebeneinander als zu flache untereinander
-  let cols = Math.max(1, Math.floor((width + gap) / (OVERVIEW_MIN_COL + gap)));
-  while (
-    cols < items.length &&
-    rowHeight(cols) < OVERVIEW_MIN_ROW &&
-    (width - gap * cols) / (cols + 1) >= OVERVIEW_MIN_COL_TIGHT
-  ) {
-    cols++;
-  }
-  const rows = packOverviewRows(items, cols);
-  grid._layoutRows = rows;
-  // Nur wenn so viele Widgets gewählt sind, dass nicht einmal die Titel passen, darf das Raster scrollen
-  const overfull = items.length > 0 && rowHeight(cols) < OVERVIEW_MIN_TILE;
-  grid.classList.toggle("ov-overfull", overfull);
-  const minRow = overfull ? OVERVIEW_MIN_TILE : 0;
-  grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
-  rows.forEach((row) => row.forEach(({ el, span }) => (el.style.gridColumn = span > 1 ? `span ${span}` : "")));
-  // fr-Werte mit Summe unter 1 füllen die Höhe nicht, daher nur das Verhältnis der Reihen übernehmen
-  const openWeight = rows.filter(isOpenRow).reduce((sum, row) => sum + rowWeight(row), 0);
-  const scale = openWeight > 0 && openWeight < 1 ? 1 / openWeight : 1;
-  grid.style.gridTemplateRows = rows
-    .map((row) => (isOpenRow(row) ? `minmax(${minRow}px, ${+(rowWeight(row) * scale).toFixed(3)}fr)` : "auto"))
-    .join(" ");
+  grid.classList.remove("ov-overfull");
+  grid.style.display = "flex";
+  grid.style.flexWrap = "wrap";
+  grid.style.justifyContent = "flex-start";
+  grid.style.alignContent = "start";
+  grid.style.alignItems = "start";
+  grid.style.gridTemplateColumns = "";
+  grid.style.gridTemplateRows = "";
+  items.forEach((el) => {
+    el.style.gridColumn = "";
+    el.style.gridRow = "";
+  });
+  const page = grid.closest(".page");
+  if (page) grid.appendChild(makeWidgetSlot(page));
 }
 function isOpenRow(row) {
   return row.some(({ el }) => !el.classList.contains("collapsed"));
 }
-// Eine Reihe ist so hoch wie ihr höchstes offenes Widget
-function rowWeight(row) {
-  return Math.max(
-    1e-3,
-    ...row.filter(({ el }) => !el.classList.contains("collapsed")).map(({ el }) => Number(el.dataset.rowWeight) || 1),
-  );
-}
 function fitAllWidgetGrids() {
-  widgetBoards.forEach((board) => fitWidgetGrid(board.grid));
+  document.querySelectorAll(".ov-widget .widget-slot, .ov-body .widget-slot").forEach((el) => el.remove());
+  widgetBoards.forEach((board) => {
+    fitWidgetGrid(board.grid);
+    fitFlexRowSlots(board.page);
+    if (board.page.classList.contains("active")) keepTilesInView(board.page);
+  });
 }
 
-// Verteilt die Kacheln zeilenweise; die freien Spalten einer Zeile gehen reihum an die Kacheln,
-// deren Breite nicht von Hand festgelegt wurde
+// Verteilt die Kacheln zeilenweise. Freie Spalten bleiben frei (Platzhalter),
+// statt die vorhandenen Widgets zu strecken.
 function packOverviewRows(items, cols, minColsForWide = 3) {
   const rows = [];
   let row = [];
   let used = 0;
   const closeRow = () => {
     if (!row.length) return;
-    const flexible = row.filter((cell) => !cell.fixed).reverse();
-    for (let free = cols - used, i = 0; free > 0 && flexible.length; free--, i++) {
-      flexible[i % flexible.length].span++;
-    }
     rows.push(row);
     row = [];
     used = 0;
@@ -3570,7 +3765,12 @@ function packOverviewRows(items, cols, minColsForWide = 3) {
   items.forEach((el) => {
     const frac = Number(el.dataset.colFrac) || 0;
     const custom = frac ? Math.max(1, Math.round(frac * cols)) : 0;
-    const span = Math.min(cols, custom || (el.classList.contains("ov-wide") && cols >= minColsForWide ? 2 : 1));
+    const span = Math.min(
+      cols,
+      custom ||
+        (el.classList.contains("ov-full") ? cols : 0) ||
+        (el.classList.contains("ov-wide") && cols >= minColsForWide ? 2 : 1),
+    );
     if (used + span > cols) closeRow();
     row.push({ el, span, fixed: custom > 0 });
     used += span;
@@ -3579,10 +3779,55 @@ function packOverviewRows(items, cols, minColsForWide = 3) {
   return rows;
 }
 
+const FLEX_SLOT_ROWS = ":scope > .stat-row, :scope > .charts-row, :scope > .lower-row, :scope > .detail-row, :scope > .disaster-row";
+
+function makeWidgetSlot(page) {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "widget-slot";
+  btn.setAttribute("data-layout-fixed", "");
+  btn.setAttribute("data-i18n-attr", "aria-label=layout.addSlot");
+  btn.setAttribute("aria-label", t("layout.addSlot"));
+  btn.innerHTML = `<span class="widget-slot-plus" aria-hidden="true">+</span><span class="widget-slot-label" data-i18n="layout.addSlot">${t("layout.addSlot")}</span>`;
+  btn.addEventListener("click", () => {
+    const board = widgetBoards.get(page.id);
+    if (board) openWidgetPicker(board, btn.parentElement);
+  });
+  return btn;
+}
+
+function fitFlexRowSlots(page) {
+  if (!page || !page.classList.contains("active")) return;
+  page.querySelectorAll(".ov-widget .widget-slot, .ov-body .widget-slot").forEach((el) => el.remove());
+  page.querySelectorAll(FLEX_SLOT_ROWS).forEach((row) => {
+    let slot = row.querySelector(":scope > .widget-slot");
+    if (!slot) {
+      slot = makeWidgetSlot(page);
+      row.appendChild(slot);
+    } else {
+      row.appendChild(slot);
+    }
+    if (MOBILE_SCROLL_QUERY.matches) {
+      slot.hidden = true;
+      return;
+    }
+    slot.hidden = false;
+    requestAnimationFrame(() => {
+      if (!slot.isConnected || slot.hidden) return;
+      const widgets = layoutItems(row).filter((el) => !el.classList.contains("collapsed"));
+      if (!widgets.length) return;
+      const last = widgets[widgets.length - 1].getBoundingClientRect();
+      const box = slot.getBoundingClientRect();
+      slot.hidden = box.top > last.top + 20 || box.width < 148;
+    });
+  });
+}
+
 // ---- Widget-Auswahl: fügt hinzu oder entfernt wieder ----
 const pickerOverlay = document.getElementById("widgetPickerOverlay");
 const pickerBody = document.getElementById("widgetPickerBody");
 let pickerBoard = null;
+let pickerInsert = null;
 
 function renderWidgetPicker() {
   const offered = Object.entries(OVERVIEW_WIDGETS).filter(([, d]) => boardOffersWidget(pickerBoard, d));
@@ -3611,14 +3856,16 @@ function renderWidgetPicker() {
     )
     .join("");
 }
-function openWidgetPicker(board) {
+function openWidgetPicker(board, insertContainer) {
   pickerBoard = board;
+  pickerInsert = insertContainer && insertContainer !== board.grid ? insertContainer : null;
   renderWidgetPicker();
   pickerOverlay.classList.add("show");
   pickerBody.querySelector(".widget-option")?.focus();
 }
 function closeWidgetPicker() {
   pickerOverlay.classList.remove("show");
+  pickerInsert = null;
 }
 pickerBody.addEventListener("click", (e) => {
   const option = e.target.closest(".widget-option");
@@ -3670,7 +3917,7 @@ function placeRoamingWidgets(board) {
     );
     if (!container) return;
     container.appendChild(panel);
-    if (sizes[panel.id]?.grow > 0) applyFlexGrow(panel, sizes[panel.id].grow);
+    if (sizes[panel.id]) applySavedSize(panel, sizes[panel.id]);
     touched.add(container);
   });
   touched.forEach(applySavedLayoutOrder);

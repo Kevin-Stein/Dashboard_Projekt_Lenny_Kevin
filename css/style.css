@@ -11,6 +11,9 @@
   --line-strong: #b9c6c4;
   --rain: #4e7ea0;
   --rain-soft: #dce7ee;
+  --font-ui: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --font-title: "Outfit", var(--font-ui);
+  --font-num: "Source Sans 3", var(--font-ui);
 }
 :root:not([data-theme="light"]) {
   @media (prefers-color-scheme: dark) {
@@ -51,11 +54,9 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family:
-    "Inter",
-    system-ui,
-    -apple-system,
-    sans-serif;
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1.45;
   -webkit-font-smoothing: antialiased;
   height: 100%;
   padding: 0;
@@ -80,11 +81,11 @@ header {
 }
 
 h1 {
-  font-family: "Fraunces", serif;
-  font-weight: 500;
+  font-family: var(--font-title);
+  font-weight: 650;
   font-size: clamp(28px, 4vw, 38px);
   margin: 0;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.03em;
 }
 
 .subline {
@@ -94,8 +95,10 @@ h1 {
 }
 
 .clock {
-  font-family: "Fraunces", serif;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums lining-nums;
   font-size: 15px;
+  font-weight: 600;
   color: var(--ink-soft);
   text-align: right;
 }
@@ -128,8 +131,14 @@ h1 {
   gap: 15px;
   position: relative;
   overflow: hidden;
-  min-height: 0;
-  flex: 1;
+  height: fit-content;
+  min-height: auto;
+  flex: 0 0 auto;
+  max-width: 560px;
+  padding: 22px;
+}
+.weather > * {
+  flex-shrink: 0;
 }
 
 .weather::before {
@@ -143,6 +152,7 @@ h1 {
   background: radial-gradient(circle, var(--amber) 0%, transparent 72%);
   opacity: 0.28;
   pointer-events: none;
+  z-index: 0;
 }
 
 .weather-top {
@@ -180,11 +190,13 @@ h1 {
 }
 
 .temp-now {
-  font-family: "Fraunces", serif;
-  font-weight: 500;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+  font-weight: 700;
   font-size: clamp(56px, 7vw, 78px);
   line-height: 0.9;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.04em;
   opacity: 0;
   animation: rise 0.6s ease-out 0.1s forwards;
 }
@@ -217,7 +229,7 @@ h1 {
 
 .forecast {
   display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-columns: repeat(8, minmax(min-content, 1fr));
   gap: 8px;
   padding-top: 18px;
   border-top: 1px solid var(--line);
@@ -303,13 +315,17 @@ h1 {
 
 .weather-stat-label {
   font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
   color: var(--ink-soft);
   line-height: 1.2;
 }
 
 .weather-stat-value {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums lining-nums;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 650;
   line-height: 1.2;
 }
 
@@ -342,9 +358,10 @@ h1 {
 }
 
 .day-detail-title {
-  font-family: "Fraunces", serif;
+  font-family: var(--font-title);
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 .day-detail-rain {
@@ -445,7 +462,7 @@ h1 {
 .weather-search input {
   flex: 1;
   min-width: 0;
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-ui);
   font-size: 13.5px;
   padding: 9px 11px;
   border: 1px solid var(--line-strong);
@@ -460,7 +477,7 @@ h1 {
 }
 
 .weather-search button {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-ui);
   font-size: 13px;
   font-weight: 500;
   padding: 9px 13px;
@@ -510,9 +527,10 @@ h1 {
 }
 
 .cal-title {
-  font-family: "Fraunces", serif;
+  font-family: var(--font-title);
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 .cal-nav {
@@ -571,7 +589,7 @@ h1 {
   color: var(--ink);
   background: transparent;
   border: none;
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-ui);
   font-size: 12.5px;
   transition: background 0.15s ease;
 }
@@ -658,7 +676,7 @@ h1 {
 .cal-add input {
   flex: 1;
   min-width: 0;
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-ui);
   font-size: 12.5px;
   padding: 7px 9px;
   border: 1px solid var(--line-strong);
@@ -740,6 +758,9 @@ h1 {
 .widget-picker-overlay.show {
   display: flex;
 }
+.widget-picker-overlay[hidden] {
+  display: none;
+}
 
 .widget-picker {
   background: var(--panel);
@@ -802,6 +823,52 @@ h1 {
   gap: 8px;
 }
 
+.changelog-dialog {
+  max-width: 560px;
+}
+.changelog-lead {
+  margin: 0 0 14px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+.changelog-body {
+  gap: 18px;
+}
+.changelog-release-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.changelog-version {
+  font-family: Fraunces, Georgia, serif;
+  font-size: 18px;
+  font-weight: 600;
+}
+.changelog-date {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+.changelog-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0 0 6px;
+}
+.changelog-list {
+  margin: 0 0 12px;
+  padding-left: 1.15em;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
 .widget-option {
   display: flex;
   align-items: center;
@@ -813,7 +880,7 @@ h1 {
   background: transparent;
   cursor: pointer;
   color: var(--ink);
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-ui);
   transition:
     border-color 0.15s ease,
     background 0.15s ease;
@@ -947,7 +1014,7 @@ h1 {
 .todo-add input {
   flex: 1;
   min-width: 0;
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-ui);
   font-size: 13px;
   padding: 8px 10px;
   border: 1px solid var(--line-strong);
@@ -1014,10 +1081,13 @@ h1 {
 
 /* Notes widget */
 .notes-area {
+  box-sizing: border-box;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 160px;
   resize: vertical;
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-ui);
   font-size: 13px;
   line-height: 1.5;
   padding: 12px;
@@ -1055,8 +1125,11 @@ h1 {
   color: var(--ink-soft);
 }
 .clock-row-time {
-  font-family: "Fraunces", serif;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums lining-nums;
   font-size: 18px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
 }
 
 /* Countdown widget */
@@ -1066,7 +1139,7 @@ h1 {
   gap: 8px;
 }
 .countdown-setup input {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-ui);
   font-size: 13px;
   padding: 8px 10px;
   border: 1px solid var(--line-strong);
@@ -1092,10 +1165,13 @@ h1 {
   padding: 10px 0;
 }
 .countdown-number {
-  font-family: "Fraunces", serif;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
   font-size: 44px;
-  font-weight: 500;
+  font-weight: 700;
   line-height: 1;
+  letter-spacing: -0.04em;
 }
 .countdown-label {
   font-size: 12.5px;
@@ -1123,7 +1199,7 @@ h1 {
 .warn-search input {
   flex: 1;
   min-width: 0;
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-ui);
   font-size: 13px;
   padding: 8px 10px;
   border: 1px solid var(--line-strong);
@@ -1209,9 +1285,11 @@ h1 {
   padding: 9px 12px;
 }
 .emerg-num {
-  font-family: "Fraunces", serif;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums lining-nums;
   font-size: 17px;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--teal);
 }
 .emerg-label {
@@ -1252,15 +1330,19 @@ h1 {
 }
 
 .panel-title {
-  font-family: "Fraunces", serif;
+  font-family: var(--font-title);
   font-size: 17px;
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
 }
 
 .panel-sub {
-  font-size: 12.5px;
+  font-size: 13px;
+  font-weight: 400;
   color: var(--ink-soft);
   margin-top: 2px;
+  line-height: 1.4;
 }
 
 .radar-form {
@@ -1271,7 +1353,7 @@ h1 {
 .radar-form input {
   flex: 1;
   min-width: 0;
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-ui);
   font-size: 14px;
   padding: 10px 12px;
   border: 1px solid var(--line-strong);
@@ -1286,7 +1368,7 @@ h1 {
 }
 
 .radar-form button {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-ui);
   font-size: 13.5px;
   font-weight: 500;
   padding: 10px 14px;
@@ -1313,7 +1395,7 @@ h1 {
 }
 
 .radar-quick button {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-ui);
   font-size: 12px;
   padding: 5px 10px;
   border-radius: 999px;
@@ -1518,7 +1600,7 @@ h1 {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-ui);
   font-size: 12px;
   font-weight: 500;
   padding: 6px 11px;
@@ -1761,11 +1843,7 @@ body {
   padding: 0;
   display: flex;
   flex-direction: column;
-  font-family:
-    "Inter",
-    system-ui,
-    -apple-system,
-    sans-serif;
+  font-family: var(--font-ui);
 }
 
 .app-shell {
@@ -1773,8 +1851,8 @@ body {
   align-items: stretch;
   width: 100%;
   height: 100vh;
-  max-width: 2560px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
   overflow: hidden;
 }
 
@@ -1824,9 +1902,10 @@ body {
 }
 
 .sidebar-title {
-  font-family: "Fraunces", serif;
+  font-family: var(--font-title);
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 650;
+  letter-spacing: -0.02em;
   line-height: 1.15;
   hyphens: auto;
   overflow-wrap: anywhere;
@@ -1860,9 +1939,9 @@ body {
   min-width: 0;
 }
 .sidebar-place {
-  font-family: "Fraunces", serif;
+  font-family: var(--font-ui);
   font-size: 14.5px;
-  font-weight: 500;
+  font-weight: 650;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1917,7 +1996,7 @@ body {
   border: none;
   background: transparent;
   color: var(--side-ink-soft);
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-ui);
   font-size: 13.5px;
   font-weight: 500;
   cursor: pointer;
@@ -1992,27 +2071,46 @@ body {
   border-top: 1px solid var(--side-line);
 }
 
-/* Dokumentation sitzt unten direkt über dem Trennstrich des Footers */
-.nav-docs {
+/* Dokumentation und Version sitzen unten direkt über dem Trennstrich des Footers */
+.sidebar-links {
   margin-top: auto;
   margin-bottom: -14px;
-  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
-.nav-docs + .sidebar-footer {
+.nav-docs,
+.nav-version {
+  margin: 0;
+  text-decoration: none;
+  width: 100%;
+}
+.nav-version-label {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+.nav-version-number {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--side-ink);
+}
+.sidebar-links + .sidebar-footer {
   margin-top: 0;
 }
 @media (max-height: 760px) and (min-width: 761px) {
-  .nav-docs {
+  .sidebar-links {
     margin-bottom: -6px;
   }
 }
 @media (max-width: 760px) {
-  .nav-docs {
+  .sidebar-links {
     display: none;
     width: 100%;
     margin: 0;
   }
-  .sidebar.menu-open .nav-docs {
+  .sidebar.menu-open .sidebar-links {
     display: flex;
   }
 }
@@ -2021,7 +2119,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-ui);
   font-size: 12px;
   font-weight: 500;
   padding: 8px 10px;
@@ -2174,7 +2272,7 @@ body {
   margin: 0 auto;
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .page.active {
@@ -2307,16 +2405,22 @@ body {
 }
 
 .stat-value {
-  font-family: "Fraunces", serif;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
   font-size: 22px;
-  font-weight: 500;
+  font-weight: 700;
   line-height: 1.1;
+  letter-spacing: -0.03em;
 }
 
 .stat-label {
-  font-size: 12px;
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   color: var(--ink-soft);
   margin-top: 2px;
+  line-height: 1.3;
 }
 .stat-delta {
   font-size: 11.5px;
@@ -2359,16 +2463,22 @@ body {
 }
 
 .bar-chart {
-  flex: 1;
+  flex: 0 0 auto;
+  width: max-content;
+  min-width: 260px;
   min-height: 160px;
   display: flex;
   align-items: flex-end;
   gap: 10px;
   padding-top: 10px;
 }
+[data-layout-w] .bar-chart {
+  width: 100%;
+}
 
 .bar-col {
-  flex: 1;
+  flex: 0 0 42px;
+  width: 42px;
   align-self: stretch;
   display: flex;
   flex-direction: column;
@@ -2376,6 +2486,10 @@ body {
   justify-content: flex-end;
   gap: 6px;
   cursor: help;
+}
+[data-layout-w] .bar-col {
+  flex: 1 1 0;
+  width: auto;
 }
 
 .bar-track {
@@ -2407,8 +2521,10 @@ body {
 }
 
 .bar-col .bar-value {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums lining-nums;
   font-size: 11.5px;
-  font-weight: 600;
+  font-weight: 650;
 }
 .bar-col .bar-label {
   font-size: 11px;
@@ -2446,9 +2562,12 @@ body {
   justify-content: center;
 }
 .donut-chart .donut-pct {
-  font-family: "Fraunces", serif;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
   font-size: 26px;
-  font-weight: 500;
+  font-weight: 700;
+  letter-spacing: -0.03em;
 }
 .donut-chart .donut-word {
   font-size: 11px;
@@ -2461,16 +2580,23 @@ body {
 
 /* Lower row: wave chart + calendar */
 .lower-row {
-  display: grid;
-  grid-template-columns: 1.6fr 1fr;
+  display: flex;
+  flex-wrap: wrap;
   gap: 18px;
-  align-items: stretch;
+  align-items: flex-start;
+  justify-content: flex-start;
 }
 
 .wave-chart {
-  width: 100%;
+  width: 360px;
+  max-width: 100%;
+  min-width: 280px;
   height: 172px;
   display: flex;
+}
+[data-layout-w] .wave-chart {
+  width: 100%;
+  min-width: 0;
 }
 /* Achsen: links Temperatur, unten Uhrzeit */
 .wave-plot {
@@ -2633,20 +2759,21 @@ body {
   min-height: 220px;
 }
 
-/* Checkliste zweispaltig, damit die Seite ohne Scrollen passt */
+/* Checkliste: Einträge untereinander */
 .disaster-checklist .todo-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 6px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   max-height: none;
 }
 
 /* Katastrophenschutz-Seite */
 .disaster-row {
   display: grid;
-  grid-template-columns: 1.4fr 1fr;
+  grid-template-columns: minmax(280px, 520px) minmax(220px, 340px) 180px;
   gap: 18px;
   align-items: start;
+  justify-content: start;
 }
 .disaster-side {
   display: flex;
@@ -2655,8 +2782,7 @@ body {
 }
 .disaster-warn,
 .disaster-checklist,
-#disasterNumbersPanel,
-#disasterMeetingPanel {
+#disasterNumbersPanel {
   padding: 18px 20px;
   display: flex;
   flex-direction: column;
@@ -2671,33 +2797,10 @@ body {
 .disaster-checklist .todo-item {
   padding: 6px 10px;
 }
-/* "Gespeichert" überlagert den Panel-Rand, statt dauerhaft eine Zeile zu reservieren */
-#disasterMeetingPanel {
-  position: relative;
-}
-#meetingSaved {
-  position: absolute;
-  right: 20px;
-  bottom: 4px;
-}
 .scroll-list {
   max-height: 260px;
   overflow-y: auto;
   padding-right: 2px;
-}
-#disasterPage.page.active {
-  overflow-y: auto;
-  padding-right: 4px;
-}
-.meeting-input {
-  width: 100%;
-  font-family: "Inter", sans-serif;
-  font-size: 13px;
-  padding: 9px 11px;
-  border: 1px solid var(--line-strong);
-  border-radius: 9px;
-  background: var(--bg);
-  color: var(--ink);
 }
 
 @media (max-width: 1080px) {
@@ -2777,7 +2880,9 @@ body {
     grid-template-columns: 1fr 1fr;
   }
   .map-wrap {
-    height: 280px;
+    height: auto;
+    min-height: 280px;
+    aspect-ratio: 1 / 1;
   }
 }
 
@@ -2945,6 +3050,58 @@ body.layout-drag-active * {
   display: inline-block;
 }
 
+/* Freier Rasterplatz: Widgets nicht strecken, sondern hier hinzufügen */
+.widget-slot {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1.5px dashed var(--line-strong);
+  background: transparent;
+  border-radius: var(--card-radius);
+  color: var(--ink-soft);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex: 0 0 180px;
+  width: 180px;
+  max-width: 180px;
+  min-width: 160px;
+  min-height: 160px;
+  max-height: 180px;
+  align-self: start;
+  justify-self: start;
+  padding: 16px;
+  margin: 0;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+}
+.widget-slot:hover,
+.widget-slot:focus-visible {
+  border-color: var(--teal);
+  color: var(--teal);
+  background: transparent;
+  outline: none;
+}
+.widget-slot-plus {
+  font-size: 28px;
+  line-height: 1;
+  font-weight: 400;
+}
+.stat-row > .widget-slot {
+  min-height: 72px;
+  min-width: 148px;
+}
+.overview-grid > .widget-slot {
+  width: 180px;
+  max-width: 180px;
+  height: 160px;
+  min-height: 160px;
+  max-height: 180px;
+}
+
 .confirm-dialog {
   max-width: 420px;
 }
@@ -3004,6 +3161,18 @@ body.layout-resize-active * {
 [data-layout-grow]:not(.collapsed) {
   flex: var(--layout-grow) 1 0 !important;
 }
+[data-layout-h]:not(.collapsed) {
+  height: var(--layout-h);
+  flex-grow: 0 !important;
+  flex-shrink: 0;
+  flex-basis: var(--layout-h) !important;
+}
+[data-layout-w]:not(.collapsed) {
+  width: var(--layout-w);
+  max-width: 100%;
+  flex-grow: 0 !important;
+  flex-basis: var(--layout-w) !important;
+}
 .layout-group[data-layout-grow]:not(:has(.panel:not(.collapsed))) {
   flex: 0 0 auto !important;
 }
@@ -3025,51 +3194,176 @@ body.layout-resize-active * {
 }
 
 /* ===================================================================
-   Bildschirmfüllendes Layout: keine Seite scrollt. Die Widgets teilen
-   sich den verfügbaren Platz, eingeklappte Widgets geben ihn frei.
+   Standard: Kacheln so breit wie der Inhalt. Nur nach Skalieren
+   im Anordnen-Modus (data-layout-w / data-layout-h) wird gestreckt.
    =================================================================== */
+/* Seite füllt den Viewport. Es scrollt nie die Seite, nur Listen in Widgets. */
 .page,
 #disasterPage.page.active {
   overflow: hidden;
   padding-right: 0;
 }
+.main-content {
+  overflow: hidden;
+}
 .page.active {
   gap: clamp(8px, 1.8vh, 16px);
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  align-items: flex-start;
+  justify-content: flex-start;
 }
 .page.active > * {
   flex: 0 0 auto;
+  min-height: auto;
+}
+.page.active > .overview-bar,
+.page.active > .stat-row,
+.page.active > .charts-row,
+.page.active > .lower-row,
+.page.active > .detail-row,
+.page.active > .disaster-row,
+.page.active > .overview-grid,
+.page.active > .overview-empty {
+  align-self: stretch;
+  width: 100%;
+  max-width: 100%;
+}
+.page.active > .stat-card,
+.page.active > .panel {
+  align-self: start;
+  width: max-content;
+  max-width: min(100%, 720px);
+}
+#fireYesterdayCard[hidden] {
+  display: none !important;
+}
+.page.active > .overview-grid {
+  flex: 0 0 auto;
   min-height: 0;
+  overflow: hidden;
 }
 
-/* Zeilen mit mehreren Widgets nebeneinander */
+/* Zeilen: Widgets so breit wie ihr Inhalt, Rest = Platzhalter */
 .charts-row,
 .lower-row,
 .detail-row,
 .disaster-row {
   display: flex;
-  align-items: stretch;
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex-wrap: wrap;
   gap: clamp(10px, 1.8vh, 18px);
+  width: 100%;
+}
+#disasterPage > .disaster-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  justify-content: start;
 }
 .page.active > .charts-row,
 .page.active > .lower-row,
 .page.active > .detail-row,
 .page.active > .disaster-row {
-  flex: 1 1 0;
-}
-.charts-row > *,
-.lower-row > *,
-.detail-row > *,
-.disaster-row > * {
-  flex: 1 1 0;
-  min-width: 0;
+  flex: 0 0 auto;
   min-height: 0;
   overflow: hidden;
 }
-.charts-row > .chart-card {
-  flex-grow: 1.6;
+.charts-row > .panel,
+.lower-row > .panel,
+.detail-row > .panel,
+.disaster-row > .panel,
+.charts-row > .ov-widget,
+.lower-row > .ov-widget,
+.detail-row > .ov-widget,
+.disaster-row > .ov-widget {
+  flex: 0 0 auto;
+  max-width: 100%;
+  min-width: min(100%, 240px);
+  height: auto;
+  min-height: auto;
 }
-.disaster-row > .disaster-warn {
-  flex-grow: 1.4;
+.charts-row > .chart-card:not([data-layout-w]),
+.charts-row > .wave-card:not([data-layout-w]) {
+  width: max-content;
+  min-width: min(100%, 320px);
+}
+.charts-row > .water-combo:not([data-layout-w]) {
+  flex: 0 0 auto;
+  width: max-content;
+  min-width: min(100%, 560px);
+  max-width: min(100%, 720px);
+}
+.charts-row > .donut-card:not([data-layout-w]) {
+  min-width: min(100%, 220px);
+}
+.detail-row > .weather:not([data-layout-w]),
+.weather-stack > .weather:not([data-layout-w]) {
+  width: max-content;
+  min-width: min(100%, 420px);
+  max-width: min(100%, 560px);
+}
+.detail-row > .weather-stack {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: clamp(8px, 1.6vh, 14px);
+  flex: 0 1 auto;
+  width: max-content;
+  min-width: 0;
+  max-width: min(100%, 560px);
+  min-height: 0;
+  height: auto;
+  overflow: hidden;
+}
+.weather-stack > .weather,
+.weather-stack > .radar {
+  max-width: none;
+}
+.weather-stack > .weather:not([data-layout-w]) {
+  width: max-content;
+  max-width: min(100%, 560px);
+}
+.weather-stack > .radar {
+  width: 100%;
+}
+.detail-row > .weather-side {
+  flex: 0 0 auto;
+  width: max-content;
+  min-width: 0;
+  max-width: min(100%, 560px);
+  height: auto;
+  min-height: auto;
+}
+.disaster-row > .disaster-warn:not([data-layout-w]) {
+  flex: 0 0 auto;
+  width: max-content;
+  min-width: min(100%, 360px);
+  max-width: min(100%, 520px);
+}
+.disaster-row > .disaster-side {
+  flex: 0 0 auto;
+  max-width: 400px;
+  min-height: auto;
+  height: auto;
+}
+.lower-row > .fire-table-card:not([data-layout-w]) {
+  flex: 0 1 auto;
+  width: max-content;
+  max-width: min(100%, 900px);
+}
+.lower-row > .calendar:not([data-layout-w]) {
+  flex-basis: 420px;
+  max-width: 520px;
+}
+.charts-row > [data-layout-w],
+.lower-row > [data-layout-w],
+.detail-row > [data-layout-w],
+.disaster-row > [data-layout-w] {
+  max-width: none;
+  flex: 0 0 auto;
 }
 .charts-row > .collapsed,
 .lower-row > .collapsed,
@@ -3077,8 +3371,9 @@ body.layout-resize-active * {
 .disaster-row > .collapsed {
   flex: 0 0 auto;
   align-self: flex-start;
+  min-height: 0;
+  max-width: none;
 }
-/* Sind alle Widgets einer Zeile eingeklappt, schrumpft die Zeile */
 .page.active > .charts-row:not(:has(> .panel:not(.collapsed))),
 .page.active > .lower-row:not(:has(> .panel:not(.collapsed))),
 .page.active > .detail-row:not(:has(> .panel:not(.collapsed))):not(:has(> .weather-side > .panel:not(.collapsed))),
@@ -3091,54 +3386,84 @@ body.layout-resize-active * {
   position: relative;
 }
 
-/* Kennzahlen-Karten */
 .stat-row {
+  display: flex;
+  flex-wrap: wrap;
   gap: clamp(8px, 1.6vh, 18px);
-  align-items: start;
+  align-items: stretch;
+  justify-content: flex-start;
+  width: 100%;
 }
 .stat-card {
   padding: clamp(10px, 1.8vh, 18px) 20px;
 }
+.stat-row > .stat-card {
+  flex: 0 1 auto;
+  min-width: 200px;
+  max-width: 300px;
+  min-height: 0;
+}
+.stat-row > .ov-widget {
+  flex: 0 1 280px;
+  min-height: 88px;
+  max-width: 360px;
+}
 
-/* Diagramme passen sich der Kartenhöhe an */
 .chart-card,
 .donut-card,
 .wave-card {
-  min-height: 0;
-  overflow: hidden;
+  min-height: auto;
+  height: fit-content;
+  overflow: visible;
   padding: clamp(12px, 2.2vh, 22px);
   gap: clamp(4px, 1vh, 10px);
 }
 .bar-chart {
-  flex: 1 1 0;
-  min-height: 80px;
+  flex: none;
+  min-height: 160px;
+  height: 180px;
 }
 .donut-chart {
-  flex: 1 1 0;
-  min-height: 96px;
-  width: 100%;
-  height: auto;
+  flex: none;
+  min-height: 160px;
+  width: 170px;
+  height: 170px;
+  align-self: center;
 }
 .donut-chart svg {
   transform: none;
 }
 .wave-chart {
-  flex: 1 1 0;
-  min-height: 80px;
-  height: auto;
+  flex: none;
+  width: 360px;
+  min-width: 280px;
+  min-height: 160px;
+  height: 180px;
+}
+.water-chart {
+  flex: none;
+  width: 360px;
+  min-width: 280px;
+  min-height: 160px;
+  height: 180px;
 }
 
 /* Wetter-Seite */
 .detail-row .weather {
-  min-height: 0;
+  min-height: auto;
+  height: auto;
+}
+.panel.tile-in-view,
+.stat-card.tile-in-view,
+.ov-widget.tile-in-view,
+.detail-row .weather.tile-in-view,
+.weather.tile-in-view {
   overflow: hidden;
-  gap: clamp(8px, 1.6vh, 15px);
-  padding: clamp(14px, 2.4vh, 22px);
 }
 .day-detail.show {
-  flex: 1 1 0;
-  min-height: 0;
-  overflow: hidden;
+  flex: 0 0 auto;
+  min-height: auto;
+  overflow: visible;
 }
 
 /* Kalender: Tage füllen die Höhe statt quadratisch zu sein */
@@ -3158,10 +3483,10 @@ body.layout-resize-active * {
   color: var(--ink-soft);
 }
 .calendar .cal-grid {
-  flex: 1 1 0;
-  min-height: 0;
+  flex: none;
+  min-height: auto;
   grid-template-rows: auto;
-  grid-auto-rows: minmax(0, 1fr);
+  grid-auto-rows: minmax(44px, auto);
 }
 .calendar .cal-day {
   aspect-ratio: auto;
@@ -3175,17 +3500,37 @@ body.layout-resize-active * {
   overflow: hidden;
 }
 
-/* Regenradar-Seite: Karte nimmt den Rest ein */
-.page.active > .panel.radar {
-  flex: 1 1 0;
+/* Regenradar bleibt kompakt, auch nach dem Verschieben in andere Zeilen */
+.panel.radar:not([data-layout-w]),
+.ov-widget.ov-compact-radar:not([data-layout-w]) {
+  width: min(100%, 520px);
+  max-width: 560px;
+  min-width: 0;
+  flex: 0 1 auto;
+  flex-basis: auto;
+  justify-self: start;
+  align-self: start;
+  height: auto;
+}
+.panel.radar {
   overflow: hidden;
   padding: clamp(14px, 2.4vh, 22px);
   gap: clamp(8px, 1.4vh, 12px);
 }
-.panel.radar .map-wrap {
-  flex: 1 1 0;
-  min-height: 0;
+.panel.radar:not([data-layout-h]) .map-wrap,
+.ov-compact-radar:not([data-layout-h]) .ov-map {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: 520px;
   height: auto;
+  aspect-ratio: 1 / 1;
+  min-height: 280px;
+  max-height: 520px;
+}
+.panel.radar[data-layout-h] .map-wrap {
+  flex: 1 1 0;
+  height: auto;
+  max-height: none;
 }
 
 /* Katastrophenschutz-Seite */
@@ -3194,14 +3539,15 @@ body.layout-resize-active * {
   flex-direction: column;
 }
 .disaster-side > .panel {
-  flex: 0 1 auto;
-  min-height: 0;
-  overflow: hidden;
+  flex: 0 0 auto;
+  min-height: auto;
+  height: auto;
+  overflow: visible;
 }
 .disaster-warn .scroll-list,
 .disaster-checklist .scroll-list {
-  flex: 1 1 0;
-  max-height: none;
+  flex: 0 1 auto;
+  max-height: 280px;
   min-height: 0;
   overflow-y: auto;
   scrollbar-width: thin;
@@ -3218,7 +3564,10 @@ body.layout-resize-active * {
   scrollbar-width: thin;
 }
 .page.active > .disaster-checklist {
-  flex: 0 1 auto;
+  flex: 0 0 auto;
+  width: min(100%, 520px);
+  max-width: 520px;
+  align-self: start;
   overflow: hidden;
 }
 
@@ -3348,13 +3697,24 @@ body.layout-resize-active * {
   .disaster-row {
     flex-direction: column;
   }
-  .charts-row > *,
-  .lower-row > *,
-  .detail-row > *,
-  .disaster-row > *,
+  .charts-row > .panel,
+  .lower-row > .panel,
+  .detail-row > .panel,
+  .disaster-row > .panel,
   .charts-row > .chart-card,
-  .disaster-row > .disaster-warn {
-    flex: 1 1 0;
+  .disaster-row > .disaster-warn,
+  .detail-row > .weather,
+  .detail-row > .weather-stack,
+  .detail-row > .weather-side,
+  .disaster-row > .disaster-side,
+  .lower-row > .fire-table-card,
+  .stat-row > .stat-card {
+    flex: 0 0 auto;
+    max-width: none;
+    width: 100%;
+  }
+  .widget-slot {
+    display: none !important;
   }
   .charts-row > .collapsed,
   .lower-row > .collapsed,
@@ -3377,15 +3737,10 @@ body.layout-resize-active * {
   font-size: 10px;
   opacity: 0.8;
 }
-.chart-card {
-  container: chartcard / inline-size;
-}
-/* Nur auf dem Desktop ist die Höhe vorgegeben; mobil bestimmt der Inhalt die Höhe */
-@media (min-width: 761px) {
-  .chart-card:not(.collapsed),
-  .donut-card:not(.collapsed) {
-    container: chartcard / size;
-  }
+.chart-card,
+.donut-card,
+.wave-card {
+  /* kein container-type: inline-size — sonst ignoriert die Kachelbreite den Inhalt */
 }
 @container chartcard (max-height: 230px) {
   .panel-sub,
@@ -3419,13 +3774,19 @@ body.layout-resize-active * {
   gap: clamp(4px, 1vh, 10px);
 }
 .fire-table-wrap {
-  flex: 1 1 0;
+  flex: 0 1 auto;
   min-height: 0;
+  max-height: 280px;
   overflow: auto;
   scrollbar-width: thin;
 }
+.fire-table-card[data-layout-h] .fire-table-wrap {
+  flex: 1 1 0;
+  max-height: none;
+}
 .fire-table {
-  width: 100%;
+  width: max-content;
+  max-width: 100%;
   border-collapse: collapse;
   font-size: 13px;
   font-variant-numeric: tabular-nums;
@@ -3455,7 +3816,7 @@ body.layout-resize-active * {
   padding: 18px;
 }
 #firePage > .lower-row {
-  flex-grow: 1.3;
+  flex-grow: 0;
 }
 .fire-export {
   position: absolute;
@@ -3534,18 +3895,51 @@ body.layout-resize-active * {
 }
 
 /* ===================== Wetter-Seite: Diagramme rechts neben dem Wetter ===================== */
-.detail-row > .weather {
-  flex-grow: 1.4;
+#weatherPage.page.active > .detail-row {
+  flex: 1 1 auto;
+  min-height: 0;
+  flex-wrap: wrap;
+  align-items: start;
+}
+.detail-row > .weather,
+.weather-stack > .weather {
+  flex: 0 0 auto;
+}
+.weather-stack > .radar {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+.weather-stack > .radar:not([data-layout-h]) .map-wrap {
+  flex: 1 1 auto;
+  min-height: 140px;
+  max-height: none;
+  aspect-ratio: auto;
+  height: auto;
 }
 .weather-side {
   display: flex;
   flex-direction: column;
+  align-content: flex-start;
+  align-items: stretch;
   gap: clamp(8px, 1.6vh, 14px);
+  height: auto;
+  width: max-content;
+  max-width: 100%;
+  position: relative;
+  z-index: 1;
 }
 .weather-side > * {
-  flex: 1 1 0;
-  min-height: 0;
-  overflow: hidden;
+  flex: 0 0 auto;
+  width: 100%;
+  min-width: 0;
+  overflow: visible;
+}
+.weather-side > .chart-card:not([data-layout-w]) {
+  width: max-content;
+  min-width: min(100%, 320px);
 }
 .weather-side > .collapsed {
   flex: 0 0 auto;
@@ -3556,19 +3950,20 @@ body.layout-resize-active * {
 .weather-side .bar-chart,
 .weather-side .wave-chart,
 .weather-side .donut-chart {
-  min-height: 40px;
+  min-height: 160px;
 }
 .weather-side > .donut-card {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: auto minmax(0, 1fr);
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 .weather-side > .donut-card > .panel-title {
-  grid-column: 1 / -1;
+  grid-column: auto;
 }
 .weather-side > .donut-card > .donut-chart {
-  height: 100%;
+  height: 170px;
+  width: 170px;
+  align-self: center;
 }
 
 /* ===================== Übersicht: frei zusammenstellbar ===================== */
@@ -3579,10 +3974,11 @@ body.layout-resize-active * {
   gap: 12px;
 }
 .overview-title {
-  font-family: "Fraunces", serif;
-  font-weight: 500;
+  font-family: var(--font-title);
+  font-weight: 650;
   font-size: clamp(20px, 3vh, 26px);
   margin: 0;
+  letter-spacing: -0.03em;
   color: var(--ink);
 }
 .overview-actions {
@@ -3591,7 +3987,7 @@ body.layout-resize-active * {
   flex-shrink: 0;
 }
 .overview-btn {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-ui);
   font-size: 13px;
   font-weight: 600;
   padding: 8px 14px;
@@ -3629,53 +4025,113 @@ body.layout-resize-active * {
 }
 
 .page.active > .overview-grid {
-  flex: 1 1 0;
-}
-/* Frei zwischen die Panels gezogene Widgets teilen sich den Platz wie die Panels daneben */
-.disaster-side > .ov-widget:not(.collapsed) {
-  flex: 1 1 0;
-}
-/* Auf Seitenebene nur ein halber Anteil, sonst würden ganze Zeilen darunter halbiert */
-.page.active > .ov-widget:not(.collapsed) {
-  flex: 0.5 1 0;
-}
-:not(.overview-grid) > .ov-widget:not(.collapsed) {
-  min-height: 140px;
-}
-.overview-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
-  grid-auto-rows: minmax(0, 1fr);
-  gap: clamp(8px, 1.6vh, 16px);
+  flex: 0 0 auto;
   min-height: 0;
   overflow: hidden;
 }
+/* Frei zwischen die Panels gezogene Widgets teilen sich den Platz wie die Panels daneben */
+.disaster-side > .ov-widget:not(.collapsed) {
+  flex: 0 0 auto;
+}
+/* Auf Seitenebene nur ein halber Anteil, sonst würden ganze Zeilen darunter halbiert */
+.page.active > .ov-widget:not(.collapsed) {
+  flex: 0 0 auto;
+}
+:not(.overview-grid) > .ov-widget:not(.collapsed) {
+  min-height: auto;
+}
+.overview-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  align-content: start;
+  justify-content: flex-start;
+  gap: clamp(8px, 1.6vh, 16px);
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+}
 .overview-grid.ov-overfull {
-  overflow-y: auto;
-  padding-right: 4px;
+  overflow: hidden;
 }
 .overview-grid[hidden],
 .overview-empty[hidden] {
   display: none;
 }
 .page.active > .overview-empty {
-  flex: 1 1 0;
+  flex: 0 0 auto;
 }
 .overview-empty .label {
   max-width: 240px;
 }
 
+/* F-Pattern: oben von links nach rechts, nächste Zeile wieder links, linke Kante als Lesekante. */
+.overview-grid,
+.stat-row,
+.charts-row,
+.lower-row,
+.detail-row,
+.disaster-row,
+.disaster-side {
+  justify-content: flex-start;
+  align-content: flex-start;
+  align-items: flex-start;
+}
+
 .ov-widget {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  min-height: auto;
+  height: auto;
+  overflow: visible;
+}
+.ov-widget.weather,
+.ov-widget.ov-clone.weather {
+  overflow: hidden;
+  isolation: isolate;
+}
+.ov-widget:not(.ov-clone) {
   gap: clamp(6px, 1vh, 10px);
   padding: clamp(12px, 2vh, 18px);
+}
+.ov-widget:not(.ov-clone):not([data-layout-w]) {
+  width: max-content;
+  min-width: 280px;
+  max-width: min(100%, 720px);
+  flex: 0 0 auto;
+  justify-self: start;
+  align-self: start;
+}
+.ov-widget.ov-clone:not([data-layout-w]) {
+  width: max-content;
+  flex: 0 0 auto;
+  justify-self: start;
+  align-self: start;
+}
+.ov-widget.water-combo:not([data-layout-w]) {
+  min-width: 560px;
+  width: max-content;
+}
+.ov-widget.ov-compact-notes:not([data-layout-w]),
+.ov-widget.ov-compact-kpi:not([data-layout-w]) {
+  width: 340px;
+  max-width: min(100%, 380px);
   min-width: 0;
-  min-height: 0;
+  flex: 0 1 340px;
+  justify-self: start;
+  align-self: start;
+}
+.ov-widget[data-layout-h] {
   overflow: hidden;
+  min-height: 0;
+  height: var(--layout-h);
 }
 .ov-widget.collapsed {
   align-self: start;
+  min-height: 0;
+  height: auto;
+  overflow: hidden;
 }
 .ov-widget > .panel-title {
   padding-right: 66px;
@@ -3684,13 +4140,29 @@ body.layout-resize-active * {
   text-overflow: ellipsis;
 }
 .ov-body {
-  flex: 1 1 0;
-  min-height: 0;
+  flex: 0 0 auto;
+  min-height: auto;
+  height: auto;
   display: flex;
   flex-direction: column;
   gap: clamp(6px, 1vh, 10px);
+  overflow: visible;
+}
+.ov-widget:not([data-layout-w]) > .ov-body {
+  width: max-content;
+  min-width: min-content;
+  max-width: 720px;
+  align-self: start;
+}
+.ov-widget[data-layout-w] > .ov-body {
+  width: auto;
+  min-width: 0;
+  max-width: none;
+}
+.ov-widget[data-layout-h] .ov-body {
+  flex: 1 1 0;
+  min-height: 0;
   overflow: hidden;
-  container: ovbody / size;
 }
 /* Flache Kacheln zeigen nur das Wesentliche */
 @container ovbody (max-height: 120px) {
@@ -3728,10 +4200,13 @@ body.layout-resize-active * {
   font-size: 16px;
   line-height: 1;
   cursor: pointer;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   z-index: 3;
+}
+.layout-editing .ov-remove {
+  display: flex;
 }
 .ov-remove:hover {
   border-color: #c2412d;
@@ -3741,39 +4216,63 @@ body.layout-resize-active * {
   padding-left: 28px;
 }
 
-/* Inhalte in den Übersichts-Widgets füllen die Kachel */
+/* Inhalte so groß wie nötig, nicht in eine Kachelhöhe zwängen */
 .ov-body .bar-chart,
-.ov-body .wave-chart,
+.ov-body .wave-chart {
+  flex: none;
+  min-height: 160px;
+  height: 180px;
+}
 .ov-body .donut-chart {
-  flex: 1 1 0;
-  min-height: 40px;
-  height: auto;
+  flex: none;
+  width: 160px;
+  height: 160px;
+  min-height: 160px;
+  align-self: center;
 }
 .ov-body .todo-list,
 .ov-body .warn-list,
 .ov-body .clock-list,
 .ov-body .scroll-list,
 .ov-body .ov-events {
-  flex: 1 1 0;
-  min-height: 0;
-  max-height: none;
-  overflow: hidden;
+  flex: none;
+  min-height: auto;
+  max-height: 240px;
+  overflow-y: auto;
 }
-.ov-body .notes-area {
-  flex: 1 1 0;
-  min-height: 40px;
+.ov-body-notes .notes-area {
+  flex: none;
+  width: 100%;
+  min-width: 0;
+  min-height: 80px;
+  height: 120px;
+  resize: vertical;
+}
+.ov-body-fire-yesterday .stat-card {
+  width: 100%;
+  max-width: 100%;
+}
+.ov-widget[data-layout-h] .ov-body .notes-area {
   resize: none;
 }
 .ov-body .stat-row {
-  flex: 1 1 0;
-  min-height: 0;
+  display: grid;
+  flex: none;
+  min-height: auto;
+  height: auto;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  grid-auto-rows: minmax(0, 1fr);
+  grid-auto-rows: auto;
   align-items: stretch;
   gap: clamp(6px, 2.5cqmin, 18px);
 }
+.ov-body .stat-row > .stat-card {
+  max-width: none;
+  min-width: 0;
+  width: auto;
+  flex: none;
+}
 /* Spaltenzahl nach Seitenverhältnis, damit die Karten eher breit als hochkant sind */
-@container ovbody (max-width: 460px) or (max-aspect-ratio: 18/5) {
+@container ovbody (max-width: 720px) {
   .ov-body .stat-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -3844,59 +4343,6 @@ body.layout-resize-active * {
   justify-content: center;
 }
 
-.ov-body-weather-now {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: auto minmax(0, 1fr);
-  align-items: center;
-  gap: 4px 12px;
-}
-.ov-body-weather-now > .condition-icon {
-  grid-column: 2;
-  grid-row: 1 / -1;
-}
-.ov-body-weather-now > .temp-row {
-  grid-column: 1;
-  grid-row: 2;
-  align-self: center;
-  flex-wrap: nowrap;
-  align-items: center;
-  gap: 14px;
-  min-width: 0;
-}
-.ov-body .temp-now {
-  font-size: clamp(30px, min(34cqh, 19cqw), 170px);
-  animation: none;
-  opacity: 1;
-  flex-shrink: 0;
-}
-.ov-body .temp-meta {
-  padding-bottom: 0;
-  min-width: 0;
-}
-.ov-body-weather-now > .temp-row {
-  gap: clamp(8px, 3cqw, 32px);
-}
-.ov-body-weather-now .condition-text {
-  font-size: clamp(13px, min(7cqh, 4.2cqw), 30px);
-}
-.ov-body-weather-now .range {
-  font-size: clamp(11px, min(4.6cqh, 2.8cqw), 19px);
-}
-.ov-body-weather-now > .place {
-  font-size: clamp(12px, min(4.4cqh, 2.6cqw), 18px);
-}
-.ov-body .range {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
-.ov-body-weather-now > .condition-icon {
-  width: clamp(34px, min(30cqh, 18cqw), 150px);
-  height: clamp(34px, min(30cqh, 18cqw), 150px);
-}
-
 .ov-body-rain-donut {
   align-items: center;
 }
@@ -3907,11 +4353,8 @@ body.layout-resize-active * {
   min-width: 0;
 }
 
-/* Schmale Kacheln (z. B. zwei Spalten auf dem Handy) */
-.ov-widget {
-  container-type: inline-size;
-}
-@container (max-width: 240px) {
+/* Schmale Kacheln: Container ist .ov-body, nicht die Kachel (sonst ignoriert width den Inhalt). */
+@container ovbody (max-width: 240px) {
   .ov-widget > .panel-title {
     font-size: 14.5px;
     padding-right: 52px;
@@ -3928,14 +4371,6 @@ body.layout-resize-active * {
   .ov-widget > .ov-remove {
     right: 34px;
   }
-  .ov-body-weather-now > .condition-icon {
-    display: none;
-  }
-  .ov-body-weather-now > .temp-row {
-    grid-column: 1 / -1;
-    flex-wrap: wrap;
-    gap: 2px 10px;
-  }
   .ov-body .bar-chart {
     gap: 3px;
   }
@@ -3949,11 +4384,18 @@ body.layout-resize-active * {
 }
 
 .ov-map {
-  flex: 1 1 0;
-  min-height: 80px;
+  flex: none;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  min-height: 280px;
+  width: 100%;
   border-radius: 12px;
   overflow: hidden;
   z-index: 0;
+}
+.ov-widget[data-layout-h] .ov-map {
+  flex: 1 1 0;
+  height: auto;
 }
 
 .ov-date {
@@ -3994,8 +4436,17 @@ body.layout-resize-active * {
 .ov-body .scroll-list,
 .ov-body .ov-events,
 .ov-body .fire-table-wrap,
-.ov-body .cal-events,
-.ov-body #countdownBody {
+.ov-body .cal-events {
+  overflow: visible;
+}
+.ov-widget[data-layout-h] .ov-body .todo-list,
+.ov-widget[data-layout-h] .ov-body .warn-list,
+.ov-widget[data-layout-h] .ov-body .clock-list,
+.ov-widget[data-layout-h] .ov-body .scroll-list,
+.ov-widget[data-layout-h] .ov-body .ov-events,
+.ov-widget[data-layout-h] .ov-body .fire-table-wrap,
+.ov-widget[data-layout-h] .ov-body .cal-events,
+.ov-widget[data-layout-h] .ov-body #countdownBody {
   overflow-y: auto;
   scrollbar-width: thin;
 }
@@ -4031,7 +4482,7 @@ body.layout-resize-active * {
   max-width: 60%;
 }
 
-/* Countdown und Treffpunkt stehen mittig und wachsen mit */
+/* Countdown steht mittig und wächst mit */
 .ov-body .countdown-number {
   font-size: clamp(30px, min(32cqh, 24cqw), 140px);
 }
@@ -4046,13 +4497,6 @@ body.layout-resize-active * {
 }
 .ov-body #countdownBody > * {
   flex-shrink: 0;
-}
-.ov-body-meeting {
-  justify-content: safe center;
-}
-.ov-body .meeting-input {
-  font-size: clamp(13px, min(9cqh, 4cqw), 22px);
-  padding: clamp(8px, 4cqh, 16px) clamp(10px, 3cqw, 18px);
 }
 
 /* Kalender: Monatsraster hat Vorrang, Terminliste und Eingabe weichen in flachen Kacheln */
@@ -4165,14 +4609,15 @@ body.layout-resize-active * {
 }
 .panel:hover .panel-toggle,
 .stat-card:hover > .panel-toggle,
-.panel:hover > .ov-remove,
-.panel-toggle:focus-visible,
+.panel-toggle:focus-visible {
+  opacity: 1;
+}
+.layout-editing .ov-remove,
 .ov-remove:focus-visible {
   opacity: 1;
 }
 @media (hover: none) {
-  .panel-toggle,
-  .ov-remove {
+  .panel-toggle {
     opacity: 1;
   }
 }
@@ -4202,6 +4647,9 @@ body.layout-resize-active * {
   .main-content {
     overflow: visible;
     padding-bottom: 28px;
+  }
+  .weather {
+    max-width: 100%;
   }
   .page,
   #disasterPage.page.active {
@@ -4286,7 +4734,10 @@ body.layout-resize-active * {
   }
   .panel.radar .map-wrap {
     flex: none;
-    height: 360px;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    min-height: 280px;
+    max-height: 520px;
   }
   .disaster-warn .scroll-list,
   .disaster-checklist .scroll-list,
@@ -4316,7 +4767,8 @@ body.layout-resize-active * {
     overflow: visible;
   }
   :not(.overview-grid) > .ov-widget:not(.collapsed) {
-    height: 260px;
+    height: auto;
+    min-height: auto;
   }
   .overview-empty {
     min-height: 200px;
@@ -4324,9 +4776,75 @@ body.layout-resize-active * {
 }
 
 /* ===================== Wasserpegel ===================== */
+.water-combo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: max-content;
+  max-width: 720px;
+  min-width: 560px;
+}
+.water-combo-grid {
+  display: grid;
+  grid-template-columns: 360px 220px;
+  gap: clamp(12px, 2vh, 20px);
+  width: max-content;
+  min-width: 580px;
+  min-height: 0;
+  flex: 0 0 auto;
+}
+.water-combo-main,
+.water-combo-berlin {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.water-combo-berlin {
+  width: 220px;
+}
+.water-combo-berlin .water-list {
+  flex: 1 1 auto;
+  max-height: 160px;
+  overflow: auto;
+}
+@media (max-width: 900px) {
+  .water-combo:not([data-layout-w]) {
+    min-width: min(100%, 320px);
+  }
+  .water-combo-grid {
+    grid-template-columns: minmax(280px, 1fr);
+    width: auto;
+  }
+  .water-combo-berlin {
+    width: auto;
+  }
+}
 .water-chart {
+  flex: none;
+  width: 360px;
+  min-width: 280px;
+  min-height: 160px;
+  height: 180px;
+}
+[data-layout-w] .water-combo,
+.ov-widget[data-layout-w] .water-combo {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+}
+[data-layout-w] .water-combo-grid,
+.ov-widget[data-layout-w] .water-combo-grid {
+  width: 100%;
+  grid-template-columns: minmax(280px, 1fr) minmax(180px, 240px);
+}
+[data-layout-w] .water-chart,
+.ov-widget[data-layout-w] .water-chart {
+  width: 100%;
+  min-width: 0;
+}
+[data-layout-h] .water-chart {
   flex: 1 1 0;
-  min-height: 80px;
   height: auto;
 }
 .water-ref {
@@ -4352,8 +4870,9 @@ body.layout-resize-active * {
   pointer-events: none;
 }
 .water-list {
-  flex: 1 1 0;
+  flex: 0 1 auto;
   min-height: 0;
+  max-height: 320px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -4370,7 +4889,7 @@ body.layout-resize-active * {
   border-radius: 10px;
   background: var(--panel-2);
   color: var(--ink);
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-ui);
   text-align: left;
   cursor: pointer;
 }

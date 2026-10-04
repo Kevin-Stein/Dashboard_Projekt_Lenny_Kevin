@@ -20,7 +20,7 @@
 }
 
 .docs-part {
-  font-family: "Fraunces", serif;
+  font-family: var(--font-title);
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -39,9 +39,10 @@
   font-size: 14.5px;
 }
 .docs-card h2 {
-  font-family: "Fraunces", serif;
-  font-weight: 500;
+  font-family: var(--font-title);
+  font-weight: 650;
   font-size: 22px;
+  letter-spacing: -0.03em;
   margin: 0 0 10px;
 }
 .docs-card h3 {
@@ -89,7 +90,7 @@
   overflow-wrap: normal;
 }
 .docs-card kbd {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-ui);
   font-size: 12px;
   font-weight: 600;
   background: var(--panel-2);

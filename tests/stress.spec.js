@@ -1,7 +1,7 @@
 const { test, expect } = require("@playwright/test");
 const { openWithLang, openPage, addOverviewWidget } = require("./helpers");
 
-const NAV = ["overviewPage", "weatherPage", "radarPage", "disasterPage", "firePage", "waterPage"];
+const NAV = ["overviewPage", "weatherPage", "disasterPage", "firePage", "waterPage"];
 
 test.describe("Belastung", () => {
   test.describe.configure({ timeout: 60_000 });
@@ -46,7 +46,6 @@ test.describe("Belastung", () => {
     await page.locator("#weatherSearchForm").press("Enter");
     await expect(page.locator("#weatherLoading")).toContainText("Kein Ort namens");
 
-    await openPage(page, "radarPage");
     for (let i = 0; i < 8; i++) await page.locator("#radarForm").press("Enter");
     await page.locator("#radarInput").fill(huge);
     await page.locator("#radarForm").press("Enter");
@@ -55,8 +54,11 @@ test.describe("Belastung", () => {
     await page.locator("#disasterWarnSearchInput").fill(huge);
     for (let i = 0; i < 8; i++) await page.locator("#disasterWarnSearchForm").press("Enter");
     await expect(page.locator("#disasterWarnList .warn-empty")).toBeVisible();
-    await page.locator("#meetingPointInput").fill(huge);
-    await expect(page.locator("#meetingSaved")).toHaveText("Gespeichert", { timeout: 2000 });
+
+    await openPage(page, "overviewPage");
+    await addOverviewWidget(page, "notes");
+    await page.locator("#ov-notes .notes-area").fill(huge);
+    await expect(page.locator("#ov-notes #notesSaved")).toHaveText("Gespeichert", { timeout: 2000 });
 
     await openPage(page, "waterPage");
     for (let i = 0; i < 8; i++) await page.locator("#waterSearchForm").press("Enter");
@@ -79,10 +81,11 @@ test.describe("Belastung", () => {
     for (let i = 0; i < 10; i++) await todo.locator(".todo-item button").first().click();
     await expect(todo.locator(".todo-item")).toHaveCount(30);
 
+    await page.locator('#overviewPage [data-widget-action="arrange"]').click();
     const extras = ["notes", "calendar", "countdown", "clock", "radar"];
     for (const type of extras) await addOverviewWidget(page, type);
     for (const type of extras) {
-      await page.locator(`#ov-${type} .ov-remove`).click({ force: true });
+      await page.locator(`#ov-${type} .ov-remove`).click();
       await expect(page.locator(`#ov-${type}`)).toHaveCount(0);
     }
     await expect(page.locator("#ov-todo")).toBeVisible();

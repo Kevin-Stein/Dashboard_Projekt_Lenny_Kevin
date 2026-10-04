@@ -12,7 +12,7 @@ test.describe("Eingabefelder", () => {
     await expect(page.locator("#weatherPlaceName")).toHaveText(weatherPlace);
     await expect(page.locator("#weatherLoading")).toHaveText("");
 
-    await openPage(page, "radarPage");
+    await openPage(page, "weatherPage");
     await page.locator("#radarInput").fill("");
     await page.locator("#radarForm").press("Enter");
     await expect(page.locator("#toast")).not.toHaveClass(/show/);
@@ -36,7 +36,7 @@ test.describe("Eingabefelder", () => {
     await page.locator("#weatherSearchForm").press("Enter");
     await expect(page.locator("#weatherLoading")).toContainText('Kein Ort namens "xyzzy" gefunden');
 
-    await openPage(page, "radarPage");
+    await openPage(page, "weatherPage");
     await page.locator("#radarInput").fill("Hamburg");
     await page.locator("#radarForm").press("Enter");
     await expect(page.locator("#radarInput")).toHaveValue("Hamburg");
@@ -48,23 +48,6 @@ test.describe("Eingabefelder", () => {
 
     await page.locator('#radarQuick button[data-city="Potsdam"]').click();
     await expect(page.locator("#radarInput")).toHaveValue("Potsdam");
-  });
-
-  test("Familien-Treffpunkt speichert Text inklusive Sonderzeichen", async ({ page }) => {
-    await openWithLang(page, "/", "de");
-    await openPage(page, "disasterPage");
-
-    const input = page.locator("#meetingPointInput");
-    await input.fill("<script>alert(1)</script> bei Oma");
-    await expect(page.locator("#meetingSaved")).toHaveText("Gespeichert", { timeout: 2000 });
-    await expect(input).toHaveValue("<script>alert(1)</script> bei Oma");
-
-    page.once("dialog", () => {
-      throw new Error("Unerwarteter Dialog – Eingabe darf nicht als Script laufen");
-    });
-    await page.reload({ waitUntil: "domcontentloaded" });
-    await openPage(page, "disasterPage");
-    await expect(page.locator("#meetingPointInput")).toHaveValue("<script>alert(1)</script> bei Oma");
   });
 
   test("Warnungsfilter und Checkliste reagieren auf Eingaben", async ({ page }) => {
@@ -87,6 +70,14 @@ test.describe("Eingabefelder", () => {
       el.dispatchEvent(new Event("change", { bubbles: true }));
     });
     await expect(page.locator("#disasterChecklistList .todo-item").first()).toHaveClass(/done/);
+
+    const before = await page.locator("#disasterChecklistList .todo-item").count();
+    await page.locator("#disasterChecklistInput").fill("Ersatzschlüssel");
+    await page.locator("#disasterChecklistAdd").press("Enter");
+    await expect(page.locator("#disasterChecklistList .todo-item")).toHaveCount(before + 1);
+    await expect(page.locator("#disasterChecklistList .todo-item").last().locator("span")).toHaveText("Ersatzschlüssel");
+    await page.locator("#disasterChecklistList .todo-item").last().locator("button").click();
+    await expect(page.locator("#disasterChecklistList .todo-item")).toHaveCount(before);
   });
 
   test("Pegel-Suche zeigt bekannten Pegel und weist unbekannte Namen zurück", async ({ page }) => {
@@ -147,7 +138,7 @@ test.describe("Eingabefelder", () => {
 
   test("Radar-Anbieter und Auto-Aktualisierung lassen sich umschalten", async ({ page }) => {
     await openWithLang(page, "/", "de");
-    await openPage(page, "radarPage");
+    await openPage(page, "weatherPage");
     await expect(page.locator('#radarProvider option[value="openweather"]')).toBeEnabled();
     await page.locator("#radarProvider").selectOption("openweather");
     await expect(page.locator("#radarProvider")).toHaveValue("openweather");

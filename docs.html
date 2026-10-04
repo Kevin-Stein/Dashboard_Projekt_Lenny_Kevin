@@ -6,7 +6,7 @@
 <title data-i18n="docs.pageTitle">Dokumentation – Katastrophenschutz „Wir helfen Berlin“</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/docs.css">
 </head>
@@ -81,12 +81,13 @@
     <section class="docs-card" id="start">
       <h2>Erste Schritte</h2>
       <p>Das Dashboard bündelt die wichtigsten Informationen für den Bevölkerungsschutz in Berlin: Wetter, Regenradar, amtliche Warnungen, Einsätze der Berliner Feuerwehr und Wasserstände. Standardort ist Berlin.</p>
+      <p>Live unter <a href="https://dashboard-projekt-lenny-kevin.vercel.app/" target="_blank" rel="noopener">dashboard-projekt-lenny-kevin.vercel.app</a>. Lokal starten: <code>README.md</code> oder <a href="#entwicklung">Entwicklung &amp; Deployment</a>.</p>
       <figure class="docs-shot">
         <img src="img/docs/uebersicht.webp" width="1440" height="900" loading="lazy" alt="Dashboard mit Seitenleiste links und der Übersicht mit Wetter-Widgets">
         <figcaption>„Meine Übersicht“ mit der Standard-Auswahl. Links die Seitenleiste mit Navigation, Einstellungen und Standort.</figcaption>
       </figure>
       <div class="docs-grid">
-        <div class="docs-tile"><strong>1. Seite wählen</strong><span>Links in der Seitenleiste zwischen Übersicht, Wetter, Regenradar, Katastrophenschutz, Feuerwehr und Wasserpegel wechseln.</span></div>
+        <div class="docs-tile"><strong>1. Seite wählen</strong><span>Links in der Seitenleiste zwischen Übersicht, Wetter, Katastrophenschutz, Feuerwehr und Wasserpegel wechseln.</span></div>
         <div class="docs-tile"><strong>2. Übersicht zusammenstellen</strong><span>Auf „Meine Übersicht“ mit „+ Widget“ genau die Kacheln einblenden, die du brauchst.</span></div>
         <div class="docs-tile"><strong>3. Anordnen</strong><span>Mit „✥ Anordnen“ Widgets verschieben und ihre Größe ändern. Mit „✓ Fertig“ beenden.</span></div>
       </div>
@@ -98,6 +99,7 @@
       <dl class="docs-dl">
         <dt>Navigation</dt><dd>Die Einträge oben wechseln die Seite. Der aktive Eintrag ist orange hinterlegt.</dd>
         <dt>Dokumentation</dt><dd>Öffnet diese Anleitung in einem eigenen Fenster.</dd>
+        <dt>Version</dt><dd>Zeigt die aktuelle Versionsnummer und öffnet das Changelog.</dd>
         <dt>Modus: Hell / Dunkel</dt><dd>Wechselt das Farbschema. Ohne eigene Wahl richtet sich das Dashboard nach der Systemeinstellung.</dd>
         <dt>Sprache</dt><dd>Das Auswahlfeld neben dem Farbmodus stellt Dashboard und Dokumentation auf eine andere Sprache um (derzeit Deutsch und English). Die Seite lädt dabei kurz neu, alle Einstellungen bleiben erhalten. Ohne eigene Wahl gilt die Sprache des Browsers.</dd>
         <dt>Aktualisieren</dt><dd>Lädt Wetter, Radar, Warnungen, Feuerwehr- und Pegeldaten sofort neu.</dd>
@@ -112,7 +114,7 @@
 
     <section class="docs-card" id="uebersicht">
       <h2>Übersicht</h2>
-      <p>„Meine Übersicht“ ist frei zusammenstellbar. Beim ersten Start enthält sie Aktuelles Wetter, Wetter-Kennzahlen, Vorhersage, Regenwahrscheinlichkeit und Temperaturverlauf.</p>
+      <p>„Meine Übersicht“ ist frei zusammenstellbar. Beim ersten Start enthält sie aktuelles Wetter (Ort, Vorhersage und Stundenverlauf), Brandeinsätze pro Tag und die Pegel (Verlauf und Berliner Liste in einem Widget).</p>
       <ul>
         <li><strong>Widget hinzufügen:</strong> „+ Widget“ öffnet den Katalog. Ein Klick auf einen Eintrag blendet das Widget ein.</li>
         <li><strong>Widget entfernen:</strong> Im Anordnen-Modus erscheint oben rechts am Widget ein „×“.</li>
@@ -134,7 +136,7 @@
         <li>Am Griff ziehen und das Widget an der gewünschten Stelle loslassen. Es landet vor oder hinter dem Widget, über dem der Mauszeiger steht.</li>
         <li>Auf den Unterseiten lassen sich alle Widgets frei verschieben, auch einzelne Kennzahl-Karten, und zwar in jede Reihe und Spalte. Ziehst du ein Widget in den oberen Griffbereich einer Spalte, landet es neben dieser Spalte.</li>
         <li>Wird ein Bereich leer, erscheint dort „Hierher ziehen“ als Ablagefläche.</li>
-        <li>Die Größe änderst du mit dem Griff unten rechts am Widget.</li>
+        <li>Die Größe änderst du mit dem Griff unten rechts am Widget. Widgets nutzen eine Standardhöhe und nur so viel Breite wie ihr Inhalt braucht. Freier Platz in einer Zeile erscheint als Platzhalter „Widget hinzufügen“ — ein Klick öffnet den Katalog, im Anordnen-Modus kannst du Widgets dorthin ziehen. Am Griff ziehst du einzelne Kacheln größer oder kleiner.</li>
         <li>„✓ Fertig“ beendet den Modus. Alles wird automatisch gespeichert.</li>
       </ol>
       <figure class="docs-shot">
@@ -151,13 +153,12 @@
     <section class="docs-card" id="seiten">
       <h2>Die Seiten</h2>
       <h3>Wetter</h3>
-      <p>Aktuelles Wetter mit Temperatur, Wetterlage, Luftdruck, Luftfeuchtigkeit, Wind, gefühlter Temperatur, UV-Index und Sonnenzeiten. Dazu kommen eine 6-Tage-Vorhersage, ein Stundenverlauf und die Kennzahlen im Vergleich zu gestern. Über das Suchfeld lässt sich ein anderer Ort wählen, z. B. „Lissabon“. Ein Klick auf einen Tag zeigt dessen Details.</p>
+      <p>Aktuelles Wetter mit Temperatur, Wetterlage, Luftdruck, Luftfeuchtigkeit, Wind, gefühlter Temperatur, UV-Index und Sonnenzeiten. Dazu kommen eine 6-Tage-Vorhersage, ein Stundenverlauf, die Kennzahlen im Vergleich zu gestern und das Regenradar. Über das Suchfeld lässt sich ein anderer Ort wählen, z. B. „Lissabon“. Ein Klick auf einen Tag zeigt dessen Details.</p>
       <figure class="docs-shot">
         <img src="img/docs/wetter.webp" width="1440" height="900" loading="lazy" alt="Wetterseite mit Kennzahlen, aktuellem Wetter, Vorhersage und Temperaturverlauf">
         <figcaption>Wetterseite: oben die Kennzahlen, links das Wetter-Panel mit Suche, Tagen und Stundenverlauf, rechts die Diagramme.</figcaption>
       </figure>
-      <h3>Regenradar</h3>
-      <p>Interaktive Karte mit Niederschlag. Ort suchen oder eine Schnellwahl (Berlin, Potsdam, München, Hamburg) anklicken. Unter „Niederschlag“ wählst du die Quelle:</p>
+      <p>Das Regenradar sitzt auf derselben Seite: Ort suchen oder eine Schnellwahl (Berlin, Potsdam, München, Hamburg) anklicken. Unter „Niederschlag“ wählst du die Quelle:</p>
       <ul>
         <li><strong>RainViewer · Verlauf:</strong> Radarbilder der letzten Zeit. Mit ▶ abspielen oder mit dem Schieberegler durchblättern. Kostenlos bis Zoomstufe 7, darüber werden die Kacheln vergrößert.</li>
         <li><strong>OpenWeather · aktuelle Karte:</strong> aktuelle Niederschlagskarte. Sie funktioniert nur mit einem API-Key (siehe <a href="#entwicklung">Entwicklung</a>).</li>
@@ -167,9 +168,9 @@
         <figcaption>Regenradar mit Ortssuche, Schnellwahl, Quellenwahl, Legende und Zeitleiste zum Abspielen.</figcaption>
       </figure>
       <h3>Katastrophenschutz</h3>
-      <p>Amtliche Warnungen des Bundes (MoWaS, KATWARN, BIWAPP, DWD, Hochwasserzentralen), nach Ort filterbar und nach Schwere sortiert. Dazu gibt es die wichtigsten Notrufnummern, ein Feld für den Familien-Treffpunkt und eine Notfall-Checkliste für Vorrat und Ausrüstung zum Abhaken.</p>
+      <p>Amtliche Warnungen des Bundes (MoWaS, KATWARN, BIWAPP, DWD, Hochwasserzentralen), nach Ort filterbar und nach Schwere sortiert. Dazu gibt es die wichtigsten Notrufnummern und eine To-do-Liste (Vorschläge zur Notfallvorsorge, Einträge sind anpassbar).</p>
       <figure class="docs-shot">
-        <img src="img/docs/katastrophenschutz.webp" width="1440" height="900" loading="lazy" alt="Seite Katastrophenschutz mit Warnliste, Notrufnummern und Familien-Treffpunkt">
+        <img src="img/docs/katastrophenschutz.webp" width="1440" height="900" loading="lazy" alt="Seite Katastrophenschutz mit Warnliste, Notrufnummern und To-do-Liste">
         <figcaption>Katastrophenschutz: Die Warnungen sind nach Status markiert (Neu, Update, Aufgehoben) und lassen sich nach Ort filtern.</figcaption>
       </figure>
       <h3>Feuerwehr</h3>
@@ -193,7 +194,7 @@
         <table class="docs-table">
           <thead><tr><th>Gruppe</th><th>Widget</th><th>Inhalt</th></tr></thead>
           <tbody>
-            <tr><td rowspan="6">Wetter</td><td>Aktuelles Wetter</td><td>Temperatur und Wetterlage am gewählten Ort</td></tr>
+            <tr><td rowspan="6">Wetter</td><td>Aktuelles Wetter</td><td>Ort, Suche, Vorhersage und Stundenverlauf</td></tr>
             <tr><td>Wetter-Kennzahlen</td><td>Temperatur, Wind, Luftfeuchte und Regen im Vergleich zu gestern</td></tr>
             <tr><td>Vorhersage · Höchsttemperatur</td><td>Höchstwerte der nächsten Tage als Balken</td></tr>
             <tr><td>Regenwahrscheinlichkeit</td><td>Regenchance für heute</td></tr>
@@ -205,16 +206,18 @@
             <tr><td>Aufgaben</td><td>To-do-Liste zum Abhaken</td></tr>
             <tr><td>Countdown</td><td>Tage bis zu einem Termin deiner Wahl</td></tr>
             <tr><td>Weltzeituhr</td><td>Uhrzeit in mehreren Städten</td></tr>
-            <tr><td rowspan="4">Sicherheit</td><td>Warnungen</td><td>Amtliche Warnungen (BBK/NINA), nach Ort filterbar</td></tr>
-            <tr><td>Notfall-Checkliste</td><td>Vorrat und Ausrüstung zum Abhaken</td></tr>
+            <tr><td rowspan="3">Sicherheit</td><td>Warnungen</td><td>Amtliche Warnungen (BBK/NINA), nach Ort filterbar</td></tr>
+            <tr><td>To-do-Liste</td><td>Anpassbare Liste, Einträge untereinander, Vorschläge nach BBK</td></tr>
             <tr><td>Notrufnummern</td><td>112, 110 und weitere wichtige Nummern</td></tr>
-            <tr><td>Familien-Treffpunkt</td><td>Vereinbarter Treffpunkt für den Notfall</td></tr>
-            <tr><td rowspan="4">Feuerwehr</td><td>Feuerwehr-Kennzahlen</td><td>Brandeinsätze der letzten 7 Tage im Vergleich zur Vorwoche</td></tr>
+            <tr><td rowspan="5">Feuerwehr</td><td>Brände vom Vortag</td><td>Anzahl der Brandeinsätze am letzten Meldetag</td></tr>
+            <tr><td>Feuerwehr-Kennzahlen</td><td>Brandeinsätze der letzten 7 Tage im Vergleich zur Vorwoche</td></tr>
             <tr><td>Brandeinsätze pro Tag</td><td>Balkendiagramm der letzten 7 Tage</td></tr>
             <tr><td>Anteil Brandeinsätze</td><td>Anteil an allen Einsätzen der Woche</td></tr>
             <tr><td>Feuerwehr-Tagesübersicht</td><td>Tabelle mit Bränden, Hilfeleistungen und Eintreffzeit</td></tr>
-            <tr><td rowspan="2">Wasserpegel</td><td>Pegel-Kennzahlen</td><td>Aktueller Wasserstand, Einordnung und 7-Tage-Spanne</td></tr>
-            <tr><td>Pegelverlauf</td><td>Wasserstand der letzten 7 Tage mit Mittelwerten</td></tr>
+            <tr><td rowspan="4">Wasserpegel</td><td>Pegelstand</td><td>Aktueller Wasserstand, Standard Berlin-Köpenick</td></tr>
+            <tr><td>Pegel-Kennzahlen</td><td>Aktueller Wasserstand, Einordnung und 7-Tage-Spanne</td></tr>
+            <tr><td>Pegelverlauf</td><td>7-Tage-Verlauf und aktuelle Berliner Wasserstände</td></tr>
+            <tr><td>Pegel in Berlin</td><td>Aktuelle Wasserstände der Berliner Pegel</td></tr>
           </tbody>
         </table>
       </div>
@@ -222,7 +225,7 @@
 
     <section class="docs-card" id="mobil">
       <h2>Smartphone &amp; Tablet</h2>
-      <p>Das Layout passt sich an die Bildschirmgröße an und nutzt bis zu 27"-Monitoren (2560 px) die volle Breite. Unter 760 px Breite:</p>
+      <p>Das Layout passt sich an die Bildschirmgröße an und nutzt die volle Breite. Unter 760 px Breite:</p>
       <ul>
         <li>Die Seitenleiste wird zur Kopfzeile. Das Menü öffnest du über die Schaltfläche <kbd>☰</kbd>.</li>
         <li>Widgets stehen untereinander, und die Seite scrollt.</li>
@@ -241,7 +244,7 @@
 
     <section class="docs-card" id="daten">
       <h2>Deine Daten</h2>
-      <p>Termine, Notizen, Aufgaben, Checkliste, Treffpunkt, Countdown, Layout und Farbmodus werden nur im <strong>lokalen Speicher deines Browsers</strong> (localStorage) abgelegt. Es gibt kein Benutzerkonto und keinen eigenen Server, der diese Daten speichert.</p>
+      <p>Termine, Notizen, Aufgaben, Checkliste, Countdown, Layout und Farbmodus werden nur im <strong>lokalen Speicher deines Browsers</strong> (localStorage) abgelegt. Es gibt kein Benutzerkonto und keinen eigenen Server, der diese Daten speichert.</p>
       <ul>
         <li>Die Daten gelten nur für diesen Browser auf diesem Gerät.</li>
         <li>Wer die Website-Daten im Browser löscht, setzt das Dashboard komplett zurück.</li>
@@ -316,6 +319,7 @@ node dev-server.js
 # eigenen Key eintragen
 # oder: OPENWEATHER_KEY=… node dev-server.js</code></pre>
       <h3>Deployment auf Vercel</h3>
+      <p>Die öffentliche Instanz: <a href="https://dashboard-projekt-lenny-kevin.vercel.app/" target="_blank" rel="noopener">https://dashboard-projekt-lenny-kevin.vercel.app/</a></p>
       <ul>
         <li>Die statischen Dateien werden direkt ausgeliefert, <code>api/warnings.js</code> und <code>api/radar.js</code> laufen als Serverless-Funktionen unter <code>/api/warnings</code> bzw. <code>/api/radar</code>.</li>
         <li>Die Antwort wird mit <code>Cache-Control: s-maxage=60, stale-while-revalidate=300</code> gecacht.</li>
@@ -353,7 +357,7 @@ npm run test:headed  # dieselben Tests, Browser sichtbar</code></pre>
       <ul>
         <li>Sprachmenü steht neben dem Farbmodus, Einträge Deutsch und English.</li>
         <li>Start auf Deutsch, Wechsel auf Englisch inkl. Reload: Titel, Navigation, Übersicht.</li>
-        <li>Alle sechs Seiten (Übersicht, Wetter, Regenradar, Katastrophenschutz, Feuerwehr, Wasserpegel).</li>
+        <li>Alle fünf Seiten (Übersicht, Wetter inkl. Regenradar, Katastrophenschutz, Feuerwehr, Wasserpegel).</li>
         <li>Widget-Katalog auf Deutsch und Englisch öffnen und schließen.</li>
         <li>Farbmodus Hell → Dunkel.</li>
         <li>Smartphone (390×844): Navigation verborgen, Menü öffnet die Seitenleiste.</li>
@@ -363,14 +367,14 @@ npm run test:headed  # dieselben Tests, Browser sichtbar</code></pre>
       <ul>
         <li>Leeres Absenden bei Wetter, Radar und Pegel ändert nichts.</li>
         <li>Ortssuche: Treffer (Hamburg), unbekannter Name, Radar-Schnellwahl Potsdam.</li>
-        <li>Familien-Treffpunkt inkl. Sonderzeichen, Speichern, Reload.</li>
+        <li>Notrufnummern und To-do-Liste auf der Katastrophenschutz-Seite.</li>
         <li>Warnungsfilter (Dresden / kein Treffer) und Checkliste abhaken.</li>
         <li>Pegelsuche: Dresden anzeigen, unbekannter Name als Toast.</li>
         <li>Aufgaben anlegen, abhaken, löschen; Notizen speichern; Kalendertermin; Countdown.</li>
         <li>Radar-Quelle OpenWeather und Auto-Aktualisierung aus.</li>
       </ul>
       <h4>Code-Injection</h4>
-      <p>Payloads wie <code>&lt;script&gt;alert(1)&lt;/script&gt;</code>, <code>&lt;img src=x onerror=alert(1)&gt;</code>, SVG-<code>onload</code>, Textarea-Breakout, <code>javascript:</code>-URLs und Template-Injection in Treffpunkt, Aufgaben, Notizen, Kalender, Countdown, Wetter-/Radar-/Pegelsuche und Warnungsfilter. Erwartung: kein Dialog, Payload nur als Text, keine eingeschleusten <code>img</code>/<code>script</code>-Knoten. Ortsnamen im Radar-Popup werden per <code>textContent</code> gesetzt, nicht als HTML.</p>
+      <p>Payloads wie <code>&lt;script&gt;alert(1)&lt;/script&gt;</code>, <code>&lt;img src=x onerror=alert(1)&gt;</code>, SVG-<code>onload</code>, Textarea-Breakout, <code>javascript:</code>-URLs und Template-Injection in Aufgaben, Notizen, Kalender, Countdown, Wetter-/Radar-/Pegelsuche und Warnungsfilter. Erwartung: kein Dialog, Payload nur als Text, keine eingeschleusten <code>img</code>/<code>script</code>-Knoten. Ortsnamen im Radar-Popup werden per <code>textContent</code> gesetzt, nicht als HTML.</p>
       <h4>Belastung</h4>
       <ul>
         <li>Alle Seiten achtmal hintereinander umschalten.</li>
@@ -448,13 +452,13 @@ npm run test:headed  # dieselben Tests, Browser sichtbar</code></pre>
         <li><strong>Reihenfolge:</strong> <code>saveLayoutOrder</code> und <code>applySavedLayoutOrder</code> speichern und laden pro Container die Reihenfolge der Elemente.</li>
         <li><strong>Freies Verschieben:</strong> <code>startRoamDrag</code> ermittelt mit <code>document.elementsFromPoint</code> das Ziel. Ob das Element davor oder dahinter landet, hängt davon ab, ob der Zeiger vor oder hinter der Mitte des Ziels liegt. In eine <code>.stat-row</code> passen nur Kennzahl-Karten, in das Widget-Raster (<code>.overview-grid</code>) nur hinzugefügte Widgets. Alle anderen Container nehmen jedes Element auf. Der Zielcontainer wird in <code>dashboard-widget-places</code> gespeichert, sofern er nicht der Ursprungscontainer ist.</li>
         <li><strong>Leere Container</strong> erhalten die Klasse <code>.layout-empty</code> und erscheinen im Anordnen-Modus als „Hierher ziehen“. Kennzahl-Reihen setzen <code>--stat-cols</code> auf die Anzahl ihrer Karten.</li>
-        <li><strong>Größe:</strong> In Flex-Containern steuert <code>data-layout-grow</code> den Anteil (Mindestgröße 260 × 170 px). Im Widget-Raster speichern <code>data-col-frac</code> (Anteil der Spalten) und <code>data-row-weight</code> die Größe, damit sie auf jeder Bildschirmbreite gleich wirkt.</li>
+        <li><strong>Größe:</strong> Standard ist eine feste Kachelhöhe (ca. 280 px) und eine Breite nach Inhalt. Freie Rasterplätze werden zu Platzhaltern. Im Anordnen-Modus speichert der Griff unten rechts Pixelmaße (<code>data-layout-h</code>, <code>data-layout-w</code>, Mindestgröße 260 × 170 px). Im Widget-Raster steuert <code>data-col-frac</code> die Spaltenbreite. Alte Einträge <code>grow</code> und <code>weight</code> werden weiter gelesen, strecken die Seite aber nicht mehr von allein.</li>
         <li><strong>Zurücksetzen:</strong> Jeder Container merkt sich seine Standardreihenfolge (<code>_defaultOrder</code>). <code>resetPageLayout</code> stellt diese Reihenfolge wieder her und löscht die gespeicherten Plätze und Größen.</li>
       </ul>
       <h3>Skalierung mit Container-Queries</h3>
       <p>Widget-Inhalte skalieren über CSS-Container-Queries statt über die Fenstergröße: <code>.ov-body</code> (<code>ovbody</code>), Kennzahl-Karten (<code>statcard</code>) und Diagramme (<code>chartcard</code>). Schriftgrößen nutzen <code>cqh</code>/<code>cqw</code> mit <code>clamp()</code>. Bei sehr kleinen Widgets werden Nebenelemente wie Icons, Beschriftungen oder Datumszeilen ausgeblendet.</p>
       <h3>Live-Kopien (Mirror-Widgets)</h3>
-      <p>Widgets mit <code>mirror</code> klonen DOM-Teile einer anderen Seite (<code>cloneForMirror</code>, IDs erhalten ein Suffix) und aktualisieren sich bei Änderungen der Quelle. Bei Kennzahl-Reihen zeigt die Kopie auch Karten, die woanders hin verschoben wurden.</p>
+      <p>Widgets mit <code>source</code> klonen das komplette Panel einer anderen Seite (gleiche Überschrift und gleicher Inhalt). <code>mirror</code> klont nur Fragmente (z. B. Kennzahl-Reihen). IDs erhalten ein Suffix, damit sie eindeutig bleiben.</p>
     </section>
 
     <section class="docs-card" id="speicher">
@@ -469,12 +473,11 @@ npm run test:headed  # dieselben Tests, Browser sichtbar</code></pre>
             <tr><td><code>dashboard-overview-widgets</code></td><td>Widget-Typen der Übersicht</td></tr>
             <tr><td><code>dashboard-page-widgets-&lt;seite&gt;</code></td><td>Zusätzliche Widgets einer Unterseite</td></tr>
             <tr><td><code>dashboard-layout-&lt;container&gt;</code></td><td>Reihenfolge der Elemente in einem Container</td></tr>
-            <tr><td><code>dashboard-layout-sizes</code></td><td>Größen (<code>grow</code>, <code>frac</code>, <code>weight</code>) pro Element</td></tr>
+            <tr><td><code>dashboard-layout-sizes</code></td><td>Größen (<code>height</code>, <code>width</code>, <code>frac</code>, ggf. älteres <code>grow</code>) pro Element</td></tr>
             <tr><td><code>dashboard-widget-places</code></td><td>In andere Container verschobene Elemente: <code>{ elementId: "seite:container" }</code></td></tr>
             <tr><td><code>dashboard-collapsed</code></td><td>IDs eingeklappter Widgets</td></tr>
             <tr><td><code>dashboard-cal-events</code></td><td>Kalendertermine</td></tr>
             <tr><td><code>dashboard-widget-notes</code>, <code>-todo</code>, <code>-countdown</code>, <code>-checklist</code></td><td>Inhalte der jeweiligen Widgets</td></tr>
-            <tr><td><code>dashboard-meeting-point</code></td><td>Familien-Treffpunkt</td></tr>
             <tr><td><code>dashboard-water-station</code></td><td>Gewählter Pegel (UUID). Standard ist Berlin-Köpenick</td></tr>
           </tbody>
         </table>
@@ -544,19 +547,18 @@ function mountMeinWidget(body) {
         <table class="docs-table">
           <thead><tr><th>Quelle</th><th>Lizenz / Bedingungen</th></tr></thead>
           <tbody>
-            <tr><td><a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a></td><td>CC BY 4.0, kostenlos für nicht-kommerzielle Nutzung. Ortsdaten von GeoNames (CC BY 4.0)</td></tr>
-            <tr><td><a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a></td><td>Kostenlose öffentliche API mit Namensnennung</td></tr>
-            <tr><td><a href="https://openweathermap.org/" target="_blank" rel="noopener">OpenWeather</a></td><td>ODbL 1.0, Namensnennung „Weather data provided by OpenWeather“</td></tr>
-            <tr><td>Esri World Light Gray Base</td><td>Esri-Nutzungsbedingungen. Namensnennung: Esri, HERE, Garmin, FAO, NOAA, USGS</td></tr>
-            <tr><td><a href="https://github.com/Berliner-Feuerwehr/BF-Open-Data" target="_blank" rel="noopener">Berliner Feuerwehr – BF-Open-Data</a></td><td>CC BY 4.0, © Berliner Feuerwehr</td></tr>
-            <tr><td><a href="https://www.pegelonline.wsv.de/" target="_blank" rel="noopener">PEGELONLINE</a> (WSV / ITZBund)</td><td>Datenlizenz Deutschland – Zero – 2.0</td></tr>
+            <tr><td><a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a></td><td><a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>, kostenlos für nicht-kommerzielle Nutzung (<a href="https://open-meteo.com/en/terms" target="_blank" rel="noopener">Bedingungen</a>). Ortsdaten von <a href="https://www.geonames.org/" target="_blank" rel="noopener">GeoNames</a> (CC BY 4.0)</td></tr>
+            <tr><td><a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a></td><td>Kostenlose öffentliche API mit Namensnennung (<a href="https://www.rainviewer.com/terms.html" target="_blank" rel="noopener">Nutzungsbedingungen</a>)</td></tr>
+            <tr><td><a href="https://openweathermap.org/" target="_blank" rel="noopener">OpenWeather</a></td><td><a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener">ODbL 1.0</a>, Namensnennung „Weather data provided by OpenWeather“ (<a href="https://openweathermap.org/terms" target="_blank" rel="noopener">Bedingungen</a>)</td></tr>
+            <tr><td><a href="https://www.arcgis.com/home/item.html?id=ed712cb1db3e4bae9e85329040fb9a49" target="_blank" rel="noopener">Esri World Light Gray Base</a></td><td><a href="https://www.esri.com/en-us/legal/terms/full-master-agreement" target="_blank" rel="noopener">Esri-Nutzungsbedingungen</a>. Namensnennung: Esri, HERE, Garmin, FAO, NOAA, USGS</td></tr>
+            <tr><td><a href="https://github.com/Berliner-Feuerwehr/BF-Open-Data" target="_blank" rel="noopener">Berliner Feuerwehr – BF-Open-Data</a></td><td><a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>, © Berliner Feuerwehr</td></tr>
+            <tr><td><a href="https://www.pegelonline.wsv.de/" target="_blank" rel="noopener">PEGELONLINE</a> (WSV / ITZBund)</td><td><a href="https://www.govdata.de/dl-de/zero-2-0" target="_blank" rel="noopener">Datenlizenz Deutschland – Zero – 2.0</a></td></tr>
             <tr><td><a href="https://warnung.bund.de/" target="_blank" rel="noopener">warnung.bund.de</a> (BBK, NINA)</td><td>Keine ausdrückliche Lizenz. Quelle: BBK und die jeweils herausgebende Stelle</td></tr>
-            <tr><td>Leaflet 1.9.4</td><td>BSD 2-Clause</td></tr>
-            <tr><td>Schriften Inter und Fraunces</td><td>SIL Open Font License 1.1</td></tr>
+            <tr><td><a href="https://leafletjs.com/" target="_blank" rel="noopener">Leaflet 1.9.4</a></td><td><a href="https://github.com/Leaflet/Leaflet/blob/main/LICENSE" target="_blank" rel="noopener">BSD 2-Clause</a></td></tr>
+            <tr><td><a href="https://fonts.google.com/specimen/Outfit" target="_blank" rel="noopener">Outfit</a>, <a href="https://fonts.google.com/specimen/Source+Sans+3" target="_blank" rel="noopener">Source Sans 3</a></td><td><a href="https://openfontlicense.org/" target="_blank" rel="noopener">SIL Open Font License 1.1</a></td></tr>
           </tbody>
         </table>
       </div>
-      <p>Links zu allen Lizenztexten stehen in der <code>README.md</code>.</p>
     </section>
   </main>
 </div>

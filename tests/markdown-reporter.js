@@ -30,7 +30,7 @@ const DOCS = {
     file: "tests/dashboard.spec.js",
     zweck: "Prüft, dass jeder Navigationspunkt die richtige Seite einblendet.",
     schritte: [
-      "Nacheinander Übersicht, Wetter, Regenradar, Katastrophenschutz, Feuerwehr und Wasserpegel anklicken.",
+      "Nacheinander Übersicht, Wetter, Katastrophenschutz, Feuerwehr und Wasserpegel anklicken.",
     ],
     erwartet: "Die angeklickte Seite hat die Klasse active, ebenso der zugehörige Navigationspunkt.",
   },
@@ -44,6 +44,59 @@ const DOCS = {
       "Auf Englisch wechseln und den Katalog erneut öffnen.",
     ],
     erwartet: "Deutsch: „Widget hinzufügen“, „Kalender & Organisation“, „Aktuelles Wetter“. Englisch: „Add widget“, „Calendar & organisation“, „Current weather“. Schließen blendet den Overlay aus.",
+  },
+  "öffnet das Versions-Changelog als Popup": {
+    suite: "Dashboard",
+    file: "tests/dashboard.spec.js",
+    zweck: "Prüft den Navigationspunkt Version unter der Dokumentation und das Changelog der Version 2.",
+    schritte: [
+      "Dashboard auf Deutsch öffnen.",
+      "Prüfen, dass Version unter Dokumentation steht und nicht in der Seiten-Navigation.",
+      "Version anklicken, Changelog lesen, mit Escape schließen.",
+      "Auf Englisch wechseln, erneut öffnen und mit × schließen.",
+    ],
+    erwartet: "In der Seitenleiste steht dauerhaft „Version 2.0.0“. Der Dialog zeigt Version 2.0.0 und den Hinweis zu Änderungen nach dem 28. September 2026. Escape und Schließen blenden das Fenster aus. Englisch: after 28 September 2026.",
+  },
+  "zeigt die Standard-Widgets der Übersicht": {
+    suite: "Dashboard",
+    file: "tests/dashboard.spec.js",
+    zweck: "Prüft die Standard-Auswahl auf der Übersicht.",
+    schritte: [
+      "Die Übersicht ohne gespeichertes Layout öffnen.",
+      "Die Standard-Widgets zählen und ihre Titel prüfen.",
+    ],
+    erwartet: "Genau drei Widgets: Aktuelles Wetter, Brandeinsätze pro Tag und Pegel (Verlauf plus Berliner Liste).",
+  },
+  "hält Notizen und Radar kompakt": {
+    suite: "Dashboard",
+    file: "tests/dashboard.spec.js",
+    zweck: "Prüft, dass Notizen und Regenradar nicht die ganze Seitenbreite nutzen.",
+    schritte: [
+      "Notizen-Widget auf der Übersicht hinzufügen und die Breite messen.",
+      "Wetter-Panel auf Übersicht und Wetterseite vergleichen.",
+      "Wetterseite öffnen und die Radar-Breite messen.",
+    ],
+    erwartet: "Notizen sind schmaler als die halbe Übersicht. Das Wetter-Panel ist auf Übersicht und Wetterseite gleich breit. Der Pegelverlauf ist mindestens 500 Pixel breit, das Diagramm nicht gequetscht. Das Radar ist schmaler als 65 Prozent der Wetterseite.",
+  },
+  "lässt den Widget-Platzhalter schmal": {
+    suite: "Dashboard",
+    file: "tests/dashboard.spec.js",
+    zweck: "Prüft, dass die Fläche „Widget hinzufügen“ nicht die Restbreite der Seite ausfüllt.",
+    schritte: [
+      "Auf der Übersicht die Breite des Platzhalters messen.",
+      "Katastrophenschutz öffnen und den Platzhalter in der Widget-Zeile messen.",
+    ],
+    erwartet: "Der Platzhalter ist schmaler als 240 Pixel und nimmt auf Katastrophenschutz weniger als 35 Prozent der Seitenbreite ein.",
+  },
+  "zeigt dasselbe Pegel-Widget auf Übersicht und Wasserseite": {
+    suite: "Dashboard",
+    file: "tests/dashboard.spec.js",
+    zweck: "Prüft, dass Übersicht und Wasserpegel dasselbe kombinierte Pegel-Widget nutzen.",
+    schritte: [
+      "Auf der Übersicht Verlauf und Berliner Liste im Pegel-Widget prüfen.",
+      "Wasserpegel öffnen und dieselbe Struktur prüfen.",
+    ],
+    erwartet: "Beide Seiten zeigen das Panel mit water-combo-grid und der Berliner Pegelliste.",
   },
   "wechselt den Farbmodus": {
     suite: "Dashboard",
@@ -97,20 +150,10 @@ const DOCS = {
     ],
     erwartet: "Hamburg erscheint als Ort in Wetter und Seitenleiste. Unbekannte Namen erzeugen eine klare Meldung. Potsdam landet im Radarfeld.",
   },
-  "Familien-Treffpunkt speichert Text inklusive Sonderzeichen": {
-    suite: "Eingabefelder",
-    file: "tests/inputs.spec.js",
-    zweck: "Prüft Speichern, Reload und dass HTML nicht als Script ausgeführt wird.",
-    schritte: [
-      "Im Treffpunkt `<script>alert(1)</script> bei Oma` eintragen.",
-      "Auf „Gespeichert“ warten und die Seite neu laden.",
-    ],
-    erwartet: "Der Text bleibt unverändert im Feld. Es öffnet sich kein Dialog. Nach dem Reload ist derselbe Text wieder da.",
-  },
   "Warnungsfilter und Checkliste reagieren auf Eingaben": {
     suite: "Eingabefelder",
     file: "tests/inputs.spec.js",
-    zweck: "Prüft Filter der amtlichen Warnungen und das Abhaken der Notfall-Checkliste.",
+    zweck: "Prüft Filter der amtlichen Warnungen und das Abhaken der To-do-Liste.",
     schritte: [
       "Warnungen nach Dresden filtern, danach nach xyzzy.",
       "Den ersten Checklistenpunkt abhaken.",
@@ -142,7 +185,7 @@ const DOCS = {
   "Radar-Anbieter und Auto-Aktualisierung lassen sich umschalten": {
     suite: "Eingabefelder",
     file: "tests/inputs.spec.js",
-    zweck: "Prüft Select und Toggle in der Seitenleiste bzw. auf der Radar-Seite.",
+    zweck: "Prüft Select und Toggle in der Seitenleiste bzw. auf der Wetterseite.",
     schritte: [
       "Niederschlagsquelle auf OpenWeather stellen.",
       "Auto-Aktualisierung ausschalten.",
@@ -152,8 +195,8 @@ const DOCS = {
   "hält schnelles Umschalten aller Seiten aus": {
     suite: "Belastung",
     file: "tests/stress.spec.js",
-    zweck: "Belastet die Navigation durch acht vollständige Durchläufe aller sechs Seiten.",
-    schritte: ["48 Seitenwechsel hintereinander auslösen."],
+    zweck: "Belastet die Navigation durch acht vollständige Durchläufe aller fünf Seiten.",
+    schritte: ["40 Seitenwechsel hintereinander auslösen."],
     erwartet: "Danach ist Wasserpegel aktiv. Sprachmenü und Seitentitel bleiben sichtbar. Die Oberfläche stürzt nicht ab.",
   },
   "hält schnelles Umschalten von Theme, Menü und Widget-Auswahl aus": {
@@ -172,10 +215,10 @@ const DOCS = {
     file: "tests/stress.spec.js",
     zweck: "Prüft leere Absenden und einen 4000-Zeichen-Text mit HTML und Umlauten.",
     schritte: [
-      "Wetter, Radar, Warnungen und Pegel mehrfach leer absenden.",
+      "Wetter, Radar, Warnungen, Notizen und Pegel mehrfach leer absenden bzw. mit langem Text füllen.",
       "Denselben langen Text in die Felder schreiben.",
     ],
-    erwartet: "Unbekannte Orte und Pegel werden gemeldet. Der Treffpunkt speichert. Das Sprachmenü bleibt sichtbar.",
+    erwartet: "Unbekannte Orte und Pegel werden gemeldet. Notizen speichern. Das Sprachmenü bleibt sichtbar.",
   },
   "hält viele Aufgaben und schnelles Hinzufügen/Entfernen von Widgets aus": {
     suite: "Belastung",
@@ -197,14 +240,13 @@ const DOCS = {
     ],
     erwartet: "Die Oberfläche bleibt Deutsch mit der Überschrift „Meine Übersicht“. Der Aktualisieren-Knopf bleibt sichtbar.",
   },
-  "Treffpunkt, Notizen und Aufgaben speichern Payloads nur als Text": {
+  "Notizen und Aufgaben speichern Payloads nur als Text": {
     suite: "Code-Injection",
     file: "tests/injection.spec.js",
-    zweck: "Prüft XSS- und HTML-Payloads in Treffpunkt, Aufgaben und Notizen. Gespeicherter Text darf nicht als Code laufen.",
+    zweck: "Prüft XSS- und HTML-Payloads in Aufgaben und Notizen. Gespeicherter Text darf nicht als Code laufen.",
     schritte: [
-      "Mehrere Payloads (script, img onerror, svg onload, textarea-Breakout, javascript:-URL, Template-Injection) nacheinander in den Treffpunkt schreiben und neu laden.",
-      "Dasselbe img-onerror als Aufgabe anlegen.",
-      "Den textarea-Breakout in die Notizen schreiben.",
+      "Mehrere Payloads (script, img onerror, svg onload, textarea-Breakout, javascript:-URL, Template-Injection) nacheinander als Aufgabe anlegen.",
+      "Dieselben Payloads in die Notizen schreiben, speichern und neu laden.",
     ],
     erwartet: "Kein alert/prompt. Kein eingefügtes img/svg/iframe. Werte stehen unverändert als Text in den Feldern bzw. in der Aufgabenliste.",
   },
