@@ -14,10 +14,10 @@ I18N.registerDocs("en", `
       <p>Live at <a href="https://dashboard-projekt-lenny-kevin.vercel.app/" target="_blank" rel="noopener">dashboard-projekt-lenny-kevin.vercel.app</a>. To run it locally, see <code>README.md</code> or <a href="#entwicklung">Development &amp; deployment</a>.</p>
       <figure class="docs-shot">
         <img src="img/docs/uebersicht.webp" width="1440" height="900" loading="lazy" alt="Dashboard with the sidebar on the left and the overview with weather widgets">
-        <figcaption>“My overview” with the default selection. On the left, the sidebar with navigation, settings and location.</figcaption>
+        <figcaption>“My overview” with the default selection. The sidebar shows keyboard shortcuts 1–5, then Against boredom, Documentation, Version and Settings.</figcaption>
       </figure>
       <div class="docs-grid">
-        <div class="docs-tile"><strong>1. Choose a page</strong><span>Use the sidebar on the left to switch between Overview, Weather, Water levels, Fire brigade and Organisation.</span></div>
+        <div class="docs-tile"><strong>1. Choose a page</strong><span>Use the sidebar on the left or the keys 1–5 to switch between Overview, Weather, Water levels, Fire brigade and Organisation.</span></div>
         <div class="docs-tile"><strong>2. Build your overview</strong><span>On “My overview”, use “+ Widget” to show exactly the tiles you need.</span></div>
         <div class="docs-tile"><strong>3. Arrange</strong><span>Use “✥ Arrange” to move widgets and change their size. Finish with “✓ Done”.</span></div>
       </div>
@@ -31,7 +31,7 @@ I18N.registerDocs("en", `
         <dt>Warning banner</dt><dd>In the header, between the page title and the buttons, a notice scrolls from right to left. “ACHTUNG” is always shown on the left and right (yellow and black, readable with red-green colour vision deficiency). You set the text under Organisation in the “Warning banner” widget. Without text the banner stays hidden.</dd>
         <dt>Against boredom</dt><dd>Shows game tiles. Klondike solitaire is embedded from solitaire-online.com, tic-tac-toe and the dino game from Jotform. “← Games” returns to the selection.</dd>
         <dt>Documentation</dt><dd>Opens this guide in a separate window.</dd>
-        <dt>Version</dt><dd>Shows the current version number and opens the changelog.</dd>
+        <dt>Version</dt><dd>Shows the current version number and opens the changelog with the version 2 changes.</dd>
         <dt>Settings</dt><dd>Keyboard shortcuts for Overview, Weather, Water levels, Fire brigade and Organisation. Default is 1–5. Click a key in the list and press the new key; Backspace clears it. Shortcuts do not run while a search field is focused.</dd>
         <dt>Mode: Light / Dark</dt><dd>Switches the colour scheme. If you haven't chosen one, the dashboard follows your system setting.</dd>
         <dt>Language</dt><dd>The drop-down next to the colour mode switches the dashboard and the documentation to another language (currently German and English). The page reloads briefly and all settings are kept. If you haven't chosen one, the browser language is used.</dd>
@@ -42,6 +42,14 @@ I18N.registerDocs("en", `
       <figure class="docs-shot">
         <img src="img/docs/uebersicht-hell.webp" width="1440" height="900" loading="lazy" alt="Overview in light colour mode">
         <figcaption>The same overview in “Light” mode.</figcaption>
+      </figure>
+      <figure class="docs-shot">
+        <img src="img/docs/einstellungen.webp" width="1440" height="900" loading="lazy" alt="Settings dialog with keyboard shortcuts 1 to 5">
+        <figcaption>Settings: keys 1–5 for the five main pages. Click a key, then press a new one.</figcaption>
+      </figure>
+      <figure class="docs-shot">
+        <img src="img/docs/version.webp" width="1440" height="900" loading="lazy" alt="Changelog dialog for version 2.0.0">
+        <figcaption>The changelog under Version, with the changes since 28 September 2026.</figcaption>
       </figure>
     </section>
 
@@ -86,10 +94,10 @@ I18N.registerDocs("en", `
     <section class="docs-card" id="seiten">
       <h2>The pages</h2>
       <h3>Weather</h3>
-      <p>Current weather with temperature, conditions, air pressure, humidity, wind (speed and direction), feels-like temperature, UV index and sunrise/sunset times. On top of that there is a 6-day forecast, an hourly trend, the metrics compared with yesterday and the rain radar. Use the search field to choose another location, e.g. “Lisbon”. Clicking a day shows its details.</p>
+      <p>Current weather with temperature, conditions, air pressure, humidity, wind (speed and direction as a compass or bearing), feels-like temperature, UV index and sunrise/sunset times. The metrics sit in an F-pattern row. On top of that there is a 6-day forecast, an hourly trend and the rain radar beside the current weather. Use the search field to choose another location, e.g. “Lisbon”. Clicking a day shows its details.</p>
       <figure class="docs-shot">
-        <img src="img/docs/wetter.webp" width="1440" height="900" loading="lazy" alt="Weather page with metrics, current weather, forecast and temperature trend">
-        <figcaption>Weather page: the metrics at the top, the weather panel with search, days and hourly trend on the left, the charts on the right.</figcaption>
+        <img src="img/docs/wetter.webp" width="1440" height="900" loading="lazy" alt="Weather page with metrics in a row, current weather, radar and forecast">
+        <figcaption>Weather page: the metrics in a row at the top, then current weather, rain radar and forecast.</figcaption>
       </figure>
       <p>The rain radar is on the same page. Search for a location or click a quick pick (Berlin, Potsdam, Munich, Hamburg). Under “Precipitation” you choose the source:</p>
       <ul>
@@ -118,6 +126,12 @@ I18N.registerDocs("en", `
         <img src="img/docs/katastrophenschutz.webp" width="1440" height="900" loading="lazy" alt="Organisation page with list of warnings, emergency numbers and to-do list">
         <figcaption>Organisation: warnings are labelled by status (New, Update, Cancelled) and can be filtered by location.</figcaption>
       </figure>
+      <h3>Against boredom</h3>
+      <p>Optional games away from the situation overview: Klondike solitaire, tic-tac-toe and the dino game. Click a tile to start a game; “← Games” returns to the picker.</p>
+      <figure class="docs-shot">
+        <img src="img/docs/gegen-langeweile.webp" width="1440" height="900" loading="lazy" alt="Against boredom page with three game tiles">
+        <figcaption>Game picker: Klondike, tic-tac-toe and the dino game.</figcaption>
+      </figure>
     </section>
 
     <section class="docs-card" id="widgets">
@@ -129,7 +143,7 @@ I18N.registerDocs("en", `
           <tbody>
             <tr><td rowspan="9">Weather</td><td>Current weather</td><td>Place, search, forecast and hourly trend</td></tr>
             <tr><td>Temperature</td><td>Current temperature compared with yesterday</td></tr>
-            <tr><td>Wind</td><td>Wind speed and direction compared with yesterday</td></tr>
+            <tr><td>Wind</td><td>Wind speed and direction (compass and bearing) compared with yesterday</td></tr>
             <tr><td>Humidity</td><td>Relative humidity compared with yesterday</td></tr>
             <tr><td>Chance of rain today</td><td>Chance of rain for today compared with yesterday</td></tr>
             <tr><td>Forecast · High temperature</td><td>Highs for the coming days as bars</td></tr>
@@ -220,7 +234,7 @@ I18N.registerDocs("en", `
         <table class="docs-table">
           <thead><tr><th>File</th><th>Purpose</th></tr></thead>
           <tbody>
-            <tr><td><code>index.html</code></td><td>Structure of all pages (<code>.page</code>), sidebar, dialogs for “Add widget” and “Reset”</td></tr>
+            <tr><td><code>index.html</code></td><td>Structure of all pages (<code>.page</code>), sidebar, dialogs for “Add widget”, “Reset”, Settings and the changelog</td></tr>
             <tr><td><code>css/style.css</code></td><td>All styles: colour variables for light/dark, sidebar, widgets, container queries, mobile view</td></tr>
             <tr><td><code>js/app.js</code></td><td>All logic: navigation, theme, data fetching, charts, widget catalogue, layout system</td></tr>
             <tr><td><code>js/i18n.js</code></td><td>Internationalisation: translation function <code>t()</code>, language detection, language drop-down</td></tr>
@@ -421,6 +435,7 @@ npm run test:headed  # the same tests, browser visible</code></pre>
             <tr><td><code>dashboard-collapsed</code></td><td>IDs of collapsed widgets</td></tr>
             <tr><td><code>dashboard-cal-events</code></td><td>Calendar events</td></tr>
             <tr><td><code>dashboard-banner-text</code></td><td>Scrolling text of the warning banner</td></tr>
+            <tr><td><code>dashboard-shortcuts</code></td><td>Keyboard shortcuts for the five main pages (default 1–5)</td></tr>
             <tr><td><code>dashboard-widget-notes</code>, <code>-todo</code>, <code>-countdown</code>, <code>-checklist</code></td><td>Contents of the respective widgets</td></tr>
             <tr><td><code>dashboard-water-station</code></td><td>Selected gauge (UUID). The default is Berlin-Köpenick</td></tr>
           </tbody>
@@ -503,6 +518,7 @@ function mountMyWidget(body) {
             <tr><td><a href="https://warnung.bund.de/" target="_blank" rel="noopener">warnung.bund.de</a> (BBK, NINA)</td><td>No explicit licence. Source: BBK and the respective issuing authority</td></tr>
             <tr><td><a href="https://leafletjs.com/" target="_blank" rel="noopener">Leaflet 1.9.4</a></td><td><a href="https://github.com/Leaflet/Leaflet/blob/main/LICENSE" target="_blank" rel="noopener">BSD 2-Clause</a></td></tr>
             <tr><td><a href="https://fonts.google.com/specimen/Outfit" target="_blank" rel="noopener">Outfit</a>, <a href="https://fonts.google.com/specimen/Source+Sans+3" target="_blank" rel="noopener">Source Sans 3</a></td><td><a href="https://openfontlicense.org/" target="_blank" rel="noopener">SIL Open Font License 1.1</a></td></tr>
+            <tr><td><a href="https://www.solitaire-online.com/" target="_blank" rel="noopener">Klondike</a> (solitaire-online.com), <a href="https://www.jotform.com/" target="_blank" rel="noopener">tic-tac-toe and dino game</a> (Jotform)</td><td>Embedded games under “Against boredom”; terms of the respective providers</td></tr>
           </tbody>
         </table>
       </div>
