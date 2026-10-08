@@ -124,7 +124,7 @@ I18N.register("de", {
     "docs.nav.widgets": "Widget-Katalog",
     "docs.pageTitle": "Dokumentation – Katastrophenschutz „Wir helfen Berlin“",
     "docs.title": "Dokumentation",
-    "docs.updated": "Stand: September 2026",
+    "docs.updated": "Stand: Oktober 2026",
 
     "err.data": "Antwort unvollständig oder fehlerhaft",
     "err.forbidden": "Zugriff verweigert (API-Key prüfen)",
@@ -477,7 +477,7 @@ I18N.register("de", {
     "widget.weather-rain.title": "Regenchance heute",
     "widget.weather-temp.desc": "Aktuelle Temperatur im Vergleich zu gestern",
     "widget.weather-temp.title": "Temperatur",
-    "widget.weather-wind.desc": "Windgeschwindigkeit und -richtung im Vergleich zu gestern",
+    "widget.weather-wind.desc": "Windgeschwindigkeit und -richtung (Kompass und Himmelsrichtung) im Vergleich zu gestern",
     "widget.weather-wind.title": "Wind",
   },
 });

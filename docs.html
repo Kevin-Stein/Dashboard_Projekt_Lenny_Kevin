@@ -64,7 +64,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>
         <span data-i18n="docs.back">Zum Dashboard</span>
       </a>
-      <div class="sidebar-status" data-i18n="docs.updated">Stand: September 2026</div>
+      <div class="sidebar-status" data-i18n="docs.updated">Stand: Oktober 2026</div>
     </div>
   </aside>
 
@@ -84,10 +84,10 @@
       <p>Live unter <a href="https://dashboard-projekt-lenny-kevin.vercel.app/" target="_blank" rel="noopener">dashboard-projekt-lenny-kevin.vercel.app</a>. Lokal starten: <code>README.md</code> oder <a href="#entwicklung">Entwicklung &amp; Deployment</a>.</p>
       <figure class="docs-shot">
         <img src="img/docs/uebersicht.webp" width="1440" height="900" loading="lazy" alt="Dashboard mit Seitenleiste links und der Übersicht mit Wetter-Widgets">
-        <figcaption>„Meine Übersicht“ mit der Standard-Auswahl. Links die Seitenleiste mit Navigation, Einstellungen und Standort.</figcaption>
+        <figcaption>„Meine Übersicht“ mit der Standard-Auswahl. In der Seitenleiste stehen die Tastaturkürzel 1–5, darunter Gegen Langeweile, Dokumentation, Version und Einstellungen.</figcaption>
       </figure>
       <div class="docs-grid">
-        <div class="docs-tile"><strong>1. Seite wählen</strong><span>Links in der Seitenleiste zwischen Übersicht, Wetter, Wasserpegel, Feuerwehr und Organisation wechseln.</span></div>
+        <div class="docs-tile"><strong>1. Seite wählen</strong><span>Links in der Seitenleiste oder mit den Tasten 1–5 zwischen Übersicht, Wetter, Wasserpegel, Feuerwehr und Organisation wechseln.</span></div>
         <div class="docs-tile"><strong>2. Übersicht zusammenstellen</strong><span>Auf „Meine Übersicht“ mit „+ Widget“ genau die Kacheln einblenden, die du brauchst.</span></div>
         <div class="docs-tile"><strong>3. Anordnen</strong><span>Mit „✥ Anordnen“ Widgets verschieben und ihre Größe ändern. Mit „✓ Fertig“ beenden.</span></div>
       </div>
@@ -100,7 +100,7 @@
         <dt>Warn-Banner</dt><dd>In der Kopfzeile, zwischen Seitentitel und den Schaltflächen, läuft ein Hinweis von rechts nach links. Links und rechts steht immer „ACHTUNG“ (gelb-schwarz, auch bei Rot-Grün-Schwäche gut lesbar). Den Text stellst du unter Organisation im Widget „Warn-Banner“ ein. Ohne Text bleibt das Banner unsichtbar.</dd>
         <dt>Gegen Langeweile</dt><dd>Zeigt Spielkacheln. Klondike-Solitaire kommt von solitaire-online.com, Tic Tac Toe und Dino Game von Jotform. „← Spiele“ führt zurück zur Auswahl.</dd>
         <dt>Dokumentation</dt><dd>Öffnet diese Anleitung in einem eigenen Fenster.</dd>
-        <dt>Version</dt><dd>Zeigt die aktuelle Versionsnummer und öffnet das Changelog.</dd>
+        <dt>Version</dt><dd>Zeigt die aktuelle Versionsnummer und öffnet das Changelog mit den Änderungen der Version 2.</dd>
         <dt>Einstellungen</dt><dd>Tastaturkürzel für Übersicht, Wetter, Wasserpegel, Feuerwehr und Organisation. Standard ist 1–5. Eine Taste in der Liste anklicken und die neue Taste drücken; Rücktaste entfernt das Kürzel. In Suchfeldern greifen die Kürzel nicht.</dd>
         <dt>Modus: Hell / Dunkel</dt><dd>Wechselt das Farbschema. Ohne eigene Wahl richtet sich das Dashboard nach der Systemeinstellung.</dd>
         <dt>Sprache</dt><dd>Das Auswahlfeld neben dem Farbmodus stellt Dashboard und Dokumentation auf eine andere Sprache um (derzeit Deutsch und English). Die Seite lädt dabei kurz neu, alle Einstellungen bleiben erhalten. Ohne eigene Wahl gilt die Sprache des Browsers.</dd>
@@ -111,6 +111,14 @@
       <figure class="docs-shot">
         <img src="img/docs/uebersicht-hell.webp" width="1440" height="900" loading="lazy" alt="Übersicht im hellen Farbmodus">
         <figcaption>Dieselbe Übersicht im Modus „Hell“.</figcaption>
+      </figure>
+      <figure class="docs-shot">
+        <img src="img/docs/einstellungen.webp" width="1440" height="900" loading="lazy" alt="Dialog Einstellungen mit Tastaturkürzeln 1 bis 5">
+        <figcaption>Einstellungen: Tasten 1–5 für die fünf Hauptseiten. Eine Taste anklicken, dann neu belegen.</figcaption>
+      </figure>
+      <figure class="docs-shot">
+        <img src="img/docs/version.webp" width="1440" height="900" loading="lazy" alt="Changelog-Fenster der Version 2.0.0">
+        <figcaption>Das Changelog unter Version, mit den Änderungen seit dem 28. September 2026.</figcaption>
       </figure>
     </section>
 
@@ -155,10 +163,10 @@
     <section class="docs-card" id="seiten">
       <h2>Die Seiten</h2>
       <h3>Wetter</h3>
-      <p>Aktuelles Wetter mit Temperatur, Wetterlage, Luftdruck, Luftfeuchtigkeit, Wind (Geschwindigkeit und Richtung), gefühlter Temperatur, UV-Index und Sonnenzeiten. Dazu kommen eine 6-Tage-Vorhersage, ein Stundenverlauf, die Kennzahlen im Vergleich zu gestern und das Regenradar. Über das Suchfeld lässt sich ein anderer Ort wählen, z. B. „Lissabon“. Ein Klick auf einen Tag zeigt dessen Details.</p>
+      <p>Aktuelles Wetter mit Temperatur, Wetterlage, Luftdruck, Luftfeuchtigkeit, Wind (Geschwindigkeit und Richtung als Kompass bzw. Himmelsrichtung), gefühlter Temperatur, UV-Index und Sonnenzeiten. Die Kennzahlen stehen im F-Muster in einer Zeile. Dazu kommen eine 6-Tage-Vorhersage, ein Stundenverlauf und das Regenradar neben dem aktuellen Wetter. Über das Suchfeld lässt sich ein anderer Ort wählen, z. B. „Lissabon“. Ein Klick auf einen Tag zeigt dessen Details.</p>
       <figure class="docs-shot">
-        <img src="img/docs/wetter.webp" width="1440" height="900" loading="lazy" alt="Wetterseite mit Kennzahlen, aktuellem Wetter, Vorhersage und Temperaturverlauf">
-        <figcaption>Wetterseite: oben die Kennzahlen, links das Wetter-Panel mit Suche, Tagen und Stundenverlauf, rechts die Diagramme.</figcaption>
+        <img src="img/docs/wetter.webp" width="1440" height="900" loading="lazy" alt="Wetterseite mit Kennzahlen in einer Zeile, aktuellem Wetter, Radar und Vorhersage">
+        <figcaption>Wetterseite: oben die Kennzahlen in einer Zeile, daneben aktuelles Wetter, Regenradar und Vorhersage.</figcaption>
       </figure>
       <p>Das Regenradar sitzt auf derselben Seite: Ort suchen oder eine Schnellwahl (Berlin, Potsdam, München, Hamburg) anklicken. Unter „Niederschlag“ wählst du die Quelle:</p>
       <ul>
@@ -187,6 +195,12 @@
         <img src="img/docs/katastrophenschutz.webp" width="1440" height="900" loading="lazy" alt="Seite Organisation mit Warnliste, Notrufnummern und To-do-Liste">
         <figcaption>Organisation: Die Warnungen sind nach Status markiert (Neu, Update, Aufgehoben) und lassen sich nach Ort filtern.</figcaption>
       </figure>
+      <h3>Gegen Langeweile</h3>
+      <p>Optionale Spiele außerhalb der Lageübersicht: Klondike-Solitaire, Tic Tac Toe und Dino Game. Ein Klick auf eine Kachel startet das Spiel, „← Spiele“ führt zur Auswahl zurück.</p>
+      <figure class="docs-shot">
+        <img src="img/docs/gegen-langeweile.webp" width="1440" height="900" loading="lazy" alt="Seite Gegen Langeweile mit drei Spielkacheln">
+        <figcaption>Spielauswahl: Klondike, Tic Tac Toe und Dino Game.</figcaption>
+      </figure>
     </section>
 
     <section class="docs-card" id="widgets">
@@ -198,7 +212,7 @@
           <tbody>
             <tr><td rowspan="9">Wetter</td><td>Aktuelles Wetter</td><td>Ort, Suche, Vorhersage und Stundenverlauf</td></tr>
             <tr><td>Temperatur</td><td>Aktuelle Temperatur im Vergleich zu gestern</td></tr>
-            <tr><td>Wind</td><td>Windgeschwindigkeit und -richtung im Vergleich zu gestern</td></tr>
+            <tr><td>Wind</td><td>Windgeschwindigkeit und -richtung (Kompass und Himmelsrichtung) im Vergleich zu gestern</td></tr>
             <tr><td>Luftfeuchte</td><td>Relative Luftfeuchtigkeit im Vergleich zu gestern</td></tr>
             <tr><td>Regenchance heute</td><td>Regenchance für heute im Vergleich zu gestern</td></tr>
             <tr><td>Vorhersage · Höchsttemperatur</td><td>Höchstwerte der nächsten Tage als Balken</td></tr>
@@ -289,7 +303,7 @@
         <table class="docs-table">
           <thead><tr><th>Datei</th><th>Aufgabe</th></tr></thead>
           <tbody>
-            <tr><td><code>index.html</code></td><td>Struktur aller Seiten (<code>.page</code>), Seitenleiste, Dialoge für „Widget hinzufügen“ und „Zurücksetzen“</td></tr>
+            <tr><td><code>index.html</code></td><td>Struktur aller Seiten (<code>.page</code>), Seitenleiste, Dialoge für „Widget hinzufügen“, „Zurücksetzen“, Einstellungen und Changelog</td></tr>
             <tr><td><code>css/style.css</code></td><td>Alle Styles: Farbvariablen für Hell/Dunkel, Seitenleiste, Widgets, Container-Queries, Mobile-Ansicht</td></tr>
             <tr><td><code>js/app.js</code></td><td>Gesamte Logik: Navigation, Theme, Datenabrufe, Diagramme, Widget-Katalog, Layout-System</td></tr>
             <tr><td><code>js/i18n.js</code></td><td>Mehrsprachigkeit: Übersetzungsfunktion <code>t()</code>, Sprachwahl, Sprach-Auswahlfeld</td></tr>
@@ -490,6 +504,7 @@ npm run test:headed  # dieselben Tests, Browser sichtbar</code></pre>
             <tr><td><code>dashboard-collapsed</code></td><td>IDs eingeklappter Widgets</td></tr>
             <tr><td><code>dashboard-cal-events</code></td><td>Kalendertermine</td></tr>
             <tr><td><code>dashboard-banner-text</code></td><td>Lauftext des Warn-Banners</td></tr>
+            <tr><td><code>dashboard-shortcuts</code></td><td>Tastaturkürzel der fünf Hauptseiten (Standard 1–5)</td></tr>
             <tr><td><code>dashboard-widget-notes</code>, <code>-todo</code>, <code>-countdown</code>, <code>-checklist</code></td><td>Inhalte der jeweiligen Widgets</td></tr>
             <tr><td><code>dashboard-water-station</code></td><td>Gewählter Pegel (UUID). Standard ist Berlin-Köpenick</td></tr>
           </tbody>
@@ -568,6 +583,7 @@ function mountMeinWidget(body) {
             <tr><td><a href="https://warnung.bund.de/" target="_blank" rel="noopener">warnung.bund.de</a> (BBK, NINA)</td><td>Keine ausdrückliche Lizenz. Quelle: BBK und die jeweils herausgebende Stelle</td></tr>
             <tr><td><a href="https://leafletjs.com/" target="_blank" rel="noopener">Leaflet 1.9.4</a></td><td><a href="https://github.com/Leaflet/Leaflet/blob/main/LICENSE" target="_blank" rel="noopener">BSD 2-Clause</a></td></tr>
             <tr><td><a href="https://fonts.google.com/specimen/Outfit" target="_blank" rel="noopener">Outfit</a>, <a href="https://fonts.google.com/specimen/Source+Sans+3" target="_blank" rel="noopener">Source Sans 3</a></td><td><a href="https://openfontlicense.org/" target="_blank" rel="noopener">SIL Open Font License 1.1</a></td></tr>
+            <tr><td><a href="https://www.solitaire-online.com/" target="_blank" rel="noopener">Klondike</a> (solitaire-online.com), <a href="https://www.jotform.com/" target="_blank" rel="noopener">Tic Tac Toe und Dino Game</a> (Jotform)</td><td>Eingebettete Spiele unter „Gegen Langeweile“, Nutzungsbedingungen der jeweiligen Anbieter</td></tr>
           </tbody>
         </table>
       </div>

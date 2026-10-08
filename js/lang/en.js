@@ -124,7 +124,7 @@ I18N.register("en", {
     "docs.nav.widgets": "Widget catalogue",
     "docs.pageTitle": "Documentation – Civil Protection “Helping Berlin”",
     "docs.title": "Documentation",
-    "docs.updated": "Last updated: September 2026",
+    "docs.updated": "Last updated: October 2026",
 
     "err.data": "response incomplete or invalid",
     "err.forbidden": "access denied (check the API key)",
@@ -477,7 +477,7 @@ I18N.register("en", {
     "widget.weather-rain.title": "Chance of rain today",
     "widget.weather-temp.desc": "Current temperature compared with yesterday",
     "widget.weather-temp.title": "Temperature",
-    "widget.weather-wind.desc": "Wind speed and direction compared with yesterday",
+    "widget.weather-wind.desc": "Wind speed and direction (compass and bearing) compared with yesterday",
     "widget.weather-wind.title": "Wind",
   },
 });
